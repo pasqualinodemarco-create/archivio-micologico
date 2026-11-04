@@ -1,0 +1,99 @@
+/* Archivio Micologico – admin tweaks */
+
+/*
+ * Admin menu icon:
+ * WordPress renders a custom icon as an <img> (because we pass a data: URI).
+ * We style it to match native Dashicons sizing/spacing and switch it to white
+ * on hover / current submenu (like other admin menu icons).
+ */
+#adminmenu .toplevel_page_am_all_schede .wp-menu-image img {
+  width: 20px;
+  height: 20px;
+  padding-top: 6px; /* aligns with other menu icons */
+  opacity: .6;
+}
+
+#adminmenu .toplevel_page_am_all_schede:hover .wp-menu-image img,
+#adminmenu .toplevel_page_am_all_schede.wp-has-current-submenu .wp-menu-image img,
+#adminmenu .toplevel_page_am_all_schede.current .wp-menu-image img {
+  opacity: 1;
+  filter: brightness(0) invert(1);
+}
+
+/* Classification filters (Ordine/Famiglia/Genere/Specie) on a single row */
+.am-filters-row{
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: nowrap;
+  max-width: 100%;
+  vertical-align: middle;
+  white-space: nowrap;
+}
+.am-filters-row select{
+  /* Override WP responsive admin rules that can force selects to 100% width */
+  width: auto !important;
+  min-width: 140px;
+  max-width: 220px;
+}
+
+/* Slightly tighter on medium screens */
+@media (max-width: 1200px){
+  .am-filters-row select{ min-width: 120px; max-width: 200px; }
+}
+
+/* Extra-specific overrides for list table filters area */
+.post-type-am_scheda .tablenav .actions .am-filters-row{
+  display: inline-flex !important;
+  flex-wrap: nowrap !important;
+}
+.post-type-am_scheda .tablenav .actions .am-filters-row select{
+  width: auto !important;
+}
+
+/* Keep on one line even under WP mobile admin breakpoints */
+@media (max-width: 782px){
+  .post-type-am_scheda .tablenav .actions .am-filters-row{
+    display: flex !important;
+    flex-wrap: nowrap !important;
+    gap: 6px;
+  }
+  .post-type-am_scheda .tablenav .actions .am-filters-row select{
+    min-width: 110px;
+    max-width: 180px;
+    width: auto !important;
+  }
+}
+
+/* Archivio Micologico – submenu icons */
+#adminmenu .toplevel_page_am_dashboard .wp-menu-image img {
+  width: 20px;
+  height: 20px;
+  padding-top: 6px;
+  opacity: .6;
+}
+
+#adminmenu .toplevel_page_am_dashboard:hover .wp-menu-image img,
+#adminmenu .toplevel_page_am_dashboard.wp-has-current-submenu .wp-menu-image img,
+#adminmenu .toplevel_page_am_dashboard.current .wp-menu-image img {
+  opacity: 1;
+  filter: brightness(0) invert(1);
+}
+
+#adminmenu .toplevel_page_am_dashboard .am-admin-menu-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+}
+
+#adminmenu .toplevel_page_am_dashboard .am-admin-menu-item .dashicons {
+  font-size: 16px;
+  width: 16px;
+  height: 16px;
+  line-height: 16px;
+  opacity: .9;
+}
+
+#adminmenu .toplevel_page_am_dashboard .am-admin-menu-item__text {
+  display: inline-block;
+}

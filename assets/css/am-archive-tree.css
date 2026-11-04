@@ -1,0 +1,371 @@
+/* AM Archive Tree (Famiglia → Genere → Schede)
+   NOTE: must play nicely inside Elementor columns, so no fixed max-width. */
+.am-archive{max-width:100%;margin:0;width:100%}
+.am-archive *{box-sizing:border-box}
+
+.am-archive__top{display:flex;flex-wrap:wrap;gap:12px;align-items:center;margin:10px 0 14px}
+.am-archive__search{flex:1 1 320px;min-width:0;width:100%;padding:10px 12px;border:1px solid #cfcfcf;border-radius:10px}
+.am-archive__search-btn{flex:0 0 auto}
+.am-archive__status{font-size:13px;opacity:.8;min-width:180px;text-align:right}
+
+/* Mobile: stack controls to avoid the classic "Elementor column squeezes everything" mess */
+@media (max-width: 767px){
+  .am-archive__top{gap:10px}
+  .am-archive__search{flex:1 1 100%}
+  .am-archive__search-btn{width:100%}
+  .am-archive__status{min-width:0;width:100%;text-align:left}
+}
+
+/* Search previews appear directly under the search field */
+.am-archive__results{margin:-6px 0 14px}
+
+.am-hl{padding:0 2px;border-radius:4px}
+
+.am-archive-branch{margin:6px 0}
+.am-archive-node{width:100%;text-align:left;padding:10px 12px;border:1px solid #e3e3e3;background:#fff;border-radius:12px;cursor:pointer;display:flex;gap:10px;align-items:center}
+.am-archive-node:hover{border-color:#cfcfcf}
+.am-archive-node__chev{display:inline-block;transition:transform .15s ease}
+.am-archive-node[aria-expanded="true"] .am-archive-node__chev{transform:rotate(90deg)}
+.am-archive-node__label{font-weight:600}
+
+.am-archive-branch--genus .am-archive-node{margin-left:18px}
+.am-archive-branch--genus .am-archive-node__label{font-weight:600}
+.am-archive-children{margin:6px 0 8px 0}
+.am-archive-branch--genus .am-archive-children{margin-left:18px}
+
+.am-archive-entries{display:flex;flex-direction:column;gap:8px;padding:6px 0}
+.am-archive-entry{display:block;padding:10px 12px;border:1px solid #ececec;border-radius:12px;text-decoration:none}
+.am-archive-entry:hover{border-color:#cfcfcf}
+.am-archive-entry__row{display:flex;gap:12px;align-items:flex-start}
+.am-archive-entry__thumb{width:44px;height:44px;border-radius:10px;object-fit:cover;border:1px solid #eee;flex:0 0 44px;background:#fff}
+.am-archive-entry__body{min-width:0;flex:1}
+.am-archive-entry__title{font-weight:700}
+.am-archive-entry__meta{margin-top:2px;font-size:13px;opacity:.8}
+
+.am-archive-more{font-size:13px;opacity:.8;padding:6px 0}
+.am-archive-empty{padding:12px;font-size:14px;opacity:.85}
+
+
+.am-archive__search-btn{padding:10px 14px;border:1px solid #cfcfcf;border-radius:10px;background:#fff;cursor:pointer}
+.am-archive__search-btn:hover{filter:brightness(0.98)}
+.am-archive__search-btn:disabled{opacity:.6;cursor:not-allowed}
+
+/* Ensure text is visible even if the theme forces white button text (Elementor/Hello sometimes does). */
+.am-archive .am-archive-node,
+.am-archive .am-archive__search-btn,
+.am-archive .am-archive-entry,
+.am-archive .am-archive-entry *{
+  color: var(--e-global-color-text, #111) !important;
+}
+
+.am-archive .am-archive-node *{
+  color: inherit !important;
+}
+
+/* Make chevron and labels readable */
+.am-archive .am-archive-node__chev{color: inherit !important;}
+.am-archive .am-archive-node__label{color: inherit !important;}
+
+/* Inputs should inherit Elementor typography/colors */
+.am-archive .am-archive__search{
+  color: var(--e-global-color-text, #111) !important;
+  background: var(--e-global-color-white, #fff) !important;
+}
+
+/* Fix: Elementor/Hello theme may force white text on buttons/links. Keep archive tree labels visible. */
+.am-archive .am-archive-node,
+.am-archive .am-archive-node *,
+.am-archive .am-archive__search-btn,
+.am-archive .am-archive__search-btn *,
+.am-archive .am-archive-entry,
+.am-archive .am-archive-entry *{
+  color: var(--e-global-color-text, #111) !important;
+}
+
+/* Ensure chevron/icon follows text color */
+.am-archive .am-archive-node__chev{color: currentColor !important;}
+
+/* Inputs sometimes inherit weird colors too */
+.am-archive .am-archive__search{
+  color: var(--e-global-color-text, #111) !important;
+}
+
+.am-archive .am-archive-node__chev{color: currentColor !important;}
+
+/* Inputs too, just in case */
+.am-archive .am-archive__search{
+  color: var(--e-global-color-text, #111) !important;
+}
+
+/* ==========================================================
+   AM Archive Tree - Modern skin
+   Scoped to .am-archive to avoid affecting other site elements.
+   ========================================================== */
+
+.am-archive .am-archive-node{
+  border: 1px solid #ddd;
+  border-radius: 16px;
+  padding: 14px 16px;
+  background: #fff;
+  transition: box-shadow .15s ease, border-color .15s ease, transform .15s ease;
+}
+
+.am-archive .am-archive-node:hover{
+  border-color: #cfcfcf;
+  box-shadow: 0 6px 18px rgba(0,0,0,.06);
+  transform: translateY(-1px);
+}
+
+.am-archive .am-archive-node__label{
+  font-weight: 700;
+  font-size: 16px;
+}
+
+.am-archive .am-archive-node__chev{
+  font-size: 14px;
+  opacity: .85;
+}
+
+.am-archive .am-archive-branch--genus .am-archive-node{
+  margin-left: 14px;
+}
+
+.am-archive .am-archive-entry{
+  border-radius: 14px;
+  border: 1px solid #eee;
+  background: #fff;
+}
+
+.am-archive .am-archive-entry:hover{
+  border-color: #d7d7d7;
+  box-shadow: 0 4px 14px rgba(0,0,0,.05);
+}
+
+/* ===== Modern Style v2 (override) ===== */
+.am-archive .am-archive-node{
+  background: #ffffff;
+  border: 1px solid #e2e2e2;
+  border-radius: 18px;
+  padding: 16px 18px;
+  margin: 12px 0;
+  font-size: 17px;
+  font-weight: 600;
+  color: #333;
+  transition: all .2s ease;
+}
+.am-archive .am-archive-node:hover{
+  border-color: #d0d0d0;
+  box-shadow: 0 8px 22px rgba(0,0,0,0.06);
+  transform: translateY(-2px);
+}
+.am-archive .am-archive-node.is-open{
+  border-color: #d5d5d5;
+  background: #fafafa;
+}
+.am-archive .am-archive-node__chev{
+  font-size: 13px;
+  opacity: 0.75;
+  transition: transform .2s ease;
+}
+.am-archive .am-archive-node.is-open .am-archive-node__chev{
+  transform: rotate(90deg);
+}
+.am-archive .am-archive-branch--genus .am-archive-node{
+  margin-left: 14px;
+  background: #fcfcfc;
+}
+.am-archive .am-archive-entry{
+  border-radius: 16px;
+  border: 1px solid #ededed;
+  background: #fff;
+  padding: 12px 16px;
+  transition: all .15s ease;
+}
+.am-archive .am-archive-entry:hover{
+  border-color: #d8d8d8;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.05);
+}
+
+/* ==========================================================
+   AM Archive Tree - Color hierarchy skin v1.3.3
+   Colored left bars, icons, counters and gentler hover.
+   Scoped to .am-archive to avoid collateral damage.
+   ========================================================== */
+.am-archive{
+  --am-acc-division:#2e7d32;
+  --am-acc-family:#4caf50;
+  --am-acc-genus:#81c784;
+  --am-acc-entry:#e8f5e9;
+  --am-acc-text:#1f2937;
+  --am-acc-muted:#5f6b76;
+}
+
+.am-archive .am-archive-node{
+  position:relative;
+  border-left:6px solid #d7d7d7;
+  color:var(--am-acc-text) !important;
+}
+
+.am-archive .am-archive-node--division{
+  border-left-color:var(--am-acc-division);
+  background:linear-gradient(90deg, rgba(46,125,50,.10), rgba(255,255,255,1) 24%);
+}
+
+.am-archive .am-archive-node--family{
+  border-left-color:var(--am-acc-family);
+  background:linear-gradient(90deg, rgba(76,175,80,.08), rgba(255,255,255,1) 24%);
+}
+
+.am-archive .am-archive-node--genus{
+  border-left-color:var(--am-acc-genus);
+  background:linear-gradient(90deg, rgba(129,199,132,.13), rgba(255,255,255,1) 24%);
+}
+
+.am-archive .am-archive-node:hover{
+  filter:none;
+  box-shadow:0 10px 24px rgba(0,0,0,.07);
+}
+
+.am-archive .am-archive-node__icon{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  width:24px;
+  min-width:24px;
+  font-size:18px;
+  line-height:1;
+}
+
+.am-archive .am-archive-node__label{
+  flex:1 1 auto;
+  min-width:0;
+}
+
+.am-archive .am-archive-node__count{
+  margin-left:auto;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  min-width:32px;
+  padding:2px 10px;
+  border-radius:999px;
+  font-size:12px;
+  font-weight:700;
+  line-height:1.6;
+  color:var(--am-acc-muted) !important;
+  background:#f3f4f6;
+  border:1px solid #e5e7eb;
+}
+
+.am-archive .am-archive-node--division .am-archive-node__count{
+  background:rgba(46,125,50,.10);
+  border-color:rgba(46,125,50,.20);
+  color:var(--am-acc-division) !important;
+}
+
+.am-archive .am-archive-node--family .am-archive-node__count{
+  background:rgba(76,175,80,.10);
+  border-color:rgba(76,175,80,.20);
+  color:#2f7d32 !important;
+}
+
+.am-archive .am-archive-node--genus .am-archive-node__count{
+  background:rgba(129,199,132,.18);
+  border-color:rgba(129,199,132,.32);
+  color:#2f6d33 !important;
+}
+
+.am-archive .am-archive-children{
+  margin-top:8px;
+}
+
+.am-archive .am-archive-entry{
+  background:var(--am-acc-entry);
+  border-color:rgba(76,175,80,.15);
+}
+
+.am-archive .am-archive-entry:hover{
+  background:#f3fbf4;
+  border-color:rgba(76,175,80,.28);
+}
+
+.am-archive .am-archive-entry__title{
+  color:#183522 !important;
+}
+
+.am-archive .am-archive-entry__meta{
+  color:var(--am-acc-muted) !important;
+}
+
+.am-archive .am-archive-branch--family .am-archive-node{ margin-left:10px; }
+.am-archive .am-archive-branch--genus .am-archive-node{ margin-left:20px; }
+.am-archive .am-archive-branch--genus .am-archive-children{ margin-left:20px; }
+
+@media (max-width: 767px){
+  .am-archive .am-archive-node{
+    padding:14px 14px;
+    font-size:16px;
+  }
+  .am-archive .am-archive-node__count{
+    min-width:28px;
+    padding:2px 8px;
+  }
+}
+
+/* AM 1.5.53 - Species count summary moved outside search placeholder */
+.am-archive .am-archive__species-summary{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  width:100%;
+  margin:12px 0 4px;
+  padding:16px 18px;
+  border:1px solid #e2e2e2;
+  border-left:5px solid var(--am-acc-division, #2e7d32);
+  border-radius:18px;
+  background:linear-gradient(90deg, rgba(46,125,50,.10), #ffffff 42%);
+  color:#333 !important;
+  box-shadow:none;
+}
+.am-archive .am-archive__species-summary-icon{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  min-width:24px;
+  font-size:18px;
+  line-height:1;
+}
+.am-archive .am-archive__species-summary-label{
+  flex:1 1 auto;
+  min-width:0;
+  font-size:16px;
+  font-weight:700;
+  color:#333 !important;
+}
+.am-archive .am-archive__species-summary-count{
+  margin-left:auto;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  min-width:32px;
+  padding:2px 10px;
+  border-radius:999px;
+  font-size:12px;
+  font-weight:700;
+  line-height:1.6;
+  color:var(--am-acc-division, #2e7d32) !important;
+  background:rgba(46,125,50,.10);
+  border:1px solid rgba(46,125,50,.20);
+}
+@media (max-width: 767px){
+  .am-archive .am-archive__species-summary{
+    padding:14px 14px;
+  }
+  .am-archive .am-archive__species-summary-label{
+    font-size:15px;
+  }
+  .am-archive .am-archive__species-summary-count{
+    min-width:28px;
+    padding:2px 8px;
+  }
+}

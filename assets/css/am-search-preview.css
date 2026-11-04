@@ -1,0 +1,99 @@
+/* AM Search Page - Live preview (shortcode [am_search_page]) */
+.am-search-page{position:relative}
+
+/* Force vertical layout: search bar on top, previews underneath */
+.am-search-page__form{display:block !important;}
+.am-search-page__bar{width:100%;}
+
+.am-search-preview{
+  position:relative;
+  margin-top:10px;
+  width:100%;
+}
+
+.am-search-preview.is-open .am-search-preview__panel{
+  display:block;
+}
+
+.am-search-preview__panel{
+  display:none;
+  border:1px solid rgba(0,0,0,.12);
+  border-radius:12px;
+  background:#fff;
+  overflow:hidden;
+  box-shadow:0 10px 30px rgba(0,0,0,.08);
+}
+
+.am-search-preview__hint{
+  padding:10px 12px;
+  font-size:12px;
+  opacity:.65;
+  border-bottom:1px solid rgba(0,0,0,.08);
+}
+
+.am-search-preview__loading{
+  padding:12px;
+  font-size:13px;
+  opacity:.75;
+}
+
+.am-search-preview__item{
+  display:flex;
+  gap:10px;
+  padding:10px 12px;
+  text-decoration:none;
+  border-bottom:1px solid rgba(0,0,0,.06);
+}
+
+.am-search-preview__item:last-child{border-bottom:0}
+
+.am-search-preview__thumb{
+  width:44px;
+  height:44px;
+  flex:0 0 44px;
+  border-radius:10px;
+  overflow:hidden;
+  background:rgba(0,0,0,.04);
+}
+
+.am-search-preview__thumb img{
+  width:100%;
+  height:100%;
+  object-fit:cover;
+  display:block;
+}
+
+.am-search-preview__body{flex:1;min-width:0;}
+
+.am-search-preview__title{
+  font-weight:700;
+  line-height:1.25;
+  word-break:break-word;
+}
+
+.am-search-preview__meta{
+  margin-top:4px;
+  font-size:13px;
+  opacity:.75;
+  word-break:break-word;
+}
+
+.am-search-preview__mark{
+  padding:0 2px;
+  border-radius:4px;
+}
+
+.am-search-preview__more{
+  padding:10px 12px;
+  font-size:12px;
+  opacity:.65;
+  border-top:1px solid rgba(0,0,0,.08);
+}
+
+/* Ensure preview text is visible even if theme overrides link/button colors */
+.am-search-preview, .am-search-preview *{
+  color: var(--e-global-color-text, #111);
+}
+
+/* Keep preview text visible under aggressive theme button/link colors */
+.am-search-preview, .am-search-preview *{ color: var(--e-global-color-text, #111) !important; }

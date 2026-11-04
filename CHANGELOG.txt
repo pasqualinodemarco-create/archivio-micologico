@@ -1,0 +1,381 @@
+v1.5.54 - responsive filtri archivio
+- Migliorata la responsività di [am_archive_filters]: desktop a riga fluida, tablet su due colonne e mobile a colonna singola con pulsante a tutta larghezza.
+- Rimossi overflow orizzontali non necessari sui filtri.
+- Nessuna modifica a query, tassonomie, CPT, ruoli o shortcodes.
+
+v1.5.53 - conteggio specie fuori dal campo ricerca
+- Rimosso il conteggio "Specie presenti" dal placeholder della ricerca in [am_archive].
+- Aggiunta card riepilogativa con icona fungo sotto i menu collassabili dell archivio.
+- Nessuna modifica a CPT, tassonomie, filtri, ruoli, galleria o salvataggio schede.
+
+v1.5.52 - condizione articoli archivio
+- Corretto il collegamento tra [am_archive_filters] e [am_archive]: i parametri GET tassonomici ora producono risultati filtrati.
+- Aggiunta normalizzazione della catena Divisione > Famiglia > Genere > Specie anche quando l'URL contiene solo famiglia/genere/specie.
+- Aggiunto messaggio risultati filtrati e link Reset filtri.
+
+1.5.52 (2026-04-27)
+- Nasconde il blocco Articoli in [am_archive] quando non esistono articoli da mostrare, evitando il messaggio vuoto "Nessun articolo".
+-------------------
+- Hotfix ripristino gerarchia filtri tassonomici.
+- am_return ora conserva anche am_division quando disponibile.
+- Il ripristino con am_restore=1 segue la catena:
+  Divisione -> Famiglia -> Genere -> Specie.
+- Aggiunti selettori specifici per #am_filter_division, #am_filter_family, #am_filter_genus e #am_filter_species.
+- Nessuna modifica a PHP di salvataggio, CPT/tassonomie, shortcode, SEO/social, Elementor, galleria o immagine principale.
+
+1.5.49 (2026-04-27)
+-------------------
+- Fase ripristino reale "Torna ai risultati".
+- Quando l'archivio riceve am_restore=1:
+  - am-archive-tree.js ripristina am_search e rilancia la ricerca AJAX;
+  - frontend.js ripristina selezioni filtro am_family/am_genus/am_species dove presenti.
+- Migliora il ritorno dai link scheda verso risultati ricerca/filtro.
+- Nessuna modifica a PHP di salvataggio, CPT/tassonomie, shortcode, SEO/social, Elementor, galleria o immagine principale.
+
+1.5.48 (2026-04-27)
+-------------------
+- Hotfix funzione "Torna ai risultati".
+- Il link am_return ora conserva, quando presenti, i valori di ricerca/filtro letti dai campi della pagina:
+  - am_search
+  - am_family
+  - am_genus
+  - am_species
+- Il JS aggiorna sempre am_return sui link scheda quando ricerca o filtri cambiano.
+- Aggiunto marker am_restore=1 al ritorno contestuale.
+- Nessuna modifica a PHP di salvataggio, CPT/tassonomie, shortcode, SEO/social, Elementor, galleria o immagine principale.
+
+1.5.47 (2026-04-27)
+-------------------
+- Navigazione schede: rimossa solo la barra azioni superiore.
+- Mantenuta la barra azioni in fondo pagina.
+- Mantenuta breadcrumb tassonomica.
+- Mantenuto supporto "Torna ai risultati" nella barra inferiore.
+- Nessuna modifica a CSS, JS, salvataggio, form, shortcode, SEO/social, Elementor, galleria, immagine principale o CPT/tassonomie.
+
+1.5.46 (2026-04-27)
+-------------------
+- Hotfix fase 3 navigazione schede.
+- Migliorato "Torna ai risultati" sui link caricati dinamicamente.
+- frontend.js ora:
+  - riconosce più contenitori archivio/ricerca;
+  - ascolta eventi am:archive-updated e am:search-updated;
+  - usa MutationObserver sui risultati;
+  - evita doppia aggiunta di am_return.
+- am-archive-tree.js ora emette evento am:archive-updated quando possibile.
+- Nessuna modifica a PHP di salvataggio, CPT/tassonomie, shortcode, SEO/social, Elementor, galleria o immagine principale.
+
+1.5.45 (2026-04-27)
+-------------------
+- Navigazione schede fase 3.
+- Aggiunto supporto contestuale "Torna ai risultati".
+- Le pagine archivio/ricerca aggiungono automaticamente am_return ai link verso le schede.
+- La singola scheda mostra "Torna ai risultati" se am_return è presente e sicuro.
+- Validazione sicurezza am_return:
+  - URL relativo o stesso dominio;
+  - esclusione wp-admin/wp-login;
+  - nessun redirect esterno.
+- Fallback normale: "Torna all'archivio".
+- Nessuna modifica a salvataggio, form, shortcode registration, SEO/social, Elementor, galleria, immagine principale o CPT/tassonomie.
+
+1.5.44 (2026-04-27)
+-------------------
+- Navigazione schede fase 2.
+- Aggiunta barra azioni sopra e sotto la singola scheda fungo.
+- Link inclusi:
+  - Torna all'archivio
+  - Famiglia
+  - Genere
+  - Cerca altra scheda
+- La barra usa la stessa risoluzione prudente della pagina archivio introdotta nella 1.5.43.
+- Nessuna modifica a salvataggio, form, shortcode, SEO/social, Elementor, galleria, immagine principale o CPT/tassonomie.
+
+1.5.43 (2026-04-27)
+-------------------
+- Navigazione schede fase 1.
+- Migliorata breadcrumb tassonomica della singola scheda:
+  Archivio Micologico -> Famiglia -> Genere -> Specie.
+- Archivio, Famiglia e Genere sono link cliccabili verso la pagina archivio filtrata.
+- La pagina archivio viene risolta automaticamente cercando una pagina pubblicata con shortcode [am_archive].
+- Fallback prudente al post type archive AM o home_url().
+- Nessuna modifica a salvataggio, form, shortcode, SEO/social, Elementor, galleria, immagine principale o CPT/tassonomie.
+
+1.5.42 (2026-04-27)
+-------------------
+- Hotfix mirato immagine principale singola scheda.
+- Rendering featured image passato da get_the_post_thumbnail(..., 'large') a wp_get_attachment_image(..., 'full').
+- Aggiunti attributi inline sull'immagine principale per forzare width 100%.
+- Aggiunto style inline sul figure .am-entry-featured.
+- Aggiunte regole CSS più specifiche contro override di tema/Elementor.
+- Nessuna modifica a salvataggio, galleria, didascalie, shortcode, SEO/social, permessi, Elementor o CPT/tassonomie.
+
+1.5.41 (2026-04-27)
+-------------------
+- Hotfix CSS singola scheda fungo.
+- L'immagine principale/featured image occupa tutta la larghezza disponibile del contenitore.
+- Mantenute le proporzioni naturali dell'immagine.
+- Nessuna modifica a salvataggio, PHP runtime, galleria, didascalie, shortcode, SEO/social, permessi, Elementor o CPT/tassonomie.
+
+1.5.40 (2026-04-27)
+-------------------
+- Hotfix social preview / head fallback.
+- Aggiunto fallback template_redirect con output buffer:
+  se i tag social AM non sono presenti nell'HTML finale, vengono inseriti subito dopo <head>.
+- render_social_preview_meta() usa ora un builder comune.
+- Evitati duplicati: il fallback non interviene se trova già "Archivio Micologico social preview".
+- URL pagina e immagine forzati a schema https.
+- Aggiunto fallback immagine: prima immagine <img> presente nel contenuto se mancano featured image e galleria.
+- Nessuna modifica a salvataggio, permessi, shortcode, CPT/tassonomie, Elementor o widget carosello.
+
+1.5.39 (2026-04-26)
+-------------------
+- Hotfix social preview reale per WhatsApp/Facebook.
+- Aggiunto resolver robusto della scheda AM per i meta in wp_head:
+  queried object, global post, query var name, slug da REQUEST_URI.
+- Open Graph e Twitter Card non dipendono più da is_singular(AM_CPT) come unica condizione.
+- Descrizione social: priorità al contenuto pubblico/post_content (descrizione macroscopica), poi fallback ai meta storici.
+- am_macro_micro non sovrascrive più la descrizione macroscopica nelle preview social.
+- Social tag stampati a priorità 0 in wp_head.
+- SEO base usa lo stesso resolver robusto e mantiene compatibilità plugin SEO.
+- Nessuna modifica a salvataggio, permessi, shortcode, CPT/tassonomie, Elementor o widget carosello.
+
+1.5.38 (2026-04-26)
+-------------------
+- Hotfix minimale social preview / SEO.
+- Ripartenza prudente dalla base stabile 1.5.36.
+- Open Graph e Twitter Card delle schede AM non vengono più bloccati dalla compatibilità plugin SEO.
+- La compatibilità plugin SEO viene applicata solo ai meta SEO base:
+  meta description, canonical, keywords, JSON-LD.
+- Nessuna nuova opzione admin.
+- Nessuna nuova UI impostazioni.
+- Aggiunti, dove disponibili, metadati immagine:
+  og:image:width
+  og:image:height
+  og:image:alt
+  twitter:image:alt
+- Nessuna modifica a salvataggio, permessi, shortcode, CPT/tassonomie, Elementor o widget carosello.
+
+1.5.36 (2026-04-26)
+-------------------
+- Riallineamento documentazione e stato progetto dopo il ciclo di lavoro UX Nuovo Inserimento.
+- Aggiornati readme.txt, VERSION.txt, CHANGELOG.txt, QA_LAST_BUILD.txt.
+- Aggiunti file di stato:
+  AM_STATO_PROGETTO_1.5.36.txt
+  AM_REGOLE_OPERATIVE_PROGETTO.txt
+- Nessuna modifica funzionale al runtime.
+- Nessuna modifica a salvataggio, permessi, shortcode, SEO/social, Elementor leggero o widget carosello.
+
+Riepilogo ciclo 1.5.25-1.5.35:
+- 1.5.25: UX Nuovo Inserimento fase 1, struttura più chiara.
+- 1.5.26: traccia descrittiva macroscopica.
+- 1.5.27: media preview e stati immagine/galleria/PDF.
+- 1.5.28: messaggio post-salvataggio con link rapidi.
+- 1.5.29: messaggi successo/errori/tassonomie spostati in alto.
+- 1.5.30: hotfix residuo template submit.
+- 1.5.31: hotfix link Modifica frontend.
+- 1.5.32: controllo qualità finale più leggibile.
+- 1.5.33: hotfix galleria/didascalie duplicate.
+- 1.5.34: hotfix classificazione submit/update.
+- 1.5.35: hotfix errori persistenti su nuovo inserimento.
+
+1.5.35 (2026-04-26)
+-------------------
+- Hotfix Nuovo Inserimento.
+- Gli errori di validazione vengono mostrati solo quando c'è un contesto reale di submit non valido: am_error + am_token.
+- Aprendo una nuova scheda pulita non vengono più caricati sticky/errori temporanei vecchi.
+- Il link "Inserisci nuova scheda" ora rimuove anche am_error, am_token e am_notice.
+- Nessuna modifica alla validazione server, ai permessi, agli shortcode, al widget carosello, alla SEO o a Elementor leggero.
+
+1.5.34 (2026-04-26)
+-------------------
+- Hotfix classificazione submit/update.
+- Se la specie è selezionata, il plugin ricostruisce automaticamente la catena:
+  Specie -> Genere -> Famiglia -> Divisione
+- Questo evita falsi errori "Seleziona Divisione, Famiglia, Genere e Specie" quando i select padre risultano visivamente selezionati ma non arrivano correttamente al server.
+- Applicato sia a nuovo inserimento sia a modifica frontend.
+- Aggiunto debug AM_CLASSIFICATION_RESOLVED_1_5_34.
+- Nessuna modifica a salvataggio dati, permessi, shortcode, SEO, Elementor o widget carosello.
+
+1.5.33 (2026-04-26)
+-------------------
+- Hotfix galleria scheda pubblica.
+- Normalizzati e deduplicati gli ID salvati in am_gallery_ids prima del rendering.
+- Aggiunta ulteriore protezione nel ciclo di rendering per evitare stampa ripetuta della stessa immagine/didascalia.
+- Nessuna modifica a salvataggio, form, permessi, shortcode, SEO, Elementor o widget carosello.
+
+1.5.32 (2026-04-26)
+-------------------
+- UX Nuovo Inserimento: migliorato il controllo qualità finale.
+- Aggiunto riepilogo dinamico "Stato compilazione".
+- Checklist finale resa più descrittiva.
+- Aggiunto controllo PDF come elemento facoltativo.
+- Nessuna modifica alla validazione reale o alla logica di salvataggio.
+- Nessuna modifica a permessi, shortcode, widget carosello, SEO o Elementor leggero.
+
+1.5.31 (2026-04-26)
+-------------------
+- Hotfix Nuovo Inserimento.
+- Nel messaggio post-creazione il pulsante "Modifica in admin" è stato rinominato in "Modifica".
+- Il link punta alla pagina frontend configurata in am_edit_page_id con parametro am_id.
+- Fallback prudente: se manca la pagina modifica frontend, viene usato il permalink scheda con am_edit=1.
+- Nessuna modifica alla logica di salvataggio, ai permessi, agli shortcode, al widget carosello, alla SEO o a Elementor leggero.
+
+1.5.30 (2026-04-26)
+-------------------
+- Hotfix Nuovo Inserimento.
+- Rimosso residuo HTML/PHP visibile in fondo al form dopo la 1.5.29.
+- Confermato che i messaggi restano in alto e non vengono duplicati in fondo.
+- Nessuna modifica alla logica di salvataggio, ai permessi, agli shortcode, al widget carosello, alla SEO o a Elementor leggero.
+
+1.5.29 (2026-04-26)
+-------------------
+- UX Nuovo Inserimento fase 5.
+- Spostati in alto, come primo blocco visibile, i messaggi del form:
+  successo creazione scheda
+  errori di validazione
+  messaggi tassonomie/termini
+- Rimossa la stampa duplicata dei messaggi in fondo al form.
+- Aggiornato il testo successo in "La nuova scheda è stata creata con successo."
+- Nessuna modifica alla logica di salvataggio, ai permessi, agli shortcode, al widget carosello, alla SEO o a Elementor leggero.
+
+1.5.28 (2026-04-26)
+-------------------
+- UX Nuovo Inserimento fase 4.
+- Migliorato il messaggio dopo il salvataggio della scheda.
+- Aggiunti link rapidi quando disponibili:
+  Visualizza scheda
+  Modifica in admin
+  Inserisci nuova scheda
+- Aggiunto CSS responsive per le azioni del messaggio.
+- Nessuna modifica alla logica di salvataggio, ai permessi, agli shortcode, al widget carosello, alla SEO o a Elementor leggero.
+
+1.5.27 (2026-04-26)
+-------------------
+- UX Nuovo Inserimento fase 3.
+- Migliorate le aree media: immagine anteprima, galleria e PDF.
+- Aggiunti stati testuali chiari per media selezionati/non selezionati.
+- Aggiunti pulsanti rimuovi per immagine, galleria e PDF.
+- Migliorata resa CSS delle anteprime media e del PDF.
+- Nessuna modifica alla logica di salvataggio, ai permessi, agli shortcode, al widget carosello, alla SEO o a Elementor leggero.
+
+1.5.26 (2026-04-26)
+-------------------
+- UX Nuovo Inserimento fase 2.
+- Aggiunto pulsante "Inserisci traccia descrittiva" nella descrizione macroscopica.
+- La traccia inserisce una scaletta modificabile: Cappello, Lamelle, Gambo, Carne, Odore, Sapore, Habitat, Osservazioni.
+- Se il campo contiene già testo, viene chiesta conferma prima di aggiungere la traccia in fondo.
+- Nessuna modifica alla logica di salvataggio, ai permessi, agli shortcode, al widget carosello, alla SEO o a Elementor leggero.
+
+1.5.25 (2026-04-26)
+-------------------
+- Miglioramento UX fase 1 della pagina Nuovo inserimento ([am_submit_form]).
+- Aggiunta scheda introduttiva con passaggi principali di compilazione.
+- Aggiunto box "Titolo scheda generato" basato su Genere, Specie, Forma/Varietà e Autore.
+- Aggiunto blocco "Descrizioni e osservazioni" con testo guida.
+- Rinominata sezione Immagini in "Media e allegati" con descrizione introduttiva.
+- Aggiunto controllo finale visivo non bloccante per classificazione, descrizione, immagine e galleria.
+- Nessuna modifica alla logica di salvataggio, ai permessi, agli shortcode, al widget carosello, alla SEO o a Elementor leggero.
+
+Archivio Micologico - Changelog
+================================
+
+1.5.20 (2026-04-25)
+-------------------
+- Aggiunta icona persona SVG inline prima del nome autore scheda nella pagina pubblica.
+  Il nome appare ora con un'icona discreta a sinistra e testo leggermente attenuato.
+
+1.5.19 (2026-04-25)
+-------------------
+- Rimosso il div vuoto con margin-bottom:14px emesso quando la specie non è
+  sequenziata: era la causa principale dello spazio vuoto nella scheda pubblica.
+- Ridotto il margine inferiore del nome autore scheda da 10px a 4px.
+- Rimossa la dichiarazione ridondante $inner = '' (subito sovrascritta).
+- Corretta indentazione di $inner nella funzione filter_single_content.
+
+1.5.18 (2026-04-25)
+-------------------
+- Corretto "Autore scheda" nel form di modifica: ora mostra sempre l'utente WordPress
+  autore del post (post_author), non l'autore tassonomico del fungo (am_author_id).
+- Rimossa la funzione JS updateAuthorTop() e il relativo listener su change #am_author:
+  lo span "Autore scheda" è ora statico (popolato lato PHP) e non deve aggiornarsi
+  al cambio del select classificatorio.
+
+1.5.17 (2026-04-25)
+-------------------
+- Corretto span "Autore scheda" vuoto nel form di modifica: aggiunto trigger('change')
+  dopo la selezione automatica del termine autore via AJAX, così updateAuthorTop()
+  viene chiamato nel momento corretto invece di affidarsi al setTimeout da 600ms.
+
+1.5.16 (2026-04-25)
+-------------------
+- Corretto &amp; nei nomi dei termini (Autore, Forma/Varietà, classificazione) nella
+  form di modifica e inserimento: ajax_get_terms ora restituisce i nomi già decodificati
+  con html_entity_decode() prima di serializzarli in JSON.
+- Corretta doppia assegnazione $am_macro_micro = $am_macro_micro nel render_edit_form.
+- Corretta indentazione di $am_featured_id, $am_gallery_ids e ob_start() in render_edit_form.
+- Corretta indentazione di $parent in ajax_get_terms.
+- Corretta indentazione di $terms = get_terms() in ajax_get_terms.
+
+1.5.15 (2026-04-25)
+-------------------
+- SEO: agganciati a wp_head i tre metodi SEO corretti (render_social_preview_meta,
+  render_seo_base_meta, render_shortcode_pages_seo_meta) che erano definiti ma mai
+  eseguiti. Ora canonical, meta description, keywords e JSON-LD Schema.org vengono
+  effettivamente emessi.
+- SEO: rimossa render_social_meta_tags() (versione semplificata senza compat plugin
+  SEO) e i suoi helper privati, sostituita da render_social_preview_meta() che
+  rispetta la modalità auto/force/off e i plugin Yoast/Rank Math/SEOPress/AIOSEO.
+- SEO: corretta build_social_preview_description() che leggeva meta key inesistenti
+  (am_macro, am_macroscopic_description, ecc.) invece del campo reale am_macro_micro.
+  La meta description ora usa correttamente la descrizione macroscopica inserita.
+- handle_submit: rimossi blocchi duplicati di scrittura meta tassonomia, secondary
+  taxonomies e PDF ID. Corretta indentazione di update_post_meta am_species.
+- handle_update: corretta indentazione di update_post_meta am_species.
+
+1.5.14 (2026-04-25)
+-------------------
+- Rimossa sezione "Pulizia ruoli AM legacy" dalla pagina Impostazioni: i ruoli legacy
+  vengono già rimossi automaticamente ad ogni attivazione e ad ogni admin_init.
+  Il pulsante manuale era quindi completamente ridondante.
+
+1.5.13 (2026-04-25)
+-------------------
+- Rimosso codice morto: costante AM_CHANGELOG e funzione am_normalize_legacy_permission_options.
+- Rimossa UI permessi ruoli dalla pagina Impostazioni (decorativa, non funzionale dal 1.5.0).
+- Corrette condizioni logiche ridondanti in handle_vocab_update() e handle_vocab_merge().
+- Corretti controlli current_user_can() duplicati in render_edit_form() e handle_admin_post_update().
+- Sostituita $wpdb->query() DELETE grezza con $wpdb->delete() nelle operazioni di purge.
+- Corretto remove_all_filters('posts_where') con remove_filter() mirato nell'Activator.
+- Uninstall.php completato: rimozione di tutte le opzioni plugin e capabilities dai ruoli.
+- Rimossi file di documentazione interna di sviluppo dal pacchetto distribuito.
+
+1.5.12 (2026-04-25)
+-------------------
+- SEO fase 3: meta, canonical e JSON-LD Schema.org per pagine con shortcode AM.
+- Schema CollectionPage, SearchResultsPage, WebPage secondo tipo pagina.
+- Compatibilità modalità auto/force/off introdotta in 1.5.11.
+
+1.5.11
+------
+- SEO fase 2: rilevamento plugin SEO di terze parti (Yoast, Rank Math, SEOPress, AIOSEO).
+- Modalità am_seo_mode: auto / force / off.
+
+1.5.10
+------
+- SEO fase 1: meta description, canonical, keywords, JSON-LD ScholarlyArticle per schede fungo.
+
+1.5.9
+-----
+- Open Graph e Twitter Card per condivisione social delle schede fungo.
+
+1.5.0 - 1.5.8
+--------------
+- Semplificazione sistema permessi: eliminati ruoli custom AM, accesso limitato a Administrator ed Editor.
+- Integrazione Elementor leggera: condizioni Theme Builder per CPT AM.
+- Widget carosello schede casuali con autoplay, frecce e indicatori.
+- Shortcode [am_random_funghi] con parametri numero, titolo, autoplay, intervallo, visibili.
+- Varie correzioni bug e miglioramenti stabilità.
+
+1.3.x
+-----
+- Sviluppo iniziale: CPT am_fungo e am_articolo, tassonomie gerarchiche, form front-end,
+  widget random, dashboard admin, menu con icone, Open Graph base.

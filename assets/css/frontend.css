@@ -1,0 +1,1513 @@
+/* Front-end forms: keep styles minimal so the theme (e.g. Elementor) controls the look */
+.am-form{max-width:100%}
+.am-form{width:100%}
+.am-form, .am-form *{box-sizing:border-box}
+/* Prevent Elementor columns from collapsing due to editors/media having "min-width:auto" */
+.am-form .am-editor,
+.am-form .wp-editor-wrap,
+.am-form .wp-editor-container,
+.am-form .mce-tinymce,
+.am-form .mce-container,
+.am-form .mce-edit-area,
+.am-form iframe,
+.am-form textarea,
+.am-form input,
+.am-form select{max-width:100% !important; min-width:0 !important; width:100%}
+/* Keep checkboxes/radios inline (avoid width:100% rule above) */
+.am-form input[type=checkbox],
+.am-form input[type=radio]{width:auto !important; max-width:none !important;}
+
+.am-form .button, .am-form .am-add-term, .am-form .am-submit{width:auto}
+.am-field{margin:12px 0}
+.am-field label{margin:0 0 6px 0}
+.am-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+@media(max-width:780px){.am-grid{grid-template-columns:1fr}}
+.am-section__title{margin:0 0 12px 0}
+.am-help{margin:8px 0 0;font-size:.95em;opacity:.8}
+
+/* Light “plugin polish” (still theme-friendly) */
+.am-section{margin:18px 0 14px;padding:14px;border:1px solid rgba(0,0,0,.10);border-radius:10px}
+.am-section__title{font-size:1.05em;font-weight:600}
+.am-required{font-weight:700}
+
+/* Buttons used by the plugin
+   Goal: look coherent with Elementor styles.
+   We rely on Elementor global variables when available, with safe fallbacks. */
+.am-form .am-btn,
+.am-form .am-submit{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  gap:8px;
+  padding:12px 18px;
+  border-radius:8px;
+  font:inherit;
+  line-height:1.2;
+  cursor:pointer;
+  text-decoration:none;
+  border:1px solid transparent;
+}
+
+.am-form .am-btn--primary,
+.am-form .am-submit{
+  background: var(--e-global-color-accent, #d14c4c);
+  color: var(--e-global-color-secondary, #ffffff);
+}
+
+.am-form .am-btn--primary:hover,
+.am-form .am-submit:hover{opacity:.92}
+.am-form .am-btn--primary:focus,
+.am-form .am-submit:focus{outline:2px solid rgba(0,0,0,.25);outline-offset:2px}
+
+/* Make term "Salva" buttons consistent too */
+.am-form .am-add-term__save_term.button{
+  background: var(--e-global-color-accent, #d14c4c);
+  border-color: var(--e-global-color-accent, #d14c4c);
+  color: var(--e-global-color-secondary, #ffffff);
+  padding:10px 14px;
+  border-radius:8px;
+}
+.am-form .am-add-term__save_term.button:hover{opacity:.92}
+
+/* Media previews */
+.am-media-preview{margin-top:10px}
+.am-media-preview--grid{display:flex;flex-wrap:wrap;gap:10px}
+
+/* Single "Scheda Fungo" output */
+.am-entry-featured{margin:0 0 16px}
+.am-entry-featured img{width:100%;height:auto;border-radius:10px}
+.am-entry-gallery{display:block !important;margin:40px 0 18px !important}
+.am-entry-gallery__item{display:block}
+.am-entry-gallery__item img{width:100%;height:auto;border-radius:10px}
+.am-entry-section{margin:22px 0 0;padding:14px;border:1px solid #e5e5e5;border-radius:10px}
+.am-entry-section h2{margin:0 0 10px;font-size:1.2em}
+
+/* Badges (es. Microscopia) */
+.am-entry-badges{display:flex;gap:8px;flex-wrap:wrap}
+.am-badge{display:inline-block;padding:4px 10px;border-radius:999px;font-size:12px;line-height:1.2;border:1px solid rgba(0,0,0,.18);background:rgba(0,0,0,.03);text-decoration:none;color:inherit}
+.am-badge:hover{opacity:.88}
+
+/* Lightweight Lightbox */
+.am-lightbox{position:fixed;inset:0;z-index:99999;display:none}
+.am-lightbox.is-open{display:block}
+.am-lightbox__backdrop{position:absolute;inset:0;background:rgba(0,0,0,.72)}
+.am-lightbox__dialog{position:relative;max-width:min(92vw,1100px);max-height:88vh;margin:5vh auto 0;display:flex;align-items:center;justify-content:center}
+.am-lightbox__img{max-width:100%;max-height:88vh;border-radius:12px;box-shadow:0 10px 40px rgba(0,0,0,.4);border:1px solid rgba(0,0,0,.18);background:#fff}
+.am-lightbox__close{z-index:4;position:absolute;top:-16px;right:-16px;width:40px;height:40px;border:0;border-radius:999px;background:#fff;color:#111;font-size:0;cursor:pointer;box-shadow:0 8px 20px rgba(0,0,0,.3);display:flex;align-items:center;justify-content:center;line-height:1;padding:0}
+.am-lightbox .am-lightbox__nav{position:absolute;top:50%;transform:translateY(-50%);width:44px;height:44px;border:0;border-radius:999px;background:rgba(0,0,0,.55);color:#fff;font-size:0;cursor:pointer;box-shadow:0 10px 26px rgba(0,0,0,.35);z-index:3;backdrop-filter:blur(4px);display:flex;align-items:center;justify-content:center;line-height:1;padding:0}
+.am-lightbox .am-lightbox__nav:focus{outline:2px solid rgba(255,255,255,.75);outline-offset:2px}
+.am-lightbox .am-lightbox__nav:hover{background:rgba(0,0,0,.68)}
+.am-lightbox .am-ic{display:flex;align-items:center;justify-content:center}
+.am-lightbox .am-ic svg{display:block}
+
+.am-lightbox__nav--prev{left:-18px}
+.am-lightbox__nav--next{right:-18px}
+@media(max-width:600px){.am-lightbox__nav--prev{left:6px}.am-lightbox__nav--next{right:6px}.am-lightbox__close{z-index:4;position:absolute;top:-16px;right:-16px;width:40px;height:40px;border:0;border-radius:999px;background:#fff;color:#111;font-size:0;cursor:pointer;box-shadow:0 8px 20px rgba(0,0,0,.3);display:flex;align-items:center;justify-content:center;line-height:1;padding:0}}
+.am-lightbox-open{overflow:hidden}
+
+
+/* Breadcrumb classificazione */
+.am-breadcrumb{margin:0 0 12px 0;font-size:0.95em;opacity:0.9}
+.am-breadcrumb__label{font-weight:600;margin-right:6px}
+.am-breadcrumb__trail{display:inline}
+.am-breadcrumb__link{color:inherit;text-decoration:underline;text-decoration-thickness:1px;text-underline-offset:2px}
+.am-breadcrumb__link:hover{opacity:.85}
+.am-breadcrumb__current{font-weight:600}
+.am-breadcrumb__sep{opacity:.6}
+
+/* Archivio */
+.am-archive{margin:16px 0}
+.am-archive__filters{margin-bottom:16px}
+.am-archive-filters{margin:16px 0 12px 0;max-width:100%;box-sizing:border-box}
+.am-archive-filters,.am-archive-filters *{box-sizing:border-box}
+.am-archive-filters__row{display:flex;gap:12px;align-items:flex-end;flex-wrap:wrap;padding-bottom:4px}
+.am-archive-filters__field{min-width:170px;flex:1 1 180px;margin:0}
+.am-archive-filters__field select{width:100%;max-width:100%;min-width:0}
+.am-archive-filters__actions{flex:0 0 auto;display:flex;align-items:flex-end;margin:0}
+.am-archive-filters__actions .am-submit{min-height:40px;white-space:nowrap}
+(max-width:900px){
+	.am-archive-filters__field{flex:1 1 calc(50% - 12px);min-width:220px}
+	.am-archive-filters__actions{flex:1 1 100%}
+}
+(max-width:600px){
+	.am-archive-filters{margin:14px 0 16px 0}
+	.am-archive-filters__row{display:block;overflow:visible;padding-bottom:0}
+	.am-archive-filters__field{width:100%;min-width:0;margin:0 0 10px 0}
+	.am-archive-filters__field label{display:block;margin-bottom:5px}
+	.am-archive-filters__actions{display:block;width:100%;margin-top:4px}
+	.am-archive-filters__actions .am-submit{width:100%;max-width:100%;min-height:44px}
+}
+
+.am-archive-table-wrap{overflow-x:auto}
+.am-archive-table{width:100%;border-collapse:collapse}
+.am-archive-table th,.am-archive-table td{border:1px solid rgba(0,0,0,.12);padding:8px 10px;text-align:left;vertical-align:top}
+.am-archive-table th{font-weight:600}
+.am-archive-table--pro thead th{background:#f6f7f7}
+.am-archive-table--pro tbody tr:nth-child(even){background:rgba(0,0,0,.02)}
+.am-archive-table--pro tbody tr:hover{background:rgba(0,0,0,.04)}
+.am-archive-table--pro td,.am-archive-table--pro th{padding:10px 12px}
+.am-archive-table--pro a{text-decoration:none}
+.am-archive-table--pro a:hover{text-decoration:underline}
+.am-archive-tree, .am-archive-tree ul{list-style:disc;padding-left:20px}
+.am-archive-list{list-style:disc;padding-left:20px}
+
+/* Front-end quick term creation (Editor+) */
+.am-add-term{margin-top:8px}
+.am-add-term__panel{margin-top:8px;padding:10px;border:1px dashed #ddd;border-radius:8px}
+.am-add-term__panel[hidden]{display:none}
+.am-add-term__panel .am-add-term__input{margin-bottom:8px}
+
+/* Front-end actions (shown on single scheda when enabled in settings) */
+.am-entry-actions{margin:12px 0;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.am-edit-link__btn {
+  display: inline-block;
+  padding: 10px 14px;
+  border-radius: 8px;
+  text-decoration: none;
+  border: 1px solid rgba(0,0,0,.2);
+}
+.am-edit-link__btn:hover { opacity: .9; }
+
+.am-delete-form{margin:0}
+.am-delete-link__btn{
+  display:inline-block;
+  padding:10px 14px;
+  border-radius:8px;
+  border:1px solid rgba(0,0,0,.2);
+  background:transparent;
+  color:#2271b1; /* WP link blue: keeps visual coherence with "Modifica scheda" */
+  font:inherit;
+  line-height:1.2;
+  cursor:pointer;
+}
+.am-delete-link__btn:hover{opacity:.9}
+
+
+/* AM Search Page (shortcode [am_search_page]) */
+.am-search-page__form{display:flex;gap:10px;align-items:stretch;margin:10px 0 14px 0}
+.am-search-page__input{flex:1 1 auto;min-width:260px;padding:10px 12px;font-size:16px;border:1px solid #cfcfcf;border-radius:6px}
+.am-search-page__button{padding:10px 14px;font-size:16px;border:1px solid #cfcfcf;border-radius:6px;cursor:pointer}
+.am-archive-message{margin:10px 0;padding:10px 12px;border-radius:6px}
+.am-archive-message.am-success{background:#eef7ee;border:1px solid #b7e0b7}
+.am-archive-message.am-empty{background:#fbf1f1;border:1px solid #efb3b3}
+
+.am-add-term__microform{display:none !important;}
+.am-notice{padding:10px;border-radius:6px;margin:10px 0;}
+.am-notice--success{border:1px solid #2e7d32;}
+.am-notice--error{border:1px solid #c62828;}
+
+/* Thumbnail remove (X) */
+.am-thumb{position:relative;display:inline-block;margin:4px;vertical-align:top}
+ .am-thumb-remove{
+  position:absolute;top:2px;right:2px;
+  width:30px;height:30px;
+  border:0;border-radius:50%;
+  cursor:pointer;
+  font-weight:bold;
+  background:rgba(0,0,0,0.78);
+  color:#fff;
+  padding:0;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  line-height:1;
+  box-shadow:0 2px 10px rgba(0,0,0,.25);
+  border:2px solid rgba(255,255,255,.92);
+}
+.am-thumb-remove:hover{background:rgba(0,0,0,0.92)}
+.am-thumb-remove:focus{outline:2px solid rgba(0,0,0,.35);outline-offset:2px}
+
+/* AM_NOMEDIA_CSS: hard-hide classic editor media buttons in AM frontend forms */
+.am-form .wp-media-buttons,
+.am-form .wp-editor-tools .wp-media-buttons,
+.am-form .wp-editor-wrap .wp-media-buttons,
+.am-form .insert-media,
+.am-form .add_media{display:none !important;}
+
+
+/* PDF attachment link on single entry */
+.am-entry-section--pdf .am-entry-pdf-link{
+  display:inline-block;
+  padding:10px 12px;
+  border:1px solid rgba(0,0,0,0.12);
+  border-radius:10px;
+  text-decoration:none;
+}
+.am-entry-section--pdf .am-entry-pdf-link:hover{
+  text-decoration:underline;
+}
+
+
+.am-entry-section--pdf .am-entry-pdf-link{
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+}
+.am-entry-section--pdf .am-entry-pdf-link .dashicons{
+  font-size:18px;
+  width:18px;
+  height:18px;
+  line-height:1;
+}
+
+.am-badge--seq{font-weight:600}
+
+/* Polishing: WP author under title + image captions */
+.am-entry-wp-author{
+  font-size:0.95em;
+  margin:0 0 10px 0;
+}
+.am-entry-featured{margin:0 0 16px 0;}
+.am-entry-caption{
+  font-size:0.9em;
+  opacity:0.8;
+  margin-top:6px;
+}
+.am-entry-gallery__figure{
+  display:inline-block;
+  vertical-align:top;
+  margin:0 10px 12px 0;
+}
+.am-entry-gallery__figure .am-entry-caption{
+  max-width: 240px;
+}
+
+
+/* Scientific names formatting */
+.am-entry-title, .am-archive-card__title { font-style: normal; }
+.am-sciname-base i { font-style: italic; }
+
+
+/* Button colors (scoped to Archivio Micologico forms)
+   NOTE: we only style plugin buttons marked with .am-btn, to avoid overriding WP editor toolbars.
+*/
+.am-form .am-btn{background:#c62828;border:1px solid #8e0000;color:#fff;}
+.am-form .am-btn:hover{filter:brightness(0.95);}
+.am-form .am-btn.am-submit{background:#2e7d32;border-color:#1b5e20;}
+.am-form .am-btn.am-save-review{background:#f57c00;border-color:#e65100;}
+.am-review-preview{font-size:13px;opacity:0.95;}
+
+/* Messages area under action buttons */
+.am-form .am-form-messages{margin-top:12px;}
+.am-form .am-form-messages .am-notice{margin-top:10px;}
+
+/* Ensure "Classificazione" quick buttons match the media buttons color */
+.am-form .am-btn--primary{background:#c62828;border:1px solid #8e0000;color:#fff;}
+.am-form .am-btn--primary:hover{filter:brightness(0.95);}
+
+
+/* Top meta (autore + revisione) */
+.am-form-meta{margin:0 0 14px 0; padding:10px 12px; border:1px dashed rgba(0,0,0,.18); border-radius:10px;}
+.am-form-meta__row{display:flex; flex-wrap:wrap; gap:10px 14px; align-items:center;}
+.am-form-meta__label{opacity:.8; font-weight:600;}
+.am-form-meta__value{font-weight:600;}
+.am-form-meta__review{opacity:.9;}
+
+/* Spazio definitivo tra Commenti e Note e Galleria */
+.am-entry-notes { margin-bottom: 40px !important; }
+.am-entry-gallery { margin-top: 40px !important; }
+
+
+/* Gallery thumbnails: keep them small and clearly clickable */
+.am-entry-gallery__item{cursor:zoom-in}
+.am-entry-gallery__item img{object-fit:cover;aspect-ratio:1/1}
+
+
+/* v1.2.38 - Galleria in colonna con immagini a dimensione intera */
+.am-entry-gallery {
+  margin-top: 40px !important;
+}
+
+.am-entry-notes {
+  margin-bottom: 40px !important;
+}
+
+/* Una sola colonna */
+.am-entry-gallery .am-gallery-grid,
+.am-entry-gallery .gallery,
+.am-entry-gallery .wp-block-gallery,
+.am-entry-gallery .am-gallery {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 18px !important;
+}
+
+/* Immagini intere, adattate al contenitore */
+.am-entry-gallery img {
+  width: 100% !important;
+  height: auto !important;
+  max-width: 100% !important;
+  object-fit: contain !important;
+}
+
+
+/* v1.2.68 - Galleria: immagini intere in una sola colonna + spazio dopo "Commenti e note" */
+
+/* Spazio sotto la sezione Commenti e note */
+.am-entry-section--notes {
+  margin-bottom: 40px !important;
+}
+
+/* Spazio tra "Commenti e note" e la galleria (se adiacenti) */
+.am-entry-section--notes + .am-entry-gallery {
+  margin-top: 40px !important;
+}
+
+/* Forza galleria in colonna singola */
+.am-entry-gallery {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 18px !important;
+  grid-template-columns: none !important;
+  margin-top: 40px !important; /* sicurezza extra */
+}
+
+/* Ogni elemento galleria a blocco pieno */
+.am-entry-gallery__figure {
+  display: block !important;
+  margin: 0 !important;
+}
+
+/* Immagini: dimensione intera, responsive */
+.am-entry-gallery__item img {
+  width: 100% !important;
+  max-width: 100% !important;
+  height: auto !important;
+  object-fit: contain !important;
+}
+
+
+/* v1.2.68 - Galleria: immagini intere in una sola colonna */
+.am-entry-gallery__figure{margin:0 0 18px !important}
+.am-entry-gallery__item{display:block !important}
+.am-entry-gallery__item img{width:100% !important;max-width:100% !important;height:auto !important;object-fit:contain !important;border-radius:10px}
+
+/* Spazio sotto "Commenti e note" */
+.am-entry-section--notes{margin-bottom:40px !important}
+
+
+/* v1.2.68 - Spaziatura galleria (richiesta) */
+.am-entry-section--notes{
+  margin-bottom: 20px !important;
+}
+
+/* Galleria: colonna singola + distanza dal badge "Commenti e note" */
+.am-entry-gallery{
+  display: block !important;
+  margin-top: 20px !important;
+  margin-bottom: 0 !important;
+}
+
+/* Spazio tra le immagini */
+.am-entry-gallery__figure{
+  margin: 0 0 15px !important;
+}
+
+/* Didascalia: riduci spazio con l'immagine */
+.am-entry-gallery__figure figcaption,
+.am-entry-gallery__caption{
+  margin: 5px 0 0 !important;
+  padding: 0 !important;
+}
+
+
+/* v1.2.68 - Override definitivo galleria (layout + spazi + allineamenti) */
+
+/* Spazio tra sezione "Commenti e note" e galleria */
+.am-entry-section--notes{
+  margin-bottom: 20px !important;
+}
+.am-entry-section--notes + .am-entry-gallery{
+  margin-top: 20px !important;
+}
+
+/* Galleria: una sola colonna, niente grid */
+.am-entry-gallery{
+  display: block !important;
+  grid-template-columns: none !important;
+  margin-top: 20px !important; /* sicurezza extra */
+}
+
+/* Spazio tra le immagini */
+.am-entry-gallery__figure{
+  margin: 0 0 15px !important;
+  text-align: right !important; /* didascalie allineate a destra */
+}
+
+/* Immagini: full width, allineate a destra */
+.am-entry-gallery__item img{
+  width: 100% !important;
+  max-width: 100% !important;
+  height: auto !important;
+  object-fit: contain !important;
+  display: block !important;
+  margin-left: auto !important; /* allinea a destra nel contenitore */
+}
+
+/* Didascalia: 5px dall'immagine */
+.am-entry-gallery__figure .am-entry-caption{
+  margin: 5px 0 0 !important;
+  padding: 0 !important;
+  text-align: right !important;
+}
+
+
+/* v1.2.68 - Elementor-proof: galleria full in colonna, allineata a destra, senza link/lightbox */
+.am-entry-gallery{display:block !important; grid-template-columns:none !important;}
+.am-entry-gallery__item a{pointer-events:none !important;}
+.am-entry-gallery__figure{margin:0 0 15px !important; text-align:right !important;}
+.am-entry-caption{margin:5px 0 0 !important; text-align:right !important; font-size:16px !important;}
+
+
+/* v1.2.68 - Riduzione spazio tra immagini galleria */
+.am-entry-gallery__figure{
+  margin: 0 0 8px !important;
+}
+
+
+/* v1.2.68 - Override ad alta specificità per Elementor */
+.am-entry-gallery figure.am-entry-gallery__figure{
+  margin: 0 0 6px !important;
+  text-align: right !important;
+}
+.am-entry-gallery figure.am-entry-gallery__figure > .am-entry-gallery__item{text-align:right !important}
+.am-entry-gallery img{
+  display: block !important;
+  margin-left: auto !important;
+}
+.am-entry-gallery .am-entry-caption{
+  margin: 5px 0 0 !important;
+  text-align: right !important;
+}
+
+
+/* v1.2.68 - Riduci distanza immagini + didascalie a destra (Elementor-proof) */
+.am-entry-gallery{display:flex !important;flex-direction:column !important;gap:8px !important;align-items:flex-end !important;}
+.am-entry-gallery figure.am-entry-gallery__figure{margin:0 !important;display:flex !important;flex-direction:column !important;align-items:flex-end !important;text-align:right !important;}
+.am-entry-gallery .am-entry-caption{margin:5px 0 0 !important;padding:0 !important;font-size:16px !important;text-align:left !important;line-height:1.4 !important;}
+.am-entry-gallery .am-entry-caption p{margin:0 !important;padding:0 !important;}
+
+
+
+/* v1.2.68 - correzione definitiva spazi galleria */
+.am-entry-gallery{
+  display:flex !important;
+  flex-direction:column !important;
+  gap:4px !important;
+  margin-top:20px !important;
+}
+
+.am-entry-gallery figure.am-entry-gallery__figure{
+  margin:0 !important;
+  padding:0 !important;
+  line-height:0 !important;
+}
+
+.am-entry-gallery img{
+  margin:0 !important;
+  padding:0 !important;
+  display:block !important;
+}
+
+.am-entry-gallery .am-entry-caption{
+  margin:2px 0 0 0 !important;
+  padding:0 !important;
+  font-size:16px !important;
+  line-height:1.4 !important;
+  text-align:left !important;
+}
+
+.am-entry-gallery .am-entry-caption p{
+  margin:0 !important;
+  padding:0 !important;
+}
+
+
+/* v1.2.68 - Riduci "vuoti" interni: crop verticale immagini galleria */
+.am-entry-gallery img{
+  max-height: 520px !important;
+  object-fit: cover !important;
+  object-position: top !important;
+}
+
+
+
+/* v1.2.68 - galleria piena larghezza */
+.am-entry-gallery{
+  width:100% !important;
+  display:flex !important;
+  flex-direction:column !important;
+  gap:6px !important;
+}
+
+.am-entry-gallery figure.am-entry-gallery__figure{
+  margin:0 !important;
+  padding:0 !important;
+  width:100% !important;
+}
+
+.am-entry-gallery img{
+  width:100% !important;
+  height:auto !important;
+  display:block !important;
+  margin:0 !important;
+  padding:0 !important;
+}
+
+.am-entry-gallery .am-entry-caption{
+  text-align:left !important;
+  margin:4px 0 0 0 !important;
+  padding:0 !important;
+  font-size:16px !important;
+  line-height:1.4 !important;
+}
+
+
+/* v1.2.68 - Galleria stile "rivista scientifica" + piena larghezza */
+
+/* Forza piena larghezza anche se il tema impone max-width sulle immagini */
+.am-entry-gallery,
+.am-entry-gallery * {
+  box-sizing: border-box !important;
+}
+
+/* Se il tema limita figure/img con max-width, azzera */
+.am-entry-gallery figure,
+.am-entry-gallery img {
+  max-width: none !important;
+}
+
+/* Contenitore galleria */
+.am-entry-gallery {
+  width: 100% !important;
+  display: block !important;
+  margin-top: 20px !important;
+}
+
+/* Ogni figura: blocco pieno, separatore leggero */
+.am-entry-gallery__figure {
+  width: 100% !important;
+  margin: 0 0 14px !important;
+  padding: 0 0 14px !important;
+  border-bottom: 1px solid rgba(0,0,0,.08) !important;
+}
+.am-entry-gallery__figure:last-child {
+  border-bottom: 0 !important;
+  padding-bottom: 0 !important;
+  margin-bottom: 0 !important;
+}
+
+/* Wrapper immagine */
+.am-entry-gallery__item {
+  width: 100% !important;
+  margin: 0 !important;
+}
+
+/* Immagine: riempi tutto lo spazio disponibile */
+.am-entry-gallery__item img {
+  width: 100% !important;
+  max-width: none !important;
+  height: auto !important;
+  display: block !important;
+  margin: 0 !important;
+  border-radius: 10px !important;
+  box-shadow: 0 1px 10px rgba(0,0,0,.08) !important;
+}
+
+/* Didascalia: stile rivista (sinistra, piccola, leggibile) */
+.am-entry-caption {
+  margin: 6px 0 0 0 !important;
+  padding: 0 !important;
+  text-align: left !important;
+  font-size: 16px !important;
+  line-height: 1.4 !important;
+  color: rgba(0,0,0,.62) !important;
+}
+.am-entry-caption p {
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+
+/* v1.2.68 - Galleria stile rivista scientifica (full width + caption sinistra + compatta) */
+.am-gallery--journal {
+  width: 100% !important;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 10px !important;
+}
+
+.am-gallery--journal .am-entry-gallery__figure {
+  width: 100% !important;
+  margin: 0 !important;
+  padding: 0 0 10px !important;
+  border-bottom: 1px solid rgba(0,0,0,.08) !important;
+}
+.am-gallery--journal .am-entry-gallery__figure:last-child {
+  border-bottom: 0 !important;
+  padding-bottom: 0 !important;
+}
+
+.am-gallery--journal .am-entry-gallery__item {
+  width: 100% !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+/* Forza piena larghezza anche contro CSS del tema/Elementor */
+.am-gallery--journal img {
+  width: 100% !important;
+  max-width: 100% !important;
+  height: auto !important;
+  display: block !important;
+  margin: 0 !important;
+  border-radius: 12px !important;
+  box-shadow: 0 1px 10px rgba(0,0,0,.08) !important;
+}
+
+/* Caption sinistra, elegante */
+.am-gallery--journal .am-entry-caption {
+  text-align: left !important;
+  margin: 6px 0 0 !important;
+  padding: 0 !important;
+  font-size: 16px !important;
+  line-height: 1.4 !important;
+  color: rgba(0,0,0,.65) !important;
+}
+.am-gallery--journal .am-entry-caption p {
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+
+/* v1.2.68 - Caption sinistra + fix '>' */
+.am-gallery--journal .am-entry-gallery__figure{text-align:left !important;}
+.am-gallery--journal figure.am-entry-gallery__figure figcaption.am-entry-caption{
+  display:block !important;
+  width:100% !important;
+  text-align:left !important;
+}
+
+
+/* v1.2.68 - Forza didascalie a sinistra (anche contro stili tema) */
+.am-entry-gallery.am-gallery--journal figure.am-entry-gallery__figure{text-align:left !important;}
+.am-entry-gallery.am-gallery--journal figure.am-entry-gallery__figure > figcaption.am-entry-caption{
+  display:block !important;
+  width:100% !important;
+  text-align:left !important;
+  direction:ltr !important;
+}
+
+
+/* v1.2.68 - Caption stile rivista: "Fig. N — ..." a sinistra, 1 riga */
+.am-entry-gallery figure.am-entry-gallery__figure{text-align:left !important;}
+.am-entry-gallery figure.am-entry-gallery__figure figcaption.am-entry-caption{
+  display:block !important;
+  width:100% !important;
+  text-align:left !important;
+  white-space:nowrap !important;
+  overflow:hidden !important;
+  text-overflow:ellipsis !important;
+}
+@media (max-width: 520px){
+  .am-entry-gallery figure.am-entry-gallery__figure figcaption.am-entry-caption{
+    white-space:normal !important;
+    overflow:visible !important;
+    text-overflow:clip !important;
+  }
+}
+
+
+/* v1.2.68 - Allinea didascalie galleria a sinistra e su una riga */
+.am-entry-gallery .am-entry-caption{
+  display:block !important;
+  width:100% !important;
+  text-align:left !important;
+  white-space:nowrap !important;
+  overflow:hidden !important;
+  text-overflow:ellipsis !important;
+}
+@media (max-width: 520px){
+  .am-entry-gallery .am-entry-caption{
+    white-space:normal !important;
+    overflow:visible !important;
+    text-overflow:clip !important;
+  }
+}
+
+
+/* v1.2.68 - caption sinistra anche se tema usa flex/auto-margins */
+.am-entry-gallery figure.am-entry-gallery__figure {
+  display: block !important;
+  text-align: left !important;
+}
+.am-entry-gallery figure.am-entry-gallery__figure > figcaption.am-entry-caption {
+  display: block !important;
+  width: 100% !important;
+  text-align: left !important;
+  margin-left: 0 !important;
+  margin-right: auto !important;
+  align-self: flex-start !important;
+  justify-self: start !important;
+  float: none !important;
+  white-space: nowrap !important;
+}
+
+
+/* v1.2.68 - Fix caption tronche + no crop mobile/tablet */
+
+/* Caption: niente ellissi, testo completo */
+.am-entry-gallery .am-entry-caption{
+  white-space: normal !important;
+  overflow: visible !important;
+  text-overflow: clip !important;
+}
+
+/* Immagini: mai tagliate (no cover), responsive come desktop */
+.am-entry-gallery img,
+.am-entry-featured img,
+.am-entry-preview img {
+  height: auto !important;
+  max-height: none !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  object-fit: contain !important;
+  object-position: center center !important;
+}
+
+/* Se un wrapper del tema impone un'altezza fissa, la annulliamo */
+.am-entry-gallery__item,
+.am-entry-featured,
+.am-entry-preview,
+.am-entry-featured figure,
+.am-entry-preview figure {
+  height: auto !important;
+  max-height: none !important;
+}
+
+
+/* v1.2.68 - Stop ai "blocchi bianchi" (niente contain su box con altezza fissa) */
+
+/* Wrapper: niente altezze/min-heights e niente background */
+.am-entry-gallery__item,
+.am-entry-gallery__figure,
+.am-entry-featured,
+.am-entry-preview,
+.am-entry-featured figure,
+.am-entry-preview figure {
+  height: auto !important;
+  max-height: none !important;
+  min-height: 0 !important;
+  background: transparent !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  line-height: 0 !important;
+}
+
+/* Immagini: comportamento "desktop" anche su mobile/tablet: nessun crop e nessun letterboxing */
+.am-entry-gallery img,
+.am-entry-featured img,
+.am-entry-preview img {
+  width: 100% !important;
+  max-width: 100% !important;
+  height: auto !important;
+  max-height: none !important;
+  object-fit: unset !important;
+  object-position: unset !important;
+  display: block !important;
+  margin: 0 !important;
+}
+
+
+/* v1.2.68 - Titolo: Genere+specie in corsivo + grassetto (via class, compatibile con wp_kses) */
+.am-entry-title .am-taxon-gs{
+  font-weight: 700 !important;
+}
+.am-entry-title .am-taxon-gs i{
+  font-style: italic !important;
+  font-weight: 700 !important;
+}
+
+
+/* v1.2.68 - Titolo: garantisci grassetto+corsivo anche se il tema azzera i pesi */
+.am-entry-title strong,
+.am-entry-title em,
+.am-entry-title strong em{
+  font-weight: 700 !important;
+}
+.am-entry-title em,
+.am-entry-title strong em{
+  font-style: italic !important;
+}
+
+
+/* v1.2.68 - Titolo: forza grassetto+corsivo sul blocco Genere Specie */
+.am-entry-title .am-taxon-gs{font-weight:700 !important;}
+.am-entry-title .am-taxon-gs i{font-style:italic !important; font-weight:700 !important;}
+
+
+/* v1.2.68 - Titolo fungo: supporto Elementor */
+.single-am_fungo .elementor-heading-title .am-taxon-gs{font-weight:700 !important;}
+.single-am_fungo .elementor-heading-title .am-taxon-gs i{font-style:italic !important; font-weight:700 !important;}
+
+
+/* v1.2.68 - Titolo: Genere+specie in corsivo+grassetto (anche Elementor via JS) */
+.am-taxon-gs{font-weight:700 !important;}
+.am-taxon-gs i{font-style:italic !important; font-weight:700 !important;}
+
+
+/* v1.3.5 Chrome gallery safeguard */
+.am-entry-gallery img,
+.am-entry-gallery__item img,
+.am-entry-gallery .am-gallery-image{
+  width:auto !important;
+  max-width:100% !important;
+  height:auto !important;
+  max-height:none !important;
+  min-height:0 !important;
+  aspect-ratio:auto !important;
+  object-fit:contain !important;
+  object-position:center center !important;
+  display:block !important;
+}
+.am-entry-gallery,
+.am-entry-gallery__figure,
+.am-entry-gallery__item{
+  height:auto !important;
+  min-height:0 !important;
+  max-height:none !important;
+}
+.am-entry-gallery__figure,
+.am-entry-gallery__item{
+  overflow:hidden !important;
+}
+
+
+/* Widget / shortcode: schede fungo casuali con immagine */
+.am-random-funghi-widget__list{
+	list-style:none;
+	margin:0;
+	padding:0;
+	display:grid;
+	gap:14px;
+}
+.am-random-funghi-widget__item{
+	display:grid;
+	gap:8px;
+}
+.am-random-funghi-widget__thumblink{
+	display:block;
+	text-decoration:none;
+}
+.am-random-funghi-widget__thumb{
+	display:block;
+	width:100%;
+	height:auto;
+	aspect-ratio:4/3;
+	object-fit:cover;
+	border-radius:10px;
+}
+.am-random-funghi-widget__thumb--empty{
+	display:flex;
+	align-items:center;
+	justify-content:center;
+	min-height:140px;
+	padding:12px;
+	background:#f3f3f3;
+	color:#666;
+	font-size:13px;
+	text-align:center;
+	border:1px solid #ddd;
+}
+.am-random-funghi-widget__link{
+	display:block;
+	font-weight:600;
+	line-height:1.35;
+	text-decoration:none;
+}
+.am-random-funghi-widget__link:hover{
+	text-decoration:underline;
+}
+
+
+/* Carosello orizzontale: 5 schede fungo casuali */
+.am-random-funghi-carousel{
+	position:relative;
+}
+.am-random-funghi-carousel__viewport{
+	overflow:hidden;
+	width:100%;
+}
+.am-random-funghi-carousel__track{
+	display:flex;
+	transition:transform .45s ease;
+	will-change:transform;
+}
+.am-random-funghi-carousel__slide{
+	flex:0 0 100%;
+	max-width:100%;
+	box-sizing:border-box;
+	padding:0;
+}
+.am-random-funghi-widget__item{
+	background:#fff;
+	border:1px solid #e4e4e4;
+	border-radius:12px;
+	overflow:hidden;
+	box-shadow:0 1px 4px rgba(0,0,0,.05);
+}
+.am-random-funghi-widget__thumblink{
+	display:block;
+	line-height:0;
+}
+.am-random-funghi-widget__thumb{
+	display:block;
+	width:100%;
+	height:auto;
+	aspect-ratio:4/3;
+	object-fit:cover;
+	border-radius:0;
+}
+.am-random-funghi-widget__thumb--empty{
+	display:flex;
+	align-items:center;
+	justify-content:center;
+	min-height:180px;
+	padding:14px;
+	background:#f3f3f3;
+	color:#666;
+	font-size:13px;
+	text-align:center;
+	border:0;
+}
+.am-random-funghi-widget__link{
+	display:block;
+	padding:10px 12px 12px;
+	font-weight:600;
+	line-height:1.35;
+	text-decoration:none;
+}
+.am-random-funghi-widget__link:hover{
+	text-decoration:underline;
+}
+.am-random-funghi-carousel__controls{
+	display:flex;
+	align-items:center;
+	justify-content:space-between;
+	gap:10px;
+	margin-top:10px;
+}
+.am-random-funghi-carousel__button{
+	appearance:none;
+	border:1px solid #d0d0d0;
+	background:#fff;
+	color:#333;
+	border-radius:999px;
+	width:34px;
+	height:34px;
+	line-height:1;
+	font-size:20px;
+	cursor:pointer;
+	padding:0;
+}
+.am-random-funghi-carousel__button:hover{
+	background:#f6f6f6;
+}
+.am-random-funghi-carousel__dots{
+	display:flex;
+	align-items:center;
+	justify-content:center;
+	gap:7px;
+	flex:1 1 auto;
+}
+.am-random-funghi-carousel__dot{
+	appearance:none;
+	width:10px;
+	height:10px;
+	padding:0;
+	border-radius:50%;
+	border:0;
+	background:#c7c7c7;
+	cursor:pointer;
+}
+.am-random-funghi-carousel__dot.is-active{
+	background:#8d8d8d;
+}
+
+
+/* Carosello random: multi-visibile */
+.am-random-funghi-carousel{
+	--am-visible: 1;
+	--am-gap: 14px;
+}
+.am-random-funghi-carousel__track{
+	gap: var(--am-gap);
+}
+.am-random-funghi-carousel__slide{
+	flex: 0 0 calc((100% - (var(--am-gap) * (var(--am-visible) - 1))) / var(--am-visible));
+	max-width: calc((100% - (var(--am-gap) * (var(--am-visible) - 1))) / var(--am-visible));
+}
+.am-random-funghi-widget__thumb{
+	aspect-ratio: 4 / 3;
+}
+@media (max-width: 979px){
+	.am-random-funghi-carousel{
+		--am-visible: 2;
+	}
+}
+@media (max-width: 639px){
+	.am-random-funghi-carousel{
+		--am-visible: 1;
+	}
+}
+
+
+/* AM UX submit form 1.5.25 */
+.am-submit-intro-card {
+  display: flex;
+  gap: 18px;
+  align-items: flex-start;
+  justify-content: space-between;
+  padding: 18px;
+  margin: 0 0 18px;
+  border: 1px solid rgba(24, 86, 55, .16);
+  border-radius: 16px;
+  background: linear-gradient(135deg, rgba(24, 86, 55, .08), rgba(255,255,255,.85));
+  box-shadow: 0 8px 24px rgba(0,0,0,.04);
+}
+.am-submit-intro-card h2 {
+  margin: 0 0 6px;
+  font-size: 1.45rem;
+  line-height: 1.2;
+}
+.am-submit-intro-card p {
+  margin: 0;
+  color: #4a4a4a;
+}
+.am-submit-steps {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  counter-reset: am-step;
+}
+.am-submit-steps li {
+  counter-increment: am-step;
+  padding: 8px 10px;
+  border-radius: 999px;
+  background: #fff;
+  border: 1px solid rgba(24, 86, 55, .18);
+  font-size: .9rem;
+  white-space: nowrap;
+}
+.am-submit-steps li::before {
+  content: counter(am-step);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  margin-right: 6px;
+  border-radius: 50%;
+  background: #185637;
+  color: #fff;
+  font-size: .75rem;
+  font-weight: 700;
+}
+.am-section__intro {
+  margin: -4px 0 16px;
+  color: #555;
+}
+.am-generated-title-card {
+  margin: 18px 0 4px;
+  padding: 14px 16px;
+  border-left: 4px solid #185637;
+  border-radius: 12px;
+  background: #f7faf8;
+}
+.am-generated-title-card__label {
+  display: block;
+  margin-bottom: 4px;
+  color: #52615a;
+  font-size: .86rem;
+  text-transform: uppercase;
+  letter-spacing: .04em;
+}
+.am-generated-title-card__value {
+  display: block;
+  font-size: 1.08rem;
+}
+.am-section--final-check {
+  margin-top: 22px;
+}
+.am-submit-checklist {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 8px;
+}
+.am-submit-checklist li {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  padding: 10px 12px;
+  border: 1px solid rgba(0,0,0,.08);
+  border-radius: 10px;
+  background: #fff;
+}
+.am-submit-checklist li.is-ok {
+  border-color: rgba(24, 86, 55, .35);
+  background: rgba(24, 86, 55, .06);
+}
+.am-submit-checklist__status {
+  font-weight: 700;
+  min-width: 1.2em;
+}
+.am-submit-checklist li.is-ok .am-submit-checklist__status {
+  color: #185637;
+}
+@media (max-width: 760px) {
+  .am-submit-intro-card {
+    display: block;
+  }
+  .am-submit-steps {
+    justify-content: flex-start;
+    margin-top: 14px;
+  }
+  .am-submit-steps li {
+    white-space: normal;
+  }
+}
+
+
+/* AM UX submit form 1.5.26 - guided descriptive template */
+.am-guided-template {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin: 0 0 12px;
+  padding: 10px 12px;
+  border: 1px dashed rgba(24, 86, 55, .28);
+  border-radius: 12px;
+  background: rgba(24, 86, 55, .045);
+}
+.am-guided-template__hint {
+  color: #52615a;
+  font-size: .92rem;
+}
+.am-btn--secondary {
+  background: #f8faf8;
+  border-color: rgba(24, 86, 55, .35);
+  color: #185637;
+}
+.am-btn--secondary:hover,
+.am-btn--secondary:focus {
+  background: #eef7f1;
+  color: #123d28;
+}
+@media (max-width: 760px) {
+  .am-guided-template {
+    display: block;
+  }
+  .am-guided-template__hint {
+    display: block;
+    margin-top: 8px;
+  }
+}
+
+
+/* AM UX submit form 1.5.27 - media preview/status */
+.am-media-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  align-items: center;
+  margin-bottom: 10px;
+}
+.am-btn--ghost {
+  background: #fff;
+  border-color: rgba(0,0,0,.18);
+  color: #555;
+}
+.am-btn--ghost:hover,
+.am-btn--ghost:focus {
+  background: #fafafa;
+  color: #222;
+}
+.am-media-status {
+  margin: 8px 0 0;
+  font-size: .92rem;
+  color: #52615a;
+}
+.am-media-status.is-ok {
+  color: #185637;
+  font-weight: 600;
+}
+.am-media-status.is-empty {
+  color: #7a4b15;
+}
+.am-media-preview img {
+  max-width: 180px;
+  height: auto;
+  border-radius: 10px;
+  border: 1px solid rgba(0,0,0,.08);
+  box-shadow: 0 4px 14px rgba(0,0,0,.08);
+}
+.am-media-preview--grid {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  align-items: flex-start;
+}
+.am-media-preview--grid img {
+  width: 92px;
+  height: 92px;
+  object-fit: cover;
+}
+.am-media-preview__pdf {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: #fff;
+  border: 1px solid rgba(0,0,0,.10);
+}
+.am-media-preview__pdf::before {
+  content: "PDF";
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 38px;
+  height: 26px;
+  border-radius: 6px;
+  background: #b32d2e;
+  color: #fff;
+  font-weight: 700;
+  font-size: .75rem;
+}
+
+
+/* AM UX submit form 1.5.28 - post submit result actions */
+.am-submit-result {
+  padding: 16px 18px;
+}
+.am-submit-result__actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 12px;
+}
+.am-btn--small {
+  display: inline-flex;
+  align-items: center;
+  min-height: 34px;
+  padding: 6px 10px;
+  border-radius: 9px;
+  line-height: 1.2;
+  text-decoration: none;
+}
+.am-submit-result__actions .am-btn {
+  text-decoration: none;
+}
+@media (max-width: 560px) {
+  .am-submit-result__actions {
+    display: grid;
+  }
+  .am-submit-result__actions .am-btn {
+    justify-content: center;
+  }
+}
+
+
+/* AM UX submit form 1.5.29 - messages moved to top */
+.am-form-messages--top {
+  margin: 0 0 18px;
+}
+.am-form-messages--top:empty {
+  display: none;
+}
+.am-form-messages--top .am-notice {
+  margin-bottom: 12px;
+}
+
+
+/* AM UX submit form 1.5.32 - quality summary */
+.am-quality-summary {
+  display: flex;
+  gap: 8px;
+  align-items: baseline;
+  flex-wrap: wrap;
+  margin: 0 0 12px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: #f7faf8;
+  border: 1px solid rgba(24, 86, 55, .16);
+}
+.am-quality-summary.is-ok {
+  background: rgba(24, 86, 55, .07);
+  border-color: rgba(24, 86, 55, .32);
+}
+.am-quality-summary.is-warn {
+  background: rgba(255, 190, 70, .14);
+  border-color: rgba(180, 116, 0, .24);
+}
+.am-submit-checklist__text {
+  display: grid;
+  gap: 2px;
+}
+.am-submit-checklist__text small {
+  color: #5f6b65;
+  font-size: .86rem;
+  line-height: 1.35;
+}
+.am-submit-checklist li.is-optional-ok {
+  border-color: rgba(80, 80, 80, .14);
+  background: #fafafa;
+}
+.am-submit-checklist li.is-optional-ok .am-submit-checklist__status {
+  color: #666;
+}
+
+
+/* AM 1.5.41 - featured image full available width on single scheda */
+.am-entry-featured {
+  width: 100%;
+  max-width: 100%;
+  margin-left: 0;
+  margin-right: 0;
+}
+
+.am-entry-featured img {
+  display: block;
+  width: 100% !important;
+  max-width: 100% !important;
+  height: auto !important;
+  object-fit: contain;
+}
+
+
+/* AM 1.5.42 - stronger featured image full width render support */
+.am-entry-featured,
+.entry-content .am-entry-featured,
+.elementor-widget-theme-post-content .am-entry-featured {
+  display: block !important;
+  width: 100% !important;
+  max-width: 100% !important;
+}
+
+.am-entry-featured img,
+.am-entry-featured img.wp-post-image,
+.am-entry-featured .am-entry-featured-image,
+.entry-content .am-entry-featured img,
+.elementor-widget-theme-post-content .am-entry-featured img {
+  display: block !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  height: auto !important;
+  margin-left: 0 !important;
+  margin-right: 0 !important;
+}
+
+
+/* AM 1.5.43 - breadcrumb tassonomica scheda */
+.am-entry-breadcrumb--tax {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  margin: 0 0 14px;
+  padding: 10px 12px;
+  border: 1px solid rgba(0,0,0,.08);
+  border-radius: 12px;
+  background: rgba(0,0,0,.025);
+  font-size: .94rem;
+  line-height: 1.35;
+}
+
+.am-entry-breadcrumb--tax a {
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.am-entry-breadcrumb--tax a:hover,
+.am-entry-breadcrumb--tax a:focus {
+  text-decoration: underline;
+}
+
+.am-entry-breadcrumb__current {
+  opacity: .82;
+}
+
+.am-entry-breadcrumb__sep {
+  opacity: .45;
+}
+
+
+/* AM 1.5.44 - barra navigazione scheda */
+.am-entry-nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  margin: 12px 0 18px;
+  padding: 10px 12px;
+  border: 1px solid rgba(0,0,0,.08);
+  border-radius: 14px;
+  background: rgba(255,255,255,.72);
+}
+
+.am-entry-nav--bottom {
+  margin-top: 28px;
+  margin-bottom: 0;
+}
+
+.am-entry-nav__link {
+  display: inline-flex;
+  align-items: center;
+  min-height: 34px;
+  padding: 6px 11px;
+  border: 1px solid rgba(0,0,0,.10);
+  border-radius: 999px;
+  background: #fff;
+  text-decoration: none;
+  font-weight: 600;
+  font-size: .92rem;
+  line-height: 1.25;
+}
+
+.am-entry-nav__link:hover,
+.am-entry-nav__link:focus {
+  text-decoration: none;
+  border-color: rgba(0,0,0,.24);
+  box-shadow: 0 2px 8px rgba(0,0,0,.08);
+}
+
+.am-entry-nav__link--archive {
+  font-weight: 700;
+}
+
+@media (max-width: 640px) {
+  .am-entry-nav {
+    align-items: stretch;
+  }
+
+  .am-entry-nav__link {
+    width: 100%;
+    justify-content: center;
+    text-align: center;
+  }
+}
+
+
+/* AM 1.5.45 - torna ai risultati */
+.am-entry-nav__link--return {
+  font-weight: 800;
+  border-color: rgba(24, 86, 55, .28);
+  background: rgba(24, 86, 55, .07);
+}
