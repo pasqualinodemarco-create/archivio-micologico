@@ -22,6 +22,7 @@ for role in ['editor','author']:
   cases.append(dict(kind=kind,role=role))
 for role in ['editor','author']:
  cases.append(dict(kind='assets',role=role))
+cases += [dict(kind='info',role='administrator'),dict(kind='info',role='editor'),dict(kind='info',role='author'),dict(kind='info_missing',role='editor'),dict(kind='changelog_parser',role='editor')]
 results=[]
 env=dict(os.environ,AM_TEST_DISPOSABLE='1')
 for case in cases:

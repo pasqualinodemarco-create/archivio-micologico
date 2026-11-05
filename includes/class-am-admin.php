@@ -1211,16 +1211,37 @@ echo '<input type="number" min="0" max="600" name="am_submit_result_ttl" value="
 		echo '</a>';
 	}
 
+	/** Read the bundled changelog; a missing file must never break an admin page. */
+	private static function get_current_changelog_items(): array {
+		$path = AM_PATH . 'CHANGELOG.txt';
+		if (!is_readable($path)) { return []; }
+		$text = @file_get_contents($path);
+		if (!is_string($text)) { return []; }
+		return self::parse_changelog_items($text, AM_VERSION);
+	}
+
+	/** Supports both "= 1.5.56 =" and legacy "v1.5.54 - title" headings. */
+	private static function parse_changelog_items(string $text, string $version): array {
+		$items = [];
+		$in_version = false;
+		foreach (preg_split('/\R/u', $text) ?: [] as $line) {
+			if (preg_match('/^\s*(?:=\s*)?v?(\d+\.\d+\.\d+(?:[.-][a-z0-9]+)*)\b/i', $line, $heading)) {
+				if ($in_version && $heading[1] !== $version) { break; }
+				$in_version = $heading[1] === $version;
+				continue;
+			}
+			if ($in_version && preg_match('/^\s*[-*]\s+(.+)$/u', $line, $entry)) {
+				$items[] = trim($entry[1]);
+			}
+		}
+		return $items;
+	}
+
 	public static function render_info_version_page(): void {
 		if (!current_user_can(AM_CAP_EDIT_POSTS)) {
 			wp_die(esc_html__('Non hai il permesso di accedere a questa pagina.', 'archivio-micologico'));
 		}
-		$changelog = json_decode((string) AM_CHANGELOG, true);
-		$items = [];
-		if (is_array($changelog)) {
-			$items = $changelog[AM_VERSION] ?? [];
-			if (!is_array($items)) { $items = []; }
-		}
+		$items = self::get_current_changelog_items();
 		echo '<div class="wrap">';
 		echo '<h1>' . esc_html__('Archivio Micologico · Info / Versione', 'archivio-micologico') . '</h1>';
 		echo '<table class="widefat striped" style="max-width:900px;background:#fff;">';

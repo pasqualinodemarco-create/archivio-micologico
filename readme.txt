@@ -5,7 +5,7 @@ Tags: fungi, mycology, taxonomy, scientific archive, biodiversity, search
 Requires at least: 6.0
 Tested up to: 6.5
 Requires PHP: 8.0
-Stable tag: 1.5.55
+Stable tag: 1.5.56
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -64,6 +64,10 @@ Sì. Il plugin è sviluppato e testato con PHP 8+.
 4. Tooltip informativo con logo e crediti
 
 == Changelog ==
+
+= 1.5.56 =
+* Corretta la pagina Info / Versione: il changelog viene letto dal file incluso, senza costanti obsolete.
+* Gestiti file mancanti e formati storici del changelog.
 
 = 1.5.55 =
 * Allineati interfaccia e server per la revisione scientifica di Amministratore ed Editore.

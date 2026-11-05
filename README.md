@@ -2,11 +2,11 @@
 
 Plugin WordPress per la gestione di schede micologiche, classificazioni gerarchiche, articoli, ricerca e moduli frontend.
 
-**Versione: 1.5.55** — WordPress 6.0+ e PHP 8.0+.
+**Versione: 1.5.56** — WordPress 6.0+ e PHP 8.0+.
 
 ## Installazione
 
-1. Scarica [archivio-micologico-1.5.55.zip](downloads/archivio-micologico-1.5.55.zip?raw=true).
+1. Scarica [archivio-micologico-1.5.56.zip](downloads/archivio-micologico-1.5.56.zip?raw=true).
 2. In WordPress apri **Plugin → Aggiungi nuovo → Carica plugin**.
 3. Seleziona lo ZIP e conferma l’aggiornamento di Archivio Micologico.
 
@@ -18,6 +18,10 @@ Lo ZIP in `downloads` contiene soltanto il plugin nella cartella `archivio-micol
 - **Altri ruoli:** consultazione pubblica; nessuna gestione AM.
 - L’Editore conserva il normale ruolo WordPress e non riceve `manage_options`.
 - La sincronizzazione rimuove agli altri ruoli soltanto capability specifiche AM; conserva i permessi generali già presenti. Non può ricostruire permessi eventualmente rimossi dalle versioni precedenti o da altri strumenti.
+
+## Correzione 1.5.56
+
+Ripristinata la pagina **Info / Versione**: legge le modifiche della versione corrente da `CHANGELOG.txt`, gestisce un file mancante senza errore fatale e riconosce anche le intestazioni storiche.
 
 ## Correzioni 1.5.55
 

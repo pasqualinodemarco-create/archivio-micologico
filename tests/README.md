@@ -1,4 +1,4 @@
-# Test di integrazione AM 1.5.55
+# Test di integrazione AM 1.5.56
 
 Eseguire **solo su un’installazione WordPress locale e sacrificabile**, mai sul sito reale. Il test crea utenti, contenuti e termini e modifica impostazioni.
 
@@ -24,3 +24,5 @@ Eseguire `python3 tests/run_integration.py` dalla radice del repository.
 Copertura: Amministratore, Editore, Autore, Collaboratore, Sottoscrittore e visitatore; revisioni; modifica di contenuti altrui; nonce errati; permesso sul singolo contenuto revocato; conservazione/rimozione PDF e galleria; testo con apostrofi; stati draft/pending/publish/private; cestino e ripristino; rifiuto di tipo errato e richieste GET; cestino disattivato; campi impostazioni e limiti; nessun `manage_options` aggiunto all’Editore; permessi generali preservati; interfaccia dei pulsanti; upload AM e upload WordPress ordinari; vocabolari; debug e fallback inserimento.
 
 Limiti: database di prova SQLite; nessuna verifica end-to-end con temi, cache, Elementor Pro o configurazione del sito reale. La suite non rappresenta la chiusura degli altri rilievi di sicurezza dell’audit.
+
+Regressione 1.5.56: pagina Info / Versione per Amministratore ed Editore, rifiuto dell’Autore, fallback con changelog mancante e parsing di intestazioni correnti e storiche.

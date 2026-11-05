@@ -94,7 +94,7 @@ register_shutdown_function(function() use (&$checks, &$error, &$redirects, &$plu
     // Expected permission/nonce rejections are ordinary test outcomes; undefined callbacks are never allowed.
     $checks['no_plugin_warnings'] = count($plugin_warnings) === 0;
     $checks['no_php_fatal'] = !($fatal && in_array($fatal['type'], [E_ERROR,E_PARSE,E_COMPILE_ERROR], true));
-    if (!$denied && in_array($kind,['update','settings','submit'],true)) { $checks['completed_without_exception'] = $error === null; }
+    if (!$denied && in_array($kind,['update','settings','submit','info','info_missing','changelog_parser'],true)) { $checks['completed_without_exception'] = $error === null; }
     echo "\nAMTEST:" . json_encode(['case'=>$case,'checks'=>$checks,'error'=>$error,'warnings'=>$plugin_warnings,'redirects'=>$redirects,'output'=>substr($output,0,600)]) . "\n";
 });
 try {
@@ -178,6 +178,30 @@ try {
             $checks['review_js_permission']=((bool) ($config['canReview'] ?? false))===$can_manage;
             $params=apply_filters('plupload_default_params',[]);
             $checks['scoped_upload_marker']=isset($params['am_upload_nonce'])===$can_manage;
+            break;
+        case 'changelog_parser':
+            $parser=new ReflectionMethod('AM_Admin','parse_changelog_items');
+            $checks['current_heading']=$parser->invoke(null,"= 1.5.56 =\n* Current entry\n= 1.5.55 =\n* Older entry",'1.5.56')===['Current entry'];
+            $checks['legacy_heading']=$parser->invoke(null,"v1.5.54 - title\n- Legacy entry\nv1.5.53 - old\n- Other entry",'1.5.54')===['Legacy entry'];
+            $checks['missing_version']=$parser->invoke(null,"= 1.0.0 =\n* Older entry",AM_VERSION)===[];
+            $checks['empty_file']=$parser->invoke(null,'',AM_VERSION)===[];
+            break;
+        case 'info_missing':
+            $path=AM_PATH.'CHANGELOG.txt';
+            $backup=file_get_contents($path);
+            unlink($path);
+            try {
+                ob_start(); AM_Admin::render_info_version_page(); $html=ob_get_clean();
+                $checks['missing_file_fallback']=str_contains($html,'Nessuna voce changelog');
+            } finally { file_put_contents($path,$backup); }
+            break;
+        case 'info':
+            ob_start();
+            AM_Admin::render_info_version_page();
+            $html=ob_get_clean();
+            $checks['info_rendered']=str_contains($html,'Info / Versione') && str_contains($html,AM_VERSION);
+            $checks['current_changelog_rendered']=str_contains($html,'Corretta la pagina Info / Versione') && !str_contains($html,'Nessuna voce changelog');
+            $checks['no_previous_version_entries']=!str_contains($html,'Applicato il limite immagini');
             break;
         case 'fallback':
             $method=new ReflectionMethod('AM_Admin','get_front_submit_page_url');

@@ -1,3 +1,7 @@
+= 1.5.56 =
+* Corretta la pagina Info / Versione: il changelog viene letto dal file incluso, senza costanti obsolete.
+* Gestiti file mancanti e formati storici del changelog.
+
 = 1.5.55 =
 * Allineati interfaccia e server per la revisione scientifica di Amministratore ed Editore.
 * Ripristinati classificazione, PDF e allegati facoltativi nelle modifiche frontend.
