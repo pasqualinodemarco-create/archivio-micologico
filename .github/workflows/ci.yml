@@ -1,0 +1,65 @@
+name: Test e pacchetto installabile
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: am-ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test-and-package:
+    name: PHP, JavaScript, WordPress e ZIP
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - name: Scarica i sorgenti
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          persist-credentials: false
+
+      - name: Prepara PHP 8.3 e dipendenze
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y --no-install-recommends php8.3-cli php8.3-mbstring php8.3-sqlite3 php8.3-xml php8.3-curl unzip
+
+      - name: Controlla sintassi PHP e JavaScript
+        run: |
+          find . -type f -name '*.php' -not -path './.git/*' -print0 | xargs -0 -n 1 php8.3 -l
+          for file in assets/js/*.js; do node --check "$file"; done
+          python3 -m py_compile scripts/build_plugin.py tests/run_integration.py
+          bash -n scripts/ci_wordpress.sh
+
+      - name: Test su WordPress 7.1.4
+        env:
+          AM_TEST_PHP: /usr/bin/php8.3
+        run: bash scripts/ci_wordpress.sh
+
+      - name: Genera ZIP installabile
+        run: python3 scripts/build_plugin.py
+
+      - name: Rendi scaricabile il plugin
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: archivio-micologico-installabile
+          path: |
+            dist/*.zip
+            dist/*.sha256
+          if-no-files-found: error
+          retention-days: 14
+
+      - name: Salva i risultati dei test
+        if: always() && env.AM_TEST_RESULTS != ''
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: risultati-test-wordpress
+          path: ${{ env.AM_TEST_RESULTS }}
+          if-no-files-found: warn
+          retention-days: 14

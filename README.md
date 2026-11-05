@@ -53,3 +53,11 @@ Questo aggiornamento riguarda i quattro interventi sui permessi dell’Editore e
 ## Documentazione e licenza
 
 Consulta [readme.txt](readme.txt) e [CHANGELOG.txt](CHANGELOG.txt). Licenza GPLv2 o successiva, come indicato nel pacchetto originale.
+
+## GitHub Actions
+
+Il workflow **Test e pacchetto installabile** parte sui push a `main`, sulle pull request verso `main` e manualmente da **Actions → Test e pacchetto installabile → Run workflow**. Esegue i controlli sintattici e tutti i 70 scenari WordPress in un database sacrificabile, poi genera lo ZIP installabile.
+
+Apri l’esecuzione completata e scarica **Artifacts → archivio-micologico-installabile**. Estrai l’archivio GitHub: al suo interno trovi lo ZIP del plugin da caricare in WordPress e il checksum SHA-256. I risultati JSON sono nell’Artifact **risultati-test-wordpress**. Gli artifact vengono conservati per 14 giorni.
+
+Il workflow usa permessi di lettura del repository; non modifica il sito o le release. WordPress, SQLite Integration e WP-CLI hanno versioni e checksum fissati.
