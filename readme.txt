@@ -5,7 +5,7 @@ Tags: fungi, mycology, taxonomy, scientific archive, biodiversity, search
 Requires at least: 6.0
 Tested up to: 6.5
 Requires PHP: 8.0
-Stable tag: 1.5.54
+Stable tag: 1.5.55
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -64,6 +64,16 @@ Sì. Il plugin è sviluppato e testato con PHP 8+.
 4. Tooltip informativo con logo e crediti
 
 == Changelog ==
+
+= 1.5.55 =
+* Allineati interfaccia e server per la revisione scientifica di Amministratore ed Editore.
+* Ripristinati classificazione, PDF e allegati facoltativi nelle modifiche frontend.
+* Unificata la cancellazione con controllo del contenuto, nonce e cestino recuperabile.
+* Corretti salvataggio SEO, ordinamento articoli e validazione delle impostazioni.
+* Preservate le capability WordPress degli altri ruoli; nessun manage_options aggiunto all’Editore.
+* Corretti messaggi di errore, fallback pagina inserimento e debug AM.
+* Applicato il limite immagini ai nuovi upload dai moduli AM.
+
 
 = 1.5.54 =
 * Archivio: rimosso il conteggio “Specie presenti” dal campo di ricerca.

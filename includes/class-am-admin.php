@@ -92,7 +92,7 @@ class AM_Admin {
 			}
 		}
 
-		return self::get_front_submit_page_url();
+		return admin_url('post-new.php?post_type=' . AM_CPT);
 	}
 
 	public static function filter_submit_form_shortcode_page_where(string $where): string {
@@ -536,7 +536,7 @@ echo '</td>';
 	/**
 	 * Hard debug log stored in DB (last 50 entries) to diagnose save/redirect issues on hosts like Altervista.
 	 */
-	private static function am_debug_add(string $tag, array $data = []): void {
+	public static function am_debug_add(string $tag, array $data = []): void {
 		$log = get_option('am_debug_log', []);
 		if (!is_array($log)) { $log = []; }
 		$user = wp_get_current_user();
@@ -907,7 +907,7 @@ add_settings_section('am_main', __('Generali', 'archivio-micologico'), function 
 
 		add_settings_field('am_require_login', __('Richiedi login', 'archivio-micologico'), function () {
 			$val = (int) get_option('am_require_login', 1);
-			echo '<label><input type="checkbox" name="am_require_login" value="1" ' . checked(1, $val, false) . ' /> ' . esc_html__('Mostra il form solo agli utenti loggati', 'archivio-micologico') . '</label>';
+			echo '<label><input type="checkbox" name="am_require_login" value="1" ' . checked(1, $val, false) . ' /> ' . esc_html__('Richiedi il login prima di mostrare il modulo; l’invio resta riservato ad Amministratore ed Editore', 'archivio-micologico') . '</label>';
 		}, 'am_settings', 'am_main');
 
 		add_settings_field('am_default_status', __('Stato predefinito nuove schede', 'archivio-micologico'), function () {
@@ -915,7 +915,8 @@ add_settings_section('am_main', __('Generali', 'archivio-micologico'), function 
 			$options = [
 				'pending' => __('In revisione (pending)', 'archivio-micologico'),
 				'draft' => __('Bozza (draft)', 'archivio-micologico'),
-				'publish' => __('Pubblicato (publish) - sconsigliato per contributor', 'archivio-micologico'),
+				'publish' => __('Pubblicato (publish)', 'archivio-micologico'),
+				'private' => __('Privato (private)', 'archivio-micologico'),
 			];
 			echo '<select name="am_default_status">';
 			foreach ($options as $k => $label) {
@@ -942,6 +943,7 @@ add_settings_section('am_main', __('Generali', 'archivio-micologico'), function 
 		add_settings_field('am_max_upload_mb', __('Limite upload immagini (MB)', 'archivio-micologico'), function () {
 			$val = (int) get_option('am_max_upload_mb', 5);
 			echo '<input type="number" min="1" max="50" name="am_max_upload_mb" value="' . esc_attr($val) . '" />';
+			echo '<p class="description">' . esc_html__('Limite per le nuove immagini caricate dai moduli AM. Restano validi i limiti del server; i file già presenti non vengono modificati.', 'archivio-micologico') . '</p>';
 		}, 'am_settings', 'am_main');
 
 		add_settings_field('am_edit_page_id', __('Pagina modifica schede (front-end)', 'archivio-micologico'), function () {
@@ -957,9 +959,9 @@ add_settings_section('am_main', __('Generali', 'archivio-micologico'), function 
 		}, 'am_settings', 'am_main');
 	
 
-		add_settings_field('am_show_submit_result_admin', __('Mostra esito invio (admin)', 'archivio-micologico'), function () {
+		add_settings_field('am_show_submit_result_admin', __('Mostra esito invio (gestori AM)', 'archivio-micologico'), function () {
 			$val = (int) get_option('am_show_submit_result_admin', 1);
-			echo '<label><input type="checkbox" name="am_show_submit_result_admin" value="1" ' . checked(1, $val, false) . ' /> ' . esc_html__('Mostra il box “Esito invio” agli amministratori nel form front-end', 'archivio-micologico') . '</label>';
+			echo '<label><input type="checkbox" name="am_show_submit_result_admin" value="1" ' . checked(1, $val, false) . ' /> ' . esc_html__('Mostra il box “Esito invio” ad Amministratore ed Editore nel form front-end', 'archivio-micologico') . '</label>';
 		}, 'am_settings', 'am_main');
 
 		add_settings_field('am_submit_result_ttl', __('Durata esito invio (secondi)', 'archivio-micologico'), function () {
@@ -1524,51 +1526,7 @@ public static function render_instructions_page(): void {
 	
 	
 	private static function apply_role_caps(array $roles_create, array $roles_edit, int $allow_edit_others = 0): void {
-		// 1.5.0: fixed WordPress-role permissions. No configurable AM profiles.
-		$am_caps = [
-			AM_CAP_CREATE_POSTS,
-			AM_CAP_EDIT_POST,
-			AM_CAP_READ_POST,
-			AM_CAP_DELETE_POST,
-			AM_CAP_EDIT_POSTS,
-			AM_CAP_EDIT_OTHERS_POSTS,
-			AM_CAP_PUBLISH_POSTS,
-			AM_CAP_READ_PRIVATE_POSTS,
-			AM_CAP_DELETE_POSTS,
-			AM_CAP_DELETE_OTHERS_POSTS,
-			AM_CAP_EDIT_PUBLISHED_POSTS,
-			AM_CAP_DELETE_PUBLISHED_POSTS,
-			AM_CAP_EDIT_PRIVATE_POSTS,
-			AM_CAP_DELETE_PRIVATE_POSTS,
-			AM_CAP_MANAGE_SETTINGS,
-			'manage_terms',
-			'edit_terms',
-			'delete_terms',
-			'assign_terms',
-			'upload_files',
-		];
-
-		$roles_obj = wp_roles();
-		if ($roles_obj && isset($roles_obj->roles) && is_array($roles_obj->roles)) {
-			foreach (array_keys($roles_obj->roles) as $role_key) {
-				$role = get_role((string) $role_key);
-				if (!$role) { continue; }
-
-				if (in_array((string) $role_key, ['administrator', 'editor'], true)) {
-					foreach ($am_caps as $cap) { $role->add_cap($cap); }
-				} else {
-					foreach ($am_caps as $cap) {
-						if ($role->has_cap($cap)) { $role->remove_cap($cap); }
-					}
-				}
-			}
-		}
-
-		// Remove legacy custom AM roles if they still exist.
-		remove_role(AM_ROLE_CONTRIBUTOR);
-		remove_role(AM_ROLE_REVIEWER);
-		remove_role(AM_ROLE_MANAGER);
-		remove_role('am_author');
+		am_ensure_admin_editor_caps_runtime();
 	}
 public static function handle_save_settings(): void {
 		// Allow site admins OR AM managers (custom capability).
@@ -1580,13 +1538,6 @@ public static function handle_save_settings(): void {
 		if (!current_user_can('manage_options') && !current_user_can(AM_CAP_MANAGE_SETTINGS)) {
 			self::am_debug_add('save_settings_blocked_caps');
 			
-		$am_seo_mode = isset($_POST['am_seo_mode']) ? sanitize_key((string) wp_unslash($_POST['am_seo_mode'])) : 'auto';
-		if (!in_array($am_seo_mode, ['auto', 'force', 'off'], true)) {
-			$am_seo_mode = 'auto';
-		}
-		update_option('am_seo_mode', $am_seo_mode, false);
-		self::am_debug_add('AM_SEO_MODE_SAVE_1_5_11', ['mode' => $am_seo_mode]);
-
 wp_safe_redirect(add_query_arg(['page' => 'am_settings', 'am_err' => 'caps'], admin_url('admin.php')));
 			exit;
 		}
@@ -1595,6 +1546,11 @@ wp_safe_redirect(add_query_arg(['page' => 'am_settings', 'am_err' => 'caps'], ad
 			self::am_debug_add('save_settings_bad_nonce', ['nonce_present' => $nonce ? 1 : 0]);
 			wp_safe_redirect(add_query_arg(['page' => 'am_settings', 'am_err' => 'nonce'], admin_url('admin.php')));
 			exit;
+		}
+
+		$am_seo_mode = isset($_POST['am_seo_mode']) ? sanitize_key((string) wp_unslash($_POST['am_seo_mode'])) : 'auto';
+		if (!in_array($am_seo_mode, ['auto', 'force', 'off'], true)) {
+			$am_seo_mode = 'auto';
 		}
 
 		// Checkbox
@@ -1607,12 +1563,12 @@ wp_safe_redirect(add_query_arg(['page' => 'am_settings', 'am_err' => 'caps'], ad
 		$allowed_status = ['draft','pending','publish','private'];
 		if (!in_array($default_status, $allowed_status, true)) { $default_status = 'pending'; }
 
-		$max_upload = isset($_POST['am_max_upload_mb']) ? intval($_POST['am_max_upload_mb']) : 20;
+		$max_upload = isset($_POST['am_max_upload_mb']) ? intval($_POST['am_max_upload_mb']) : 5;
 		if ($max_upload < 1) { $max_upload = 1; }
-		if ($max_upload > 200) { $max_upload = 200; }
+		if ($max_upload > 50) { $max_upload = 50; }
 
 		$edit_page_id = isset($_POST['am_edit_page_id']) ? intval($_POST['am_edit_page_id']) : 0;
-		if ($edit_page_id < 0) { $edit_page_id = 0; }
+		if ($edit_page_id < 0 || ($edit_page_id && get_post_type($edit_page_id) !== 'page')) { $edit_page_id = 0; }
 
 		$ttl = isset($_POST['am_submit_result_ttl']) ? intval($_POST['am_submit_result_ttl']) : 20;
 		if ($ttl < 0) { $ttl = 0; }
@@ -1643,6 +1599,8 @@ wp_safe_redirect(add_query_arg(['page' => 'am_settings', 'am_err' => 'caps'], ad
 		self::am_debug_add('save_settings_before_update', ['create' => $roles_create, 'edit' => $roles_edit]);
 
 		try {
+			update_option('am_seo_mode', $am_seo_mode);
+			update_option('am_articles_order', $articles_order);
 			update_option('am_require_login', $require_login);
 			update_option('am_default_status', $default_status);
 			update_option('am_max_upload_mb', $max_upload);
@@ -1781,21 +1739,4 @@ public static function handle_clear_debug_log(): void {
 
 
 
-    public function handle_delete_fungo() {
-        if ( ! isset($_POST['am_delete_nonce']) || ! wp_verify_nonce($_POST['am_delete_nonce'], 'am_delete_fungo') ) {
-            wp_die('Nonce non valido.');
-        }
-        if ( ! current_user_can('delete_posts') ) {
-            wp_die('Permessi insufficienti.');
-        }
-        $post_id = isset($_POST['post_id']) ? intval($_POST['post_id']) : 0;
-        if ($post_id) {
-            wp_delete_post($post_id, true);
-            wp_redirect(admin_url('edit.php?post_type=am_fungo&deleted=1'));
-            exit;
-        }
-    }
-
 }
-
-add_action('admin_post_am_delete_fungo', array('AM_Admin', 'handle_delete_fungo'));

@@ -42,6 +42,7 @@ $am_can_add_terms = (is_user_logged_in() && (in_array('editor', $roles, true) ||
   <?php wp_nonce_field(AM_Frontend::NONCE_ACTION_UPDATE, AM_Frontend::NONCE_NAME); ?>
   <input type="hidden" name="am_token" value="<?php echo esc_attr($am_token); ?>" />
   <input type="hidden" name="am_action" value="update" />
+  <input type="hidden" name="am_save_review" id="am_save_review" value="0" />
   <input type="hidden" name="am_post_id" value="<?php echo esc_attr($am_post_id); ?>" />
   <div class="am-form-meta" id="am-form-meta">
     <div class="am-form-meta__row">
@@ -292,7 +293,7 @@ $am_can_add_terms = (is_user_logged_in() && (in_array('editor', $roles, true) ||
   </div>
 
   <div class="am-field" style="margin-top:16px;display:flex;gap:10px;flex-wrap:wrap;align-items:center;">
-    <?php if (is_user_logged_in() && current_user_can('manage_options')) : ?>
+    <?php if (am_user_can_review($am_post_id)) : ?>
       <button type="button" class="am-btn am-save-review" id="am-save-review-btn" data-post-id="<?php echo (int) $am_post_id; ?>"><?php echo esc_html__('Salva revisione', 'archivio-micologico'); ?></button>
     <?php endif; ?>
     <button type="submit" class="am-btn am-submit" id="am-save-btn"><?php echo esc_html__('Salva modifiche', 'archivio-micologico'); ?></button>
@@ -313,6 +314,15 @@ $am_can_add_terms = (is_user_logged_in() && (in_array('editor', $roles, true) ||
 </div>
 
 </form>
+
+<?php if (am_user_is_admin_or_editor() && current_user_can('delete_post', $am_post_id)) : ?>
+<form method="post" action="<?php echo esc_url(admin_url('admin-post.php')); ?>" class="am-delete-form" style="margin-top:16px">
+  <input type="hidden" name="action" value="am_delete_fungo" />
+  <input type="hidden" name="post_id" value="<?php echo (int) $am_post_id; ?>" />
+  <?php wp_nonce_field('am_delete_fungo_' . $am_post_id); ?>
+  <button type="submit" class="am-btn" onclick="return confirm(<?php echo esc_attr(wp_json_encode(__('Spostare questa scheda nel cestino?', 'archivio-micologico'))); ?>);"><?php echo esc_html__('Sposta nel cestino', 'archivio-micologico'); ?></button>
+</form>
+<?php endif; ?>
 
 <?php if ($am_can_add_terms) : ?>
   <!-- Microforms for term creation (kept outside main form; invalid nesting otherwise) -->

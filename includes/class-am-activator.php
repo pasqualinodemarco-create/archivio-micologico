@@ -81,68 +81,7 @@ private static function ensure_archive_page(): void {
 	}
 
 	private static function add_roles_and_caps(): void {
-		// 1.5.0: no custom AM roles. WordPress built-in roles only.
-		// Public/management AM permissions are granted only to Administrator and Editor.
-		self::remove_legacy_am_roles();
-
-		$am_caps = [
-			AM_CAP_CREATE_POSTS,
-			AM_CAP_EDIT_POST,
-			AM_CAP_READ_POST,
-			AM_CAP_DELETE_POST,
-			AM_CAP_EDIT_POSTS,
-			AM_CAP_EDIT_OTHERS_POSTS,
-			AM_CAP_PUBLISH_POSTS,
-			AM_CAP_READ_PRIVATE_POSTS,
-			AM_CAP_DELETE_POSTS,
-			AM_CAP_DELETE_OTHERS_POSTS,
-			AM_CAP_EDIT_PUBLISHED_POSTS,
-			AM_CAP_DELETE_PUBLISHED_POSTS,
-			AM_CAP_EDIT_PRIVATE_POSTS,
-			AM_CAP_DELETE_PRIVATE_POSTS,
-			AM_CAP_MANAGE_SETTINGS,
-			'manage_terms',
-			'edit_terms',
-			'delete_terms',
-			'assign_terms',
-			'upload_files',
-		];
-
-		// Remove AM caps from all non-authorized roles to avoid stale permissions.
-		$roles_obj = wp_roles();
-		if ($roles_obj && isset($roles_obj->roles) && is_array($roles_obj->roles)) {
-			foreach (array_keys($roles_obj->roles) as $role_key) {
-				$role = get_role((string) $role_key);
-				if (!$role) { continue; }
-				if (in_array((string) $role_key, ['administrator', 'editor'], true)) {
-					continue;
-				}
-				foreach ($am_caps as $cap) {
-					if ($role->has_cap($cap)) {
-						$role->remove_cap($cap);
-					}
-				}
-			}
-		}
-
-		self::grant_caps_to_role('administrator', $am_caps);
-		self::grant_caps_to_role('editor', $am_caps);
+		am_ensure_admin_editor_caps_runtime();
 	}
 
-	private static function remove_legacy_am_roles(): void {
-		remove_role(AM_ROLE_CONTRIBUTOR);
-		remove_role(AM_ROLE_REVIEWER);
-		remove_role(AM_ROLE_MANAGER);
-		remove_role('am_author');
-	}
-
-	private static function grant_caps_to_role(string $role_name, array $caps_to_add): void {
-		$role = get_role($role_name);
-		if (!$role) {
-			return;
-		}
-		foreach ($caps_to_add as $cap) {
-			$role->add_cap($cap);
-		}
-	}
 }

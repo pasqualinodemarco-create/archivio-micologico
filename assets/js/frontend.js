@@ -543,7 +543,7 @@ function amShowNotice(type, message){
 
 	$(document).on('click', '#am-save-review-btn', function(e){
 		e.preventDefault();
-		if (!AMFront || !AMFront.isAdmin) { return; }
+		if (typeof AMFront === 'undefined' || !AMFront.canReview) { return; }
 
 		var $btn = $(this);
 		var $preview = $('#am-review-preview');

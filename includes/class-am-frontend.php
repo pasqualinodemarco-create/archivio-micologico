@@ -322,6 +322,7 @@ const NONCE_ACTION = 'am_submit_fungo';
 		add_action('widgets_init', [__CLASS__, 'register_widgets']);
 
 		add_action('wp_enqueue_scripts', [__CLASS__, 'enqueue_assets']);
+		add_filter('wp_handle_upload_prefilter', [__CLASS__, 'filter_am_image_upload']);
 		add_filter('the_content', [__CLASS__, 'filter_single_content']);
 
 		add_action('wp_ajax_am_get_terms', [__CLASS__, 'ajax_get_terms']);
@@ -348,10 +349,10 @@ const NONCE_ACTION = 'am_submit_fungo';
 	}
 
 	/**
-	 * AJAX: salva ultima revisione (solo admin).
+	 * AJAX: salva ultima revisione (Amministratore/Editore autorizzato sulla scheda).
 	 */
 	public static function ajax_save_review(): void {
-		if (!self::am_current_user_is_admin_or_editor()) {
+		if (!am_user_can_review()) {
 			wp_send_json_error(['message' => __('Non autorizzato.', 'archivio-micologico')]);
 		}
 		check_ajax_referer('am_ajax', 'nonce');
@@ -452,7 +453,8 @@ wp_enqueue_script('am-frontend', AM_URL . 'assets/js/frontend.js', (defined('ELE
 			]);
 		}
 
-		if ($needs_editor_media) {
+		if ($needs_editor_media && am_user_is_admin_or_editor() && current_user_can('upload_files')) {
+			add_filter('plupload_default_params', [__CLASS__, 'am_upload_params']);
 			// Front-end editor support.
 			wp_enqueue_editor();
 			// Media library uploader (required for wp.media on front-end).
@@ -466,13 +468,32 @@ wp_enqueue_script('am-frontend', AM_URL . 'assets/js/frontend.js', (defined('ELE
 			'ajaxUrl' => admin_url('admin-ajax.php'),
 			'nonce' => wp_create_nonce('am_ajax'),
 			'currentUser' => (is_user_logged_in() ? wp_get_current_user()->display_name : ''),
-			'isAdmin' => (is_user_logged_in() && current_user_can('manage_options')),
+			'canReview' => am_user_can_review(),
 
 			'taxClass' => AM_TAX_CLASSIFICAZIONE,
 			'taxInfra' => AM_TAX_INFRASPEC,
 			'taxAuthor' => AM_TAX_AUTHOR,
 			'canAddTerms' => self::am_current_user_is_admin_or_editor(),
 		]);
+	}
+
+	public static function am_upload_params(array $params): array {
+		$params['am_upload_nonce'] = wp_create_nonce('am_upload_image');
+		return $params;
+	}
+
+	public static function filter_am_image_upload(array $file): array {
+		if (empty($_POST['am_upload_nonce']) || !empty($file['error'])) { return $file; }
+		if (!am_user_is_admin_or_editor() || !current_user_can('upload_files') || !wp_verify_nonce(sanitize_text_field(wp_unslash($_POST['am_upload_nonce'])), 'am_upload_image')) {
+			$file['error'] = __('Non autorizzato.', 'archivio-micologico');
+			return $file;
+		}
+		$type = wp_check_filetype((string) ($file['name'] ?? ''));
+		$max_mb = max(1, min(50, (int) get_option('am_max_upload_mb', 5)));
+		if (strpos((string) ($type['type'] ?? ''), 'image/') === 0 && (int) ($file['size'] ?? 0) > $max_mb * MB_IN_BYTES) {
+			$file['error'] = sprintf(__('L’immagine supera il limite AM di %d MB.', 'archivio-micologico'), $max_mb);
+		}
+		return $file;
 	}
 
 	public static function ajax_add_term(): void {
@@ -1089,12 +1110,6 @@ public static function render_archive($atts = []): string {
 		$term_genus    = (int) $am_classification['genus'];
 		$term_species  = (int) $am_classification['species'];
 		$species_id    = $term_species;
-		$am_classification = self::resolve_classification_from_post_1_5_34($species_id);
-		$term_division = (int) $am_classification['division'];
-		$term_family   = (int) $am_classification['family'];
-		$term_genus    = (int) $am_classification['genus'];
-		$term_species  = (int) $am_classification['species'];
-		$species_id    = $term_species;
 
 		$species = '';
 		if ($species_id) {
@@ -1123,7 +1138,7 @@ public static function render_archive($atts = []): string {
 		if ($infra)  { $title = trim($title . ' ' . trim($infra)); }
 		if ($author) { $title = trim($title . ' ' . trim($author)); }
 		$title = trim(preg_replace('/\s+/', ' ', $title));
-		$content = self::sanitize_editor_content($_POST['am_content'] ?? '');
+		$content = self::sanitize_editor_content(wp_unslash($_POST['am_content'] ?? ''));
 		$macro_plain = trim(wp_strip_all_tags($content));
 		if (mb_strlen($macro_plain) < 20) {
 			self::am_set_last_submit(['ok'=>0,'msg'=>'Errore submit: macro_too_short','ts'=>time()]);
@@ -1132,9 +1147,9 @@ public static function render_archive($atts = []): string {
 			exit;
 		}
 
-		$macro_micro = self::sanitize_editor_content($_POST['am_macro_micro'] ?? '');
+		$macro_micro = self::sanitize_editor_content(wp_unslash($_POST['am_macro_micro'] ?? ''));
 
-		$notes = self::sanitize_editor_content($_POST['am_notes'] ?? '');
+		$notes = self::sanitize_editor_content(wp_unslash($_POST['am_notes'] ?? ''));
 		// v1.5.34: classification already resolved from posted species/ancestors above.
 
 		if (!$term_division || !$term_family || !$term_genus || !$term_species) {
@@ -1170,7 +1185,7 @@ public static function render_archive($atts = []): string {
 		if ( array_key_exists('am_featured_id', $_POST) ) {
 			$featured_id = absint($_POST['am_featured_id']);
 		} else {
-			$featured_id = (int) get_post_thumbnail_id($post_id);
+			$featured_id = 0;
 		}
 
 		// Gallery (optional on edit). If field present and empty => clear; if absent => keep current.
@@ -1179,24 +1194,16 @@ public static function render_archive($atts = []): string {
 			$raw = (string) $_POST['am_gallery_ids'];
 			$gallery_ids = array_values(array_filter(array_map('absint', array_filter(array_map('trim', explode(',', $raw))))));
 		} else {
-			$stored = get_post_meta($post_id, 'am_gallery_ids', true);
-			if ( is_array($stored) ) { $gallery_ids = array_values(array_filter(array_map('absint', $stored))); }
-			else {
-				$gallery_ids = array_values(array_filter(array_map('absint', array_filter(array_map('trim', explode(',', (string) $stored))))));
-			}
+			$gallery_ids = [];
 		}
 
 		// Optional PDF attachment (stored as attachment ID).
 		$pdf_id = absint($_POST['am_pdf_id'] ?? 0);
 		if ($pdf_id) {
-			// Some hosting environments (or very old WordPress versions) may not have wp_get_attachment_mime_type().
+			// Validate the attachment with the WordPress core MIME API.
 			$mime = '';
 			if (get_post_type($pdf_id) === 'attachment') {
-				if (function_exists('wp_get_attachment_mime_type')) {
-					$mime = (string) wp_get_attachment_mime_type($pdf_id);
-				} else {
-					$mime = (string) get_post_mime_type($pdf_id);
-				}
+				$mime = (string) get_post_mime_type($pdf_id);
 
 				if ($mime === '') {
 					$file = get_attached_file($pdf_id);
@@ -1213,15 +1220,9 @@ public static function render_archive($atts = []): string {
 		}
 
 
-		// Publishing rules:
-		// - Editors/Admins (or anyone with publish capability for the CPT) can publish immediately.
-		// - Others follow default status (pending/draft).
-		if (current_user_can(AM_CAP_PUBLISH_POSTS) || current_user_can('publish_posts')) {
-			$status = 'publish';
-		} else {
-			$status = (string) get_option('am_default_status', 'pending');
-			$status = in_array($status, ['pending', 'draft'], true) ? $status : 'pending';
-		}
+		$status = (string) get_option('am_default_status', 'pending');
+		if (!in_array($status, ['draft', 'pending', 'publish', 'private'], true)) { $status = 'pending'; }
+		if (in_array($status, ['publish', 'private'], true) && !current_user_can(AM_CAP_PUBLISH_POSTS)) { $status = 'pending'; }
 
 		$post_id = wp_insert_post([
 			'post_type' => AM_CPT,
@@ -1248,9 +1249,9 @@ public static function render_archive($atts = []): string {
 		update_post_meta($post_id, 'am_infra_id', $infra_id);
 		update_post_meta($post_id, 'am_author_id', $author_id);
 
-		// Ultima revisione (solo admin, impostata dal pulsante "Salva revisione")
+		// Ultima revisione: stessi permessi di modifica della scheda.
 		$save_review = (isset($_POST['am_save_review']) && (string) $_POST['am_save_review'] === '1');
-		if ($save_review && current_user_can('manage_options')) {
+		if ($save_review && am_user_can_review((int) $post_id)) {
 			$user = wp_get_current_user();
 			update_post_meta($post_id, 'am_last_reviewer_name', (string) $user->display_name);
 			update_post_meta($post_id, 'am_last_review_datetime', current_time('mysql'));
@@ -1407,15 +1408,6 @@ if (!is_user_logged_in() || !self::am_roles_allowed('edit')) {
 			exit;
 		}
 
-		// AUTORE_NO_EDIT: block Authors from updating existing schede.
-		$user = wp_get_current_user();
-		$roles = is_array($user->roles) ? $user->roles : [];
-		if (in_array('author', $roles, true) && !in_array('administrator', $roles, true)) {
-			self::set_submit_result(false, 'not_allowed', __('Il tuo ruolo non consente la modifica delle schede.', 'archivio-micologico'));
-			self::am_save_sticky($am_token, self::am_collect_sticky_post());
-			wp_safe_redirect(add_query_arg(['am_error'=>'not_allowed','am_token'=>$am_token], $redirect));
-			exit;
-		}
 $redirect = wp_get_referer() ?: home_url('/');
 
 		$am_token = isset($_POST['am_token']) ? sanitize_text_field((string) $_POST['am_token']) : '';
@@ -1463,6 +1455,12 @@ $redirect = wp_get_referer() ?: home_url('/');
 		$species_id = isset($_POST['am_species']) ? absint($_POST['am_species']) : 0;
 		$infra_id   = isset($_POST['am_infra']) ? absint($_POST['am_infra']) : 0;
 		$author_id  = isset($_POST['am_author']) ? absint($_POST['am_author']) : 0;
+		$am_classification = self::resolve_classification_from_post_1_5_34($species_id);
+		$term_division = (int) $am_classification['division'];
+		$term_family   = (int) $am_classification['family'];
+		$term_genus    = (int) $am_classification['genus'];
+		$term_species  = (int) $am_classification['species'];
+		$species_id    = $term_species;
 
 		$species = '';
 		if ($species_id) {
@@ -1491,7 +1489,7 @@ $redirect = wp_get_referer() ?: home_url('/');
 		if ($infra)  { $title = trim($title . ' ' . trim($infra)); }
 		if ($author) { $title = trim($title . ' ' . trim($author)); }
 		$title = trim(preg_replace('/\s+/', ' ', $title));
-		$content = self::sanitize_editor_content($_POST['am_content'] ?? '');
+		$content = self::sanitize_editor_content(wp_unslash($_POST['am_content'] ?? ''));
 		$macro_plain = trim(wp_strip_all_tags($content));
 		if (mb_strlen($macro_plain) < 20) {
 			self::am_debug_reason('UPDATE_FAILED_REASON', ['reason'=>'macro_too_short','post_id'=>$post_id]);
@@ -1499,9 +1497,9 @@ $redirect = wp_get_referer() ?: home_url('/');
 			wp_safe_redirect(add_query_arg(['am_error'=>'macro_too_short','am_token'=>$am_token], $redirect));
 			exit;
 		}
-		$macro_micro = self::sanitize_editor_content($_POST['am_macro_micro'] ?? '');
+		$macro_micro = self::sanitize_editor_content(wp_unslash($_POST['am_macro_micro'] ?? ''));
 
-		$notes = self::sanitize_editor_content($_POST['am_notes'] ?? '');
+		$notes = self::sanitize_editor_content(wp_unslash($_POST['am_notes'] ?? ''));
 		// v1.5.34: classification already resolved from posted species/ancestors above.
 
 		if (!$term_division || !$term_family || !$term_genus || !$term_species) {
@@ -1528,12 +1526,12 @@ $redirect = wp_get_referer() ?: home_url('/');
 			exit;
 		}
 
-		$featured_id = isset($_POST['am_featured_id']) ? absint($_POST['am_featured_id']) : 0;
-		$gallery_ids_raw = sanitize_text_field($_POST['am_gallery_ids'] ?? '');
+		$featured_id = isset($_POST['am_featured_id']) ? absint($_POST['am_featured_id']) : (int) get_post_thumbnail_id($post_id);
+		$gallery_ids_raw = isset($_POST['am_gallery_ids']) ? sanitize_text_field($_POST['am_gallery_ids']) : implode(',', (array) get_post_meta($post_id, 'am_gallery_ids', true));
 		$gallery_ids = array_filter(array_map('absint', explode(',', $gallery_ids_raw)));
-		$pdf_id = absint($_POST['am_pdf_id'] ?? 0);
+		$pdf_id = isset($_POST['am_pdf_id']) ? absint($_POST['am_pdf_id']) : (int) get_post_meta($post_id, 'am_pdf_id', true);
 		if ($pdf_id) {
-			$mime = (string) wp_get_attachment_mime_type($pdf_id);
+			$mime = get_post_type($pdf_id) === 'attachment' ? (string) get_post_mime_type($pdf_id) : '';
 			if ($mime !== 'application/pdf') {
 				$pdf_id = 0;
 			}
@@ -1586,9 +1584,9 @@ $updated = wp_update_post([
 		update_post_meta($post_id, 'am_author', $author);
 		update_post_meta($post_id, 'am_infra_id', $infra_id);
 		update_post_meta($post_id, 'am_author_id', $author_id);
-		// Ultima revisione (solo admin, impostata dal pulsante "Salva revisione")
+		// Ultima revisione: stessi permessi di modifica della scheda.
 		$save_review = (isset($_POST['am_save_review']) && (string) $_POST['am_save_review'] === '1');
-		if ($save_review && current_user_can('manage_options')) {
+		if ($save_review && am_user_can_review((int) $post_id)) {
 			$user = wp_get_current_user();
 			update_post_meta($post_id, 'am_last_reviewer_name', (string) $user->display_name);
 			update_post_meta($post_id, 'am_last_review_datetime', current_time('mysql'));
@@ -1618,6 +1616,7 @@ $updated = wp_update_post([
 
 		if ($featured_id) { set_post_thumbnail($post_id, $featured_id); } else { delete_post_thumbnail($post_id); }
 		update_post_meta($post_id, 'am_gallery_ids', $gallery_ids);
+		if ($pdf_id) { update_post_meta($post_id, 'am_pdf_id', $pdf_id); } else { delete_post_meta($post_id, 'am_pdf_id'); }
 
 		clean_post_cache($post_id);
 			self::am_debug_reason('UPDATE_SAVED', [
@@ -2342,6 +2341,10 @@ window.addEventListener("scroll", function(){if(nearBottom()){loadMore();}});})(
 			exit;
 		}
 
+		$tax = AM_TAX_CLASSIFICAZIONE;
+		if ($level === 'infra') { $tax = AM_TAX_INFRASPEC; $parent = 0; }
+		if ($level === 'author') { $tax = AM_TAX_AUTHOR; $parent = 0; }
+
 		$exists = term_exists($name, $tax, $parent);
 		if ($exists && !is_wp_error($exists)) {
 			wp_safe_redirect(add_query_arg(['am_term_ok' => 1, 'am_term_msg' => rawurlencode(__('Termine già esistente.', 'archivio-micologico'))], $redirect));
@@ -2471,6 +2474,10 @@ if (($_SERVER['REQUEST_METHOD'] ?? '') !== 'POST') { return; }
 }
 
 
+	private static function set_submit_result(bool $ok, string $code, string $message): void {
+		self::am_set_last_submit(['ok' => $ok ? 1 : 0, 'code' => $code, 'msg' => $message, 'ts' => time()]);
+	}
+
 	private static function am_set_last_submit(array $data): void {
 		if (!is_user_logged_in()) { return; }
 		update_user_meta(get_current_user_id(), 'am_last_submit', $data);
@@ -2478,64 +2485,46 @@ if (($_SERVER['REQUEST_METHOD'] ?? '') !== 'POST') { return; }
 
 
 	public static function handle_front_delete(): void {
-		self::am_fatal_capture('DELETE', ['stage' => 'enter']);
-		if (($_SERVER['REQUEST_METHOD'] ?? '') !== 'POST') { return; }
-		if (empty($_POST['am_front_delete'])) { return; }
-
-		$redirect = isset($_POST['redirect_to']) ? (string) $_POST['redirect_to'] : '';
-		if (!$redirect) { $redirect = wp_get_referer() ?: home_url('/'); }
-		$redirect_base = $redirect;
-
-		if (!is_user_logged_in()) {
-			wp_safe_redirect( wp_login_url( $redirect_base ) );
-			exit;
-		}
-
-		// AUTORE_NO_DELETE: Authors cannot delete schede.
-		$user = wp_get_current_user();
-		$roles = is_array($user->roles) ? $user->roles : [];
-		if (in_array('author', $roles, true) && !in_array('administrator', $roles, true)) {
-			wp_safe_redirect(add_query_arg(['am_err' => 'not_allowed'], $redirect_base));
-			exit;
-		}
-
-		$post_id = isset($_POST['post_id']) ? absint($_POST['post_id']) : 0;
-		if (!$post_id) {
-			wp_safe_redirect(add_query_arg(['am_err' => 'missing'], $redirect_base));
-			exit;
-		}
-
-		$nonce = isset($_POST['_wpnonce']) ? (string) $_POST['_wpnonce'] : '';
-		if (!$nonce || !wp_verify_nonce($nonce, 'am_delete_fungo_' . $post_id)) {
-			wp_safe_redirect(add_query_arg(['am_err' => 'nonce'], $redirect_base));
-			exit;
-		}
-
-		$p = get_post($post_id);
-		if (!$p || $p->post_type !== AM_CPT) {
-			wp_safe_redirect(add_query_arg(['am_err' => 'type'], $redirect_base));
-			exit;
-		}
-
-		// Cap check (try both AM cap and WP cap)
-		if (!current_user_can('delete_post', $post_id)) {
-			wp_safe_redirect(add_query_arg(['am_err' => 'caps'], $redirect_base));
-			exit;
-		}
-
-		$res = wp_trash_post($post_id);
-		if (!$res || is_wp_error($res)) {
-			wp_safe_redirect(add_query_arg(['am_err' => 'trash'], $redirect_base));
-			exit;
-		}
-
-		wp_safe_redirect(add_query_arg(['am_deleted' => 1], $redirect_base));
-		exit;
+		self::handle_delete();
 	}
 
-
-
-
+	/** Single deletion path for admin-post and front-end fallback requests. */
+	public static function handle_delete(): void {
+		if (($_SERVER['REQUEST_METHOD'] ?? '') !== 'POST') {
+			wp_die(esc_html__('Metodo non consentito.', 'archivio-micologico'), '', ['response' => 405]);
+		}
+		if (!am_user_is_admin_or_editor()) {
+			wp_die(esc_html__('Non autorizzato.', 'archivio-micologico'), '', ['response' => 403]);
+		}
+		$post_id = isset($_POST['post_id']) ? absint($_POST['post_id']) : 0;
+		$post = $post_id ? get_post($post_id) : null;
+		if (!$post || $post->post_type !== AM_CPT) {
+			wp_die(esc_html__('Scheda non valida.', 'archivio-micologico'), '', ['response' => 400]);
+		}
+		if (!current_user_can('delete_post', $post_id)) {
+			wp_die(esc_html__('Permessi insufficienti.', 'archivio-micologico'), '', ['response' => 403]);
+		}
+		$nonce = isset($_POST['_wpnonce']) ? sanitize_text_field(wp_unslash($_POST['_wpnonce'])) : '';
+		$valid = $nonce && wp_verify_nonce($nonce, 'am_delete_fungo_' . $post_id);
+		// Compatibility with the old admin form; object permission remains mandatory.
+		if (!$valid && isset($_POST['am_delete_nonce'])) {
+			$valid = wp_verify_nonce(sanitize_text_field(wp_unslash($_POST['am_delete_nonce'])), 'am_delete_fungo');
+		}
+		if (!$valid) {
+			wp_die(esc_html__('Sessione scaduta. Ricarica la pagina e riprova.', 'archivio-micologico'), '', ['response' => 403]);
+		}
+		// Never force-delete: a zero-day WordPress trash setting must not turn this into a permanent deletion.
+		if (defined('EMPTY_TRASH_DAYS') && (int) EMPTY_TRASH_DAYS === 0) {
+			wp_die(esc_html__('Il cestino WordPress è disattivato. Nessuna scheda è stata eliminata.', 'archivio-micologico'), '', ['response' => 409]);
+		}
+		if (!wp_trash_post($post_id)) {
+			wp_die(esc_html__('Impossibile spostare la scheda nel cestino.', 'archivio-micologico'), '', ['response' => 400]);
+		}
+		$redirect = isset($_POST['redirect_to']) ? esc_url_raw(wp_unslash($_POST['redirect_to'])) : '';
+		if (!$redirect) { $redirect = admin_url('edit.php?post_type=' . AM_CPT); }
+		wp_safe_redirect(add_query_arg('am_deleted', '1', $redirect));
+		exit;
+	}
 
 
 	public static function handle_admin_post_update(): void {

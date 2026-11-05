@@ -3,7 +3,7 @@
  * Plugin Name: Archivio Micologico
  * Plugin URI: https://cervignanometeo.altervista.org
  * Description: Archivio Micologico: archivio micologico online con CPT dedicato, tassonomie gerarchiche e inserimento/gestione front-end.
- * Version: 1.5.54
+ * Version: 1.5.55
  * Author: Pasqualino De Marco
  * Author URI: https://cervignanometeo.altervista.org
  * Requires at least: 6.0
@@ -46,7 +46,7 @@ if ( ! function_exists('am_fatal_logger_register') ) {
 	am_fatal_logger_register();
 }
 
-define('AM_VERSION', '1.5.54');
+define('AM_VERSION', '1.5.55');
 define('AM_PATH', plugin_dir_path(__FILE__));
 define('AM_URL', plugin_dir_url(__FILE__));
 
@@ -128,6 +128,7 @@ function am_ensure_admin_editor_caps_runtime(): void {
 		}
 
 		foreach ($caps as $cap) {
+			if (strpos($cap, 'am_') !== 0 && strpos($cap, '_am_') === false) { continue; }
 			if ($role->has_cap($cap)) {
 				$role->remove_cap($cap);
 			}
@@ -156,6 +157,15 @@ function am_user_is_admin_or_editor(): bool {
 	$user = wp_get_current_user();
 	$roles = is_array($user->roles) ? $user->roles : [];
 	return in_array('administrator', $roles, true) || in_array('editor', $roles, true) || current_user_can('manage_options');
+}
+
+/** Review access uses the same object permissions as editing a fungus record. */
+function am_user_can_review(int $post_id = 0): bool {
+	if (!am_user_is_admin_or_editor()) { return false; }
+	if ($post_id > 0) {
+		return get_post_type($post_id) === AM_CPT && current_user_can('edit_post', $post_id);
+	}
+	return current_user_can(AM_CAP_EDIT_POSTS);
 }
 
 function am_cleanup_legacy_roles_and_permissions(): void {

@@ -26,7 +26,7 @@ $am_sticky = $am_has_submit_error_context ? AM_Frontend::am_get_sticky($am_token
 <?php
 // Conferma invio (UNICO messaggio, sintetico e coerente)
 // Usiamo la traccia salvata in user_meta per sopravvivere a cache/redirect.
-if (is_user_logged_in()) {
+if (is_user_logged_in() && (int) get_option('am_show_submit_result_admin', 1) === 1) {
   $uid = get_current_user_id();
   $last = get_user_meta($uid, 'am_last_submit', true);
 
@@ -58,7 +58,7 @@ if (is_user_logged_in()) {
       if ($am_edit_page_id > 0) {
         $am_edit_base_url = get_permalink($am_edit_page_id);
         if ($am_edit_base_url) {
-          $am_edit_url = add_query_arg('am_id', $am_created_id, $am_edit_base_url);
+          $am_edit_url = add_query_arg('am_edit', $am_created_id, $am_edit_base_url);
         }
       }
 
@@ -445,7 +445,7 @@ $am_can_add_terms = (is_user_logged_in() && (in_array('editor', $roles, true) ||
 </div>
 
 <?php
-$am_show_tax_debug = (is_user_logged_in() && current_user_can('manage_options') && isset($_GET['am_debug']));
+$am_show_tax_debug = (am_user_can_review() && isset($_GET['am_debug']));
 if ($am_show_tax_debug && isset($_GET['am_created_id'])) :
   $pid = intval($_GET['am_created_id']);
 ?>
@@ -463,7 +463,7 @@ Meta:
 <?php endif; ?>
 
 <div class="am-actions" style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;">
-  <?php if (is_user_logged_in() && current_user_can('manage_options')) : ?>
+  <?php if (am_user_can_review()) : ?>
     <button class="am-btn am-save-review" type="button" id="am-save-review-btn"><?php echo esc_html__('Salva revisione', 'archivio-micologico'); ?></button>
   <?php endif; ?>
   <button class="am-btn am-submit" type="submit" form="am-main-form"><?php echo esc_html__('Invia scheda', 'archivio-micologico'); ?></button>

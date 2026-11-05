@@ -1,3 +1,12 @@
+= 1.5.55 =
+* Allineati interfaccia e server per la revisione scientifica di Amministratore ed Editore.
+* Ripristinati classificazione, PDF e allegati facoltativi nelle modifiche frontend.
+* Unificata la cancellazione con controllo del contenuto, nonce e cestino recuperabile.
+* Corretti salvataggio SEO, ordinamento articoli e validazione delle impostazioni.
+* Preservate le capability WordPress degli altri ruoli; nessun manage_options aggiunto all’Editore.
+* Corretti messaggi di errore, fallback pagina inserimento e debug AM.
+* Applicato il limite immagini ai nuovi upload dai moduli AM.
+
 v1.5.54 - responsive filtri archivio
 - Migliorata la responsività di [am_archive_filters]: desktop a riga fluida, tablet su due colonne e mobile a colonna singola con pulsante a tutta larghezza.
 - Rimossi overflow orizzontali non necessari sui filtri.
