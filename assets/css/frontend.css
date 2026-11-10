@@ -268,9 +268,6 @@
   vertical-align:top;
   margin:0 10px 12px 0;
 }
-.am-entry-gallery__figure .am-entry-caption{
-  max-width: 240px;
-}
 
 
 /* Scientific names formatting */
@@ -699,43 +696,6 @@
 }
 
 
-/* v1.2.68 - Caption stile rivista: "Fig. N — ..." a sinistra, 1 riga */
-.am-entry-gallery figure.am-entry-gallery__figure{text-align:left !important;}
-.am-entry-gallery figure.am-entry-gallery__figure figcaption.am-entry-caption{
-  display:block !important;
-  width:100% !important;
-  text-align:left !important;
-  white-space:nowrap !important;
-  overflow:hidden !important;
-  text-overflow:ellipsis !important;
-}
-@media (max-width: 520px){
-  .am-entry-gallery figure.am-entry-gallery__figure figcaption.am-entry-caption{
-    white-space:normal !important;
-    overflow:visible !important;
-    text-overflow:clip !important;
-  }
-}
-
-
-/* v1.2.68 - Allinea didascalie galleria a sinistra e su una riga */
-.am-entry-gallery .am-entry-caption{
-  display:block !important;
-  width:100% !important;
-  text-align:left !important;
-  white-space:nowrap !important;
-  overflow:hidden !important;
-  text-overflow:ellipsis !important;
-}
-@media (max-width: 520px){
-  .am-entry-gallery .am-entry-caption{
-    white-space:normal !important;
-    overflow:visible !important;
-    text-overflow:clip !important;
-  }
-}
-
-
 /* v1.2.68 - caption sinistra anche se tema usa flex/auto-margins */
 .am-entry-gallery figure.am-entry-gallery__figure {
   display: block !important;
@@ -750,15 +710,15 @@
   align-self: flex-start !important;
   justify-self: start !important;
   float: none !important;
-  white-space: nowrap !important;
 }
 
 
-/* v1.2.68 - Fix caption tronche + no crop mobile/tablet */
-
-/* Caption: niente ellissi, testo completo */
-.am-entry-gallery .am-entry-caption{
+/* Didascalie delle schede e titoli del carosello su più righe. */
+.am-entry-featured .am-entry-caption,
+.am-entry-gallery .am-entry-caption,
+.am-random-funghi-carousel .am-random-funghi-widget__link {
   white-space: normal !important;
+  overflow-wrap: anywhere;
   overflow: visible !important;
   text-overflow: clip !important;
 }
