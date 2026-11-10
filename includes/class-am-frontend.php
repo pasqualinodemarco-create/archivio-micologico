@@ -244,14 +244,15 @@ const NONCE_ACTION = 'am_submit_fungo';
 			while ($query->have_posts()) {
 				$query->the_post();
 				$permalink = get_permalink();
-				$title_html = wp_kses_post(self::format_species_title(get_the_title()));
+				$title_text = wp_strip_all_tags(get_the_title());
+				$title_html = wp_kses_post(self::format_species_title($title_text));
 				echo '<article class="am-random-funghi-carousel__slide am-random-funghi-widget__item" data-am-carousel-slide data-slide-index="' . esc_attr((string) $slide_index) . '">';
 				echo '<a class="am-random-funghi-widget__thumblink" href="' . esc_url($permalink) . '">';
 				if (has_post_thumbnail()) {
 					echo get_the_post_thumbnail(get_the_ID(), 'medium_large', [
 						'class' => 'am-random-funghi-widget__thumb',
 						'loading' => 'lazy',
-						'alt' => wp_strip_all_tags(get_the_title()),
+						'alt' => $title_text,
 					]);
 				} else {
 					echo '<span class="am-random-funghi-widget__thumb am-random-funghi-widget__thumb--empty">' . esc_html__('Nessuna immagine', 'archivio-micologico') . '</span>';
