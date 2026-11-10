@@ -1,3 +1,6 @@
+= 1.5.57 =
+- Modulo nuova scheda con quattro passaggi, riepilogo unico e layout adattabile.
+
 = 1.5.56 =
 * Corretta la pagina Info / Versione: il changelog viene letto dal file incluso, senza costanti obsolete.
 * Gestiti file mancanti e formati storici del changelog.

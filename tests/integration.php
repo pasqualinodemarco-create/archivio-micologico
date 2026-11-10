@@ -200,8 +200,14 @@ try {
             AM_Admin::render_info_version_page();
             $html=ob_get_clean();
             $checks['info_rendered']=str_contains($html,'Info / Versione') && str_contains($html,AM_VERSION);
-            $checks['current_changelog_rendered']=str_contains($html,'Corretta la pagina Info / Versione') && !str_contains($html,'Nessuna voce changelog');
-            $checks['no_previous_version_entries']=!str_contains($html,'Applicato il limite immagini');
+            $changelog = file_get_contents(AM_PATH . 'CHANGELOG.txt');
+            $heading = '= ' . preg_quote(AM_VERSION, '/') . ' =';
+            preg_match('/^' . $heading . '\h*\R(.*?)(?=^= |^v\d|\z)/ms', $changelog, $section);
+            preg_match_all('/^[-*]\h+(.+)$/m', $section[1] ?? '', $entries);
+            $expected = array_map(static fn($entry) => esc_html(trim($entry)), $entries[1]);
+            preg_match_all('/<li[^>]*>(.*?)<\/li>/s', $html, $rendered);
+            $checks['current_changelog_rendered'] = $expected !== [] && array_diff($expected, $rendered[1]) === [];
+            $checks['no_previous_version_entries'] = $rendered[1] === $expected;
             break;
         case 'fallback':
             $method=new ReflectionMethod('AM_Admin','get_front_submit_page_url');
