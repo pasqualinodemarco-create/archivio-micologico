@@ -2031,13 +2031,15 @@ public static function filter_single_content(string $content): string {
 				}
 			}
 			if (trim($author_name) !== '') {
+				/* translators: %s: name of the mushroom entry author. */
+				$author_credit = sprintf(__('Testo di %s', 'archivio-micologico'), $author_name);
 				$reviewer = (string) get_post_meta((int)$post->ID, 'am_last_reviewer_name', true);
 				$review_dt = (string) get_post_meta((int)$post->ID, 'am_last_review_datetime', true);
 				$review_html = '';
 				if (trim($reviewer) !== '' && trim($review_dt) !== '') {
 					$review_html = ' <span class="am-entry-review" style="margin-left:10px; opacity:.9;">' . esc_html(sprintf(__('Revisione: %1$s (%2$s)', 'archivio-micologico'), $reviewer, $review_dt)) . '</span>';
 				}
-				$title_html .= '<div class="am-entry-wp-author" style="margin:0 0 4px 0; display:flex; align-items:center; gap:8px;">' . '<svg width="28" height="28" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" style="flex-shrink:0; opacity:0.45;">' . '<circle cx="8" cy="5" r="3" stroke="currentColor" stroke-width="1.5"/>' . '<path d="M2 14c0-3.314 2.686-5 6-5s6 1.686 6 5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>' . '</svg>' . '<span style="font-size:16px; opacity:.7;">' . esc_html($author_name) . '</span>' . $review_html . '</div>';
+				$title_html .= '<div class="am-entry-wp-author" style="margin:0 0 4px 0; display:flex; align-items:center; gap:8px;">' . '<svg width="28" height="28" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" style="flex-shrink:0; opacity:0.45;">' . '<circle cx="8" cy="5" r="3" stroke="currentColor" stroke-width="1.5"/>' . '<path d="M2 14c0-3.314 2.686-5 6-5s6 1.686 6 5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>' . '</svg>' . '<span style="font-size:16px; opacity:.7;">' . esc_html($author_credit) . '</span>' . $review_html . '</div>';
 			}
 			$sequenced = (string) get_post_meta($post->ID, 'am_sequenced', true);
 			if ($sequenced === '1' || $sequenced === 'yes' || $sequenced === 'on') {
