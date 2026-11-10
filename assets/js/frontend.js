@@ -106,13 +106,13 @@ function amShowNotice(type, message){
 		if ($infra && $infra.length) {
 			fetchTerms(AMFront.taxInfra, 0, $infra).then(function(){
 				$infra.prop('disabled', false);
-				if (selI0) { $infra.val(String(selI0)); selI0 = 0; }
+				if (selI0) { $infra.val(String(selI0)).trigger('change'); selI0 = 0; }
 			});
 		}
 		if ($author && $author.length) {
 			fetchTerms(AMFront.taxAuthor, 0, $author).then(function(){
 				$author.prop('disabled', false);
-				if (selA0) { $author.val(String(selA0)); selA0 = 0; }
+				if (selA0) { $author.val(String(selA0)).trigger('change'); selA0 = 0; }
 			});
 		}
 
@@ -758,94 +758,6 @@ function amShowNotice(type, message){
 
 
 
-/* AM UX submit form 1.5.25 */
-(function(){
-  function ready(fn){
-    if(document.readyState !== 'loading'){ fn(); }
-    else { document.addEventListener('DOMContentLoaded', fn); }
-  }
-
-  function selectedText(id){
-    var el = document.getElementById(id);
-    if(!el || !el.options || el.selectedIndex < 0){ return ''; }
-    var txt = el.options[el.selectedIndex].text || '';
-    txt = txt.replace(/^Seleziona…?$/i, '').trim();
-    return txt;
-  }
-
-  function inputValue(id){
-    var el = document.getElementById(id);
-    return el ? (el.value || '').trim() : '';
-  }
-
-  function editorText(id){
-    if(window.tinyMCE && window.tinyMCE.get && window.tinyMCE.get(id)){
-      return (window.tinyMCE.get(id).getContent({format:'text'}) || '').trim();
-    }
-    return inputValue(id);
-  }
-
-  function setCheck(name, ok){
-    var item = document.querySelector('#am-submit-checklist [data-am-check="'+name+'"]');
-    if(!item){ return; }
-    item.classList.toggle('is-ok', !!ok);
-    var status = item.querySelector('.am-submit-checklist__status');
-    if(status){ status.textContent = ok ? '✓' : '○'; }
-  }
-
-  function updateSubmitUx(){
-    var genus = selectedText('am_genus');
-    var species = selectedText('am_species');
-    var infra = selectedText('am_infra');
-    var author = selectedText('am_author');
-    var parts = [];
-    if(genus){ parts.push(genus); }
-    if(species){ parts.push(species); }
-    if(infra){ parts.push(infra); }
-    if(author){ parts.push(author); }
-
-    var title = parts.join(' ').replace(/\s+/g, ' ').trim();
-    var preview = document.getElementById('am-generated-title-preview');
-    if(preview){
-      preview.textContent = title || 'Seleziona genere e specie per generare il titolo.';
-    }
-
-    setCheck('classification', !!(genus && species));
-    setCheck('description', editorText('am_content').length > 20);
-    setCheck('featured', !!inputValue('am_featured_id'));
-    setCheck('gallery', !!inputValue('am_gallery_ids'));
-  }
-
-  ready(function(){
-    if(!document.getElementById('am-main-form')){ return; }
-
-    ['am_division','am_family','am_genus','am_species','am_infra','am_author','am_featured_id','am_gallery_ids','am_content'].forEach(function(id){
-      var el = document.getElementById(id);
-      if(el){
-        el.addEventListener('change', updateSubmitUx);
-        el.addEventListener('input', updateSubmitUx);
-      }
-    });
-
-    document.addEventListener('click', function(){
-      setTimeout(updateSubmitUx, 250);
-    });
-
-    if(window.tinyMCE && window.tinyMCE.on){
-      window.tinyMCE.on('AddEditor', function(e){
-        if(e && e.editor && e.editor.id === 'am_content'){
-          e.editor.on('keyup change input', updateSubmitUx);
-        }
-      });
-    }
-
-    updateSubmitUx();
-    window.setTimeout(updateSubmitUx, 800);
-    window.setInterval(updateSubmitUx, 2500);
-  });
-})();
-
-
 /* AM UX submit form 1.5.26 - guided descriptive template */
 (function(){
   function ready(fn){
@@ -1022,112 +934,6 @@ function amShowNotice(type, message){
 })();
 
 
-/* AM UX submit form 1.5.32 - quality summary enhancer */
-(function(){
-  function ready(fn){
-    if(document.readyState !== 'loading'){ fn(); }
-    else { document.addEventListener('DOMContentLoaded', fn); }
-  }
-
-  function selectedText(id){
-    var el = document.getElementById(id);
-    if(!el || !el.options || el.selectedIndex < 0){ return ''; }
-    var txt = el.options[el.selectedIndex].text || '';
-    txt = txt.replace(/^Seleziona…?$/i, '').trim();
-    return txt;
-  }
-
-  function inputValue(id){
-    var el = document.getElementById(id);
-    return el ? (el.value || '').trim() : '';
-  }
-
-  function editorText(id){
-    if(window.tinyMCE && window.tinyMCE.get && window.tinyMCE.get(id)){
-      return (window.tinyMCE.get(id).getContent({format:'text'}) || '').trim();
-    }
-    return inputValue(id);
-  }
-
-  function setCheck(name, ok, optional){
-    var item = document.querySelector('#am-submit-checklist [data-am-check="'+name+'"]');
-    if(!item){ return; }
-    item.classList.toggle('is-ok', !!ok);
-    item.classList.toggle('is-optional-ok', !!optional && !ok);
-    var status = item.querySelector('.am-submit-checklist__status');
-    if(status){ status.textContent = ok ? '✓' : (optional ? '–' : '○'); }
-  }
-
-  function updateQualitySummary(){
-    if(!document.getElementById('am-main-form')){ return; }
-
-    var genus = selectedText('am_genus');
-    var species = selectedText('am_species');
-    var description = editorText('am_content');
-    var featured = inputValue('am_featured_id');
-    var gallery = inputValue('am_gallery_ids');
-    var pdf = inputValue('am_pdf_id');
-
-    var checks = {
-      classification: !!(genus && species),
-      description: description.length > 20,
-      featured: !!featured,
-      gallery: !!gallery,
-      pdf: !!pdf
-    };
-
-    setCheck('classification', checks.classification, false);
-    setCheck('description', checks.description, false);
-    setCheck('featured', checks.featured, false);
-    setCheck('gallery', checks.gallery, false);
-    setCheck('pdf', checks.pdf, true);
-
-    var required = ['classification','description','featured','gallery'];
-    var missing = required.filter(function(key){ return !checks[key]; });
-    var box = document.getElementById('am-quality-summary');
-    var text = document.getElementById('am-quality-summary-text');
-    if(!box || !text){ return; }
-
-    box.classList.toggle('is-ok', missing.length === 0);
-    box.classList.toggle('is-warn', missing.length > 0);
-
-    if(missing.length === 0){
-      text.textContent = checks.pdf ? 'Dati principali completi. È presente anche un PDF allegato.' : 'Dati principali completi. Il PDF è facoltativo.';
-    } else {
-      var labels = {
-        classification: 'classificazione',
-        description: 'descrizione macroscopica',
-        featured: 'immagine di anteprima',
-        gallery: 'galleria immagini'
-      };
-      text.textContent = 'Da controllare: ' + missing.map(function(key){ return labels[key]; }).join(', ') + '.';
-    }
-  }
-
-  ready(function(){
-    if(!document.getElementById('am-main-form')){ return; }
-
-    document.addEventListener('change', function(){ window.setTimeout(updateQualitySummary, 80); });
-    document.addEventListener('input', function(){ window.setTimeout(updateQualitySummary, 80); });
-    document.addEventListener('click', function(){ window.setTimeout(updateQualitySummary, 350); });
-
-    if(window.tinyMCE && window.tinyMCE.on){
-      window.tinyMCE.on('AddEditor', function(e){
-        if(e && e.editor && e.editor.id === 'am_content'){
-          e.editor.on('keyup change input', updateQualitySummary);
-        }
-      });
-    }
-
-    updateQualitySummary();
-    window.setTimeout(updateQualitySummary, 800);
-    window.setInterval(updateQualitySummary, 2500);
-  });
-})();
-
-
-
-
 /* AM 1.5.50 - contextual return URL with full taxonomy filter state */
 (function(){
   function ready(fn){
@@ -1289,3 +1095,161 @@ function amShowNotice(type, message){
   });
 })();
 
+
+/* Guided entry form. All fields stay in the original form and retain their values. */
+(function () {
+  function initWizard() {
+    var form = document.querySelector('#am-main-form.am-wizard');
+    if (!form) return;
+
+    var panels = Array.from(form.querySelectorAll('[data-am-step]'));
+    var navigation = form.querySelector('.am-wizard__nav');
+    var navButtons = Array.from(navigation.querySelectorAll('button'));
+    var back = form.querySelector('[data-am-back]');
+    var next = form.querySelector('[data-am-next]');
+    var submit = form.querySelector('.am-submit');
+    var config = JSON.parse(form.querySelector('[data-am-wizard-config]').textContent);
+    var titlePreview = form.querySelector('#am-generated-title-preview');
+    var emptyTitle = titlePreview.textContent;
+    var reviewTitle = form.querySelector('[data-am-final-title]');
+    var progress = form.querySelector('[data-am-progress]');
+    var progressLabel = form.querySelector('#am-wizard-progress-label');
+    var active = 0;
+
+    function field(id) {
+      return form.querySelector('#' + id);
+    }
+
+    function value(id) {
+      var input = field(id);
+      return input ? input.value.trim() : '';
+    }
+
+    function selected(id) {
+      var input = field(id);
+      return input && input.value && input.selectedIndex >= 0
+        ? input.options[input.selectedIndex].text.trim() : '';
+    }
+
+    function descriptionText() {
+      var editor = window.tinymce && window.tinymce.get('am_content');
+      if (editor && editor.initialized && !editor.isHidden()) {
+        return editor.getContent({format: 'text'}).trim();
+      }
+      // wp_editor can populate the textarea with HTML on a validation redirect.
+      var template = document.createElement('template');
+      template.innerHTML = value('am_content');
+      return template.content.textContent.trim();
+    }
+
+    function renderTitle(element, name, suffix) {
+      element.replaceChildren();
+      if (!name) {
+        element.textContent = emptyTitle;
+        return;
+      }
+      var italic = document.createElement('i');
+      italic.textContent = name;
+      element.append(italic, suffix ? ' ' + suffix : '');
+    }
+
+    function updateSummary() {
+      var genus = selected('am_genus');
+      var species = selected('am_species');
+      var name = genus && species ? genus + ' ' + species : '';
+      var suffix = [selected('am_infra'), selected('am_author')].filter(Boolean).join(' ');
+      renderTitle(titlePreview, name, suffix);
+      renderTitle(reviewTitle.querySelector('[data-am-title]'), name, suffix);
+      reviewTitle.hidden = !name;
+
+      var checks = {
+        classification: Boolean(selected('am_division') && selected('am_family') && name),
+        description: Array.from(descriptionText()).length >= 20,
+        featured: Number(value('am_featured_id')) > 0,
+        gallery: value('am_gallery_ids').split(',').some(function (id) { return Number(id) > 0; }),
+        pdf: Number(value('am_pdf_id')) > 0
+      };
+      var count = 0;
+      form.querySelectorAll('[data-am-check]').forEach(function (item) {
+        var key = item.dataset.amCheck;
+        var optional = key === 'pdf';
+        var complete = checks[key];
+        if (complete && !optional) count++;
+        item.classList.toggle('is-ok', complete);
+        item.classList.toggle('is-optional-ok', optional && !complete);
+        item.querySelector('.am-submit-checklist__status').textContent = complete ? '✓' : (optional ? '–' : '○');
+        item.querySelector('[data-am-check-state]').textContent = ' – ' + (complete ? config.complete : (optional ? config.optional : config.missing));
+      });
+      progress.value = count;
+      var message = config.progress.replace('%d', String(count));
+      if (progressLabel.textContent !== message) progressLabel.textContent = message;
+    }
+
+    function showStep(index, moveFocus) {
+      active = index;
+      var last = index === panels.length - 1;
+      panels.forEach(function (panel, position) {
+        panel.hidden = position !== index;
+        if (position === index) navButtons[position].setAttribute('aria-current', 'step');
+        else navButtons[position].removeAttribute('aria-current');
+      });
+      back.hidden = index === 0;
+      next.hidden = last;
+      next.textContent = config.next[index] || '';
+      submit.hidden = !last;
+      updateSummary();
+      if (moveFocus) panels[index].querySelector('h3').focus();
+    }
+
+    form.addEventListener('click', function (event) {
+      var control = event.target.closest('[data-am-go], [data-am-back], [data-am-next]');
+      if (!control) return;
+      event.preventDefault();
+      var index = control.hasAttribute('data-am-next') ? active + 1
+        : control.hasAttribute('data-am-back') ? active - 1
+          : panels.findIndex(function (panel) { return panel.dataset.amStep === control.dataset.amGo; });
+      if (index >= 0 && index < panels.length) showStep(index, true);
+    });
+
+    form.addEventListener('submit', function (event) {
+      if (active !== panels.length - 1) {
+        event.preventDefault();
+        showStep(active + 1, true);
+        return;
+      }
+      if (window.tinymce) window.tinymce.triggerSave();
+    });
+
+    form.addEventListener('input', updateSummary);
+    // Taxonomy controls also emit jQuery change events after async population.
+    jQuery(form).on('change', 'select, input, textarea', function () {
+      window.requestAnimationFrame(updateSummary);
+    });
+    var observer = new MutationObserver(updateSummary);
+    ['am_featured_id', 'am_gallery_ids', 'am_pdf_id'].forEach(function (id) {
+      observer.observe(field(id), {attributes: true, attributeFilter: ['value']});
+    });
+    function watchEditor(editor) {
+      if (editor && editor.id === 'am_content') {
+        editor.on('init input change SetContent Undo Redo', updateSummary);
+      }
+    }
+    if (window.tinymce) {
+      watchEditor(window.tinymce.get('am_content'));
+      window.tinymce.on('AddEditor', function (event) { watchEditor(event.editor); });
+    }
+
+    var errors = {
+      missing_title: 0, missing_classification: 0, missing_infra: 0, missing_author: 0,
+      missing_content: 1, macro_too_short: 1, missing_macro_micro: 1,
+      missing_featured: 2, missing_gallery: 2, insert_failed: 3
+    };
+    var initialStep = Object.prototype.hasOwnProperty.call(errors, config.error) ? errors[config.error] : 0;
+    showStep(initialStep, false);
+    navigation.hidden = false;
+    form.querySelector('[data-am-progress-box]').hidden = false;
+  }
+
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', initWizard);
+  else initWizard();
+})();
