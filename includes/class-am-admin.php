@@ -946,6 +946,14 @@ add_settings_section('am_main', __('Generali', 'archivio-micologico'), function 
 			echo '<p class="description">' . esc_html__('Limite per le nuove immagini caricate dai moduli AM. Restano validi i limiti del server; i file già presenti non vengono modificati.', 'archivio-micologico') . '</p>';
 		}, 'am_settings', 'am_main');
 
+		add_settings_field('am_single_show_title', __('Titolo interno della scheda fungo', 'archivio-micologico'), function () {
+			$show = (int) get_option('am_single_show_title', 1);
+			echo '<input type="hidden" name="am_single_show_title" value="0">';
+			echo '<label><input type="checkbox" name="am_single_show_title" value="1" ' . checked(1, $show, false) . '> ';
+			echo esc_html__('Mostra il titolo all’interno della scheda', 'archivio-micologico') . '</label>';
+			echo '<p class="description">' . esc_html__('Togli la spunta se il tema mostra già il titolo sopra il contenuto.', 'archivio-micologico') . '</p>';
+		}, 'am_settings', 'am_main');
+
 		add_settings_field('am_edit_page_id', __('Pagina modifica schede (front-end)', 'archivio-micologico'), function () {
 			$val = (int) get_option('am_edit_page_id', 0);
 			$pages = get_pages(['sort_column' => 'post_title', 'sort_order' => 'ASC']);
@@ -1626,6 +1634,10 @@ wp_safe_redirect(add_query_arg(['page' => 'am_settings', 'am_err' => 'caps'], ad
 			update_option('am_default_status', $default_status);
 			update_option('am_max_upload_mb', $max_upload);
 			update_option('am_edit_page_id', $edit_page_id);
+			$show_title = $_POST['am_single_show_title'] ?? null;
+			if ($show_title === '0' || $show_title === '1') {
+				update_option('am_single_show_title', (int) $show_title);
+			}
 			update_option('am_show_submit_result_admin', $show_result_admin);
 			update_option('am_enable_debug_panel', $enable_debug_panel);
 			update_option('am_submit_result_ttl', $ttl);

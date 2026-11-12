@@ -37,42 +37,47 @@ $roles = is_array($user->roles) ? $user->roles : [];
 $am_can_add_terms = (is_user_logged_in() && (in_array('editor', $roles, true) || in_array('author', $roles, true) || current_user_can('edit_others_posts') || current_user_can('manage_terms')));
 ?>
 
-<form id="am-main-form" class="am-form" method="post" action="<?php echo esc_url(admin_url('admin-post.php')); ?>">
+<form id="am-main-form" class="am-form am-wizard" method="post" action="<?php echo esc_url(admin_url('admin-post.php')); ?>">
   <input type="hidden" name="action" value="am_update_fungo" />
   <?php wp_nonce_field(AM_Frontend::NONCE_ACTION_UPDATE, AM_Frontend::NONCE_NAME); ?>
   <input type="hidden" name="am_token" value="<?php echo esc_attr($am_token); ?>" />
   <input type="hidden" name="am_action" value="update" />
   <input type="hidden" name="am_save_review" id="am_save_review" value="0" />
   <input type="hidden" name="am_post_id" value="<?php echo esc_attr($am_post_id); ?>" />
-  <div class="am-form-meta" id="am-form-meta">
-    <div class="am-form-meta__row">
-      <span class="am-form-meta__label"><?php echo esc_html__('Autore scheda:', 'archivio-micologico'); ?></span>
-      <?php
-        // Autore scheda: sempre l'utente WordPress autore del post (post_author).
-        // Non ha relazione con l'autore tassonomico del fungo (am_author_id).
-        $am_author_display = '';
-        $u = isset($am_post) ? get_userdata((int) $am_post->post_author) : null;
-        if ($u) {
-          $tmp = trim((string)$u->first_name . ' ' . (string)$u->last_name);
-          $am_author_display = $tmp !== '' ? $tmp : (string) $u->display_name;
-        }
-      ?>
-      <span class="am-form-meta__value" id="am-author-top"><?php echo esc_html($am_author_display); ?></span>
-      <?php
-        $am_last_reviewer_name = (string) get_post_meta($am_post_id, 'am_last_reviewer_name', true);
-        $am_last_review_datetime = (string) get_post_meta($am_post_id, 'am_last_review_datetime', true);
-        $am_review_display = '';
-        if (trim($am_last_reviewer_name) !== '' && trim($am_last_review_datetime) !== '') {
-          $am_review_display = sprintf(__('Revisione: %1$s (%2$s)', 'archivio-micologico'), $am_last_reviewer_name, $am_last_review_datetime);
-        }
-      ?>
-      <span class="am-form-meta__review" id="am-review-top" style="<?php echo ($am_review_display !== '' ? '' : 'display:none;'); ?>"><?php echo esc_html($am_review_display); ?></span>
-    </div>
-  </div>
+<div id="am-form-messages" class="am-form-messages am-form-messages--top" aria-live="polite">
+  <?php
+  if (isset($am_pre_notice_html) && $am_pre_notice_html) {
+    echo $am_pre_notice_html; // already escaped inside
+  }
+  if (isset($_GET['am_term_msg'])) {
+    $ok = (isset($_GET['am_term_ok']) && $_GET['am_term_ok'] === '1');
+    echo '<div class="am-notice ' . ($ok ? 'am-notice--success' : 'am-notice--error') . '">';
+    echo esc_html(wp_unslash($_GET['am_term_msg']));
+    echo '</div>';
+  }
+  ?>
+</div>
 
-
-  <div class="am-section am-section--classification">
-    <h3 class="am-section__title"><?php echo esc_html__('Classificazione', 'archivio-micologico'); ?></h3>
+  <?php
+  $am_wizard_edit = true;
+  // Autore scheda: sempre l'utente WordPress autore del post (post_author).
+  // Non ha relazione con l'autore tassonomico del fungo (am_author_id).
+  $am_author_top = '';
+  $u = isset($am_post) ? get_userdata((int) $am_post->post_author) : null;
+  if ($u) {
+    $tmp = trim((string)$u->first_name . ' ' . (string)$u->last_name);
+    $am_author_top = $tmp !== '' ? $tmp : (string) $u->display_name;
+  }
+  $am_last_reviewer_name = (string) get_post_meta($am_post_id, 'am_last_reviewer_name', true);
+  $am_last_review_datetime = (string) get_post_meta($am_post_id, 'am_last_review_datetime', true);
+  $am_review_display = '';
+  if (trim($am_last_reviewer_name) !== '' && trim($am_last_review_datetime) !== '') {
+    $am_review_display = sprintf(__('Revisione: %1$s (%2$s)', 'archivio-micologico'), $am_last_reviewer_name, $am_last_review_datetime);
+  }
+  include __DIR__ . '/wizard-start.php';
+  ?>
+  <div class="am-section am-section--classification" id="am-step-classification" data-am-step="classification">
+    <h3 class="am-section__title" tabindex="-1"><?php echo esc_html__('Classificazione', 'archivio-micologico'); ?></h3>
 
     <div class="am-grid">
 
@@ -88,7 +93,7 @@ $am_can_add_terms = (is_user_logged_in() && (in_array('editor', $roles, true) ||
           <option value=""><?php echo esc_html__('Seleziona…', 'archivio-micologico'); ?></option>
         </select>
         <?php if ($am_can_add_terms) : ?>
-          <button type="button" class="am-add-term" data-am-level="family"><?php echo esc_html__('+ Aggiungi nuova Famiglia', 'archivio-micologico'); ?></button>
+          <button type="button" class="am-btn am-add-term" data-am-level="family"><?php echo esc_html__('+ Aggiungi nuova Famiglia', 'archivio-micologico'); ?></button>
           <div class="am-add-term__panel" data-am-panel="family" hidden>
             <input type="text" class="am-add-term__input" data-am-input="family" name="am_term_name" form="am_add_term_family_form" placeholder="<?php echo esc_attr__('Nome famiglia', 'archivio-micologico'); ?>" />
             <button type="submit" class="button am-btn am-add-term__save_term" form="am_add_term_family_form" formnovalidate><?php echo esc_html__('Salva', 'archivio-micologico'); ?></button>
@@ -102,7 +107,7 @@ $am_can_add_terms = (is_user_logged_in() && (in_array('editor', $roles, true) ||
           <option value=""><?php echo esc_html__('Seleziona…', 'archivio-micologico'); ?></option>
         </select>
         <?php if ($am_can_add_terms) : ?>
-          <button type="button" class="am-add-term" data-am-level="genus"><?php echo esc_html__('+ Aggiungi nuovo Genere', 'archivio-micologico'); ?></button>
+          <button type="button" class="am-btn am-add-term" data-am-level="genus"><?php echo esc_html__('+ Aggiungi nuovo Genere', 'archivio-micologico'); ?></button>
           <div class="am-add-term__panel" data-am-panel="genus" hidden>
             <input type="text" class="am-add-term__input" data-am-input="genus" name="am_term_name" form="am_add_term_genus_form" placeholder="<?php echo esc_attr__('Nome genere', 'archivio-micologico'); ?>" />
             <button type="submit" class="button am-btn am-add-term__save_term" form="am_add_term_genus_form" formnovalidate><?php echo esc_html__('Salva', 'archivio-micologico'); ?></button>
@@ -116,7 +121,7 @@ $am_can_add_terms = (is_user_logged_in() && (in_array('editor', $roles, true) ||
           <option value=""><?php echo esc_html__('Seleziona…', 'archivio-micologico'); ?></option>
         </select>
         <?php if ($am_can_add_terms) : ?>
-          <button type="button" class="am-add-term" data-am-level="species"><?php echo esc_html__('+ Aggiungi nuova Specie', 'archivio-micologico'); ?></button>
+          <button type="button" class="am-btn am-add-term" data-am-level="species"><?php echo esc_html__('+ Aggiungi nuova Specie', 'archivio-micologico'); ?></button>
           <div class="am-add-term__panel" data-am-panel="species" hidden>
             <input type="text" class="am-add-term__input" data-am-input="species" name="am_term_name" form="am_add_term_species_form" placeholder="<?php echo esc_attr__('Nome specie', 'archivio-micologico'); ?>" />
             <button type="submit" class="button am-btn am-add-term__save_term" form="am_add_term_species_form" formnovalidate><?php echo esc_html__('Salva', 'archivio-micologico'); ?></button>
@@ -130,7 +135,7 @@ $am_can_add_terms = (is_user_logged_in() && (in_array('editor', $roles, true) ||
           <option value=""><?php echo esc_html__('Seleziona…', 'archivio-micologico'); ?></option>
         </select>
         <?php if ($am_can_add_terms) : ?>
-          <button type="button" class="am-add-term" data-am-level="infra"><?php echo esc_html__('+ Aggiungi nuova Forma/Varietà', 'archivio-micologico'); ?></button>
+          <button type="button" class="am-btn am-add-term" data-am-level="infra"><?php echo esc_html__('+ Aggiungi nuova Forma/Varietà', 'archivio-micologico'); ?></button>
           <div class="am-add-term__panel" data-am-panel="infra" hidden>
             <input type="text" class="am-add-term__input" data-am-input="infra" name="am_term_name" form="am_add_term_infra_form" placeholder="<?php echo esc_attr__('Forma / Varietà', 'archivio-micologico'); ?>" />
             <button type="submit" class="button am-btn am-add-term__save_term" form="am_add_term_infra_form" formnovalidate><?php echo esc_html__('Salva', 'archivio-micologico'); ?></button>
@@ -139,12 +144,12 @@ $am_can_add_terms = (is_user_logged_in() && (in_array('editor', $roles, true) ||
       </div>
 
       <div class="am-field">
-        <label for="am_author"><?php echo esc_html__('Autore', 'archivio-micologico'); ?></label>
+        <label for="am_author"><?php echo esc_html__('Autore del nome scientifico', 'archivio-micologico'); ?></label>
         <select id="am_author" name="am_author" data-selected="<?php echo esc_attr($am_selected_author); ?>">
           <option value=""><?php echo esc_html__('Seleziona…', 'archivio-micologico'); ?></option>
         </select>
 <?php if ($am_can_add_terms) : ?>
-          <button type="button" class="am-add-term" data-am-level="author"><?php echo esc_html__('+ Aggiungi nuovo Autore', 'archivio-micologico'); ?></button>
+          <button type="button" class="am-btn am-add-term" data-am-level="author"><?php echo esc_html__('+ Aggiungi nuovo Autore', 'archivio-micologico'); ?></button>
           <div class="am-add-term__panel" data-am-panel="author" hidden>
             <input type="text" class="am-add-term__input" data-am-input="author" name="am_term_name" form="am_add_term_author_form" placeholder="<?php echo esc_attr__('Autore', 'archivio-micologico'); ?>" />
             <button type="submit" class="button am-btn am-add-term__save_term" form="am_add_term_author_form" formnovalidate><?php echo esc_html__('Salva', 'archivio-micologico'); ?></button>
@@ -158,14 +163,14 @@ $am_can_add_terms = (is_user_logged_in() && (in_array('editor', $roles, true) ||
         ? esc_html__('Puoi selezionare i termini dalle liste oppure crearli al volo (creazione rapida disponibile per Editor e superiori).', 'archivio-micologico')
         : esc_html__('I termini sono selezionabili solo da elenchi esistenti; la creazione/modifica dei termini è riservata ai ruoli reviewer/manager.', 'archivio-micologico'); ?>
     </p>
+    <div class="am-generated-title-card" aria-live="polite">
+      <span class="am-generated-title-card__label"><?php echo esc_html__('Nome scientifico', 'archivio-micologico'); ?></span>
+      <strong id="am-generated-title-preview" class="am-generated-title-card__value"><?php echo esc_html($am_title); ?></strong>
+    </div>
   </div>
 
-  <div class="am-field">
-    <label for="am_title"><?php echo esc_html__('Nome scientifico', 'archivio-micologico'); ?></label>
-    <input id="am_title" name="am_title" type="text" value="<?php echo esc_attr($am_title); ?>" readonly disabled />
-    <p class="am-help"><?php echo esc_html__('Generato automaticamente da Genere + Specie (+ Forma/Varietà) (+ Autore).', 'archivio-micologico'); ?></p>
-  </div>
-
+  <div class="am-section am-section--descriptions" id="am-step-descriptions" data-am-step="descriptions">
+    <h3 class="am-section__title" tabindex="-1"><?php echo esc_html__('Descrizioni e osservazioni', 'archivio-micologico'); ?></h3>
   <div class="am-field">
     <label for="am_content"><?php echo esc_html__('Descrizione macroscopica', 'archivio-micologico'); ?></label>
     <div class="am-editor">
@@ -229,8 +234,10 @@ $am_can_add_terms = (is_user_logged_in() && (in_array('editor', $roles, true) ||
     </div>
   </div>
 
-  <div class="am-section am-section--media">
-    <h3 class="am-section__title"><?php echo esc_html__('Immagini', 'archivio-micologico'); ?></h3>
+  </div><!-- /.am-section--descriptions -->
+
+  <div class="am-section am-section--media" id="am-step-media" data-am-step="media">
+    <h3 class="am-section__title" tabindex="-1"><?php echo esc_html__('Media e allegati', 'archivio-micologico'); ?></h3>
 
     <div class="am-field">
       <label><?php echo esc_html__('Immagine anteprima', 'archivio-micologico'); ?></label>
@@ -244,7 +251,7 @@ $am_can_add_terms = (is_user_logged_in() && (in_array('editor', $roles, true) ||
           </span>
         <?php endif; ?>
       </div>
-      <p class="am-help"><?php echo esc_html__('Campo obbligatorio: seleziona un’immagine in evidenza.', 'archivio-micologico'); ?></p>
+      <p class="am-help"><?php echo esc_html__('Puoi aggiungere, sostituire o rimuovere l’immagine in evidenza.', 'archivio-micologico'); ?></p>
     </div>
 
     <div class="am-field">
@@ -292,26 +299,16 @@ $am_can_add_terms = (is_user_logged_in() && (in_array('editor', $roles, true) ||
     </div>
   </div>
 
-  <div class="am-field" style="margin-top:16px;display:flex;gap:10px;flex-wrap:wrap;align-items:center;">
+  <?php include __DIR__ . '/wizard-end.php'; ?>
+
+  <div class="am-actions am-wizard__actions">
+    <button class="am-btn am-wizard__back" type="button" data-am-back hidden><?php echo esc_html__('Indietro', 'archivio-micologico'); ?></button>
+    <button class="am-btn am-wizard__next" type="button" data-am-next hidden></button>
     <?php if (am_user_can_review($am_post_id)) : ?>
       <button type="button" class="am-btn am-save-review" id="am-save-review-btn" data-post-id="<?php echo (int) $am_post_id; ?>"><?php echo esc_html__('Salva revisione', 'archivio-micologico'); ?></button>
     <?php endif; ?>
     <button type="submit" class="am-btn am-submit" id="am-save-btn"><?php echo esc_html__('Salva modifiche', 'archivio-micologico'); ?></button>
   </div>
-
-<div id="am-form-messages" class="am-form-messages" aria-live="polite">
-  <?php
-  if (isset($am_pre_notice_html) && $am_pre_notice_html) {
-    echo $am_pre_notice_html; // already escaped inside
-  }
-  if (isset($_GET['am_term_msg'])) {
-    $ok = (isset($_GET['am_term_ok']) && $_GET['am_term_ok'] === '1');
-    echo '<div class="am-notice ' . ($ok ? 'am-notice--success' : 'am-notice--error') . '">';
-    echo esc_html(wp_unslash($_GET['am_term_msg']));
-    echo '</div>';
-  }
-  ?>
-</div>
 
 </form>
 

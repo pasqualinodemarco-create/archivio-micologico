@@ -760,7 +760,9 @@ if (isset($_GET['am_error'])) {
 	$am_pre_notice_html .= '<div class="am-notice am-notice--error">' . esc_html($msg) . '</div>';
 }
 
+echo '<div id="am-edit-form" class="am-scope">';
 include AM_PATH . 'templates/edit-form.php';
+echo '</div>';
 		return (string) ob_get_clean();
 	}
 

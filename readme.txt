@@ -5,7 +5,7 @@ Tags: fungi, mycology, taxonomy, scientific archive, biodiversity, search
 Requires at least: 6.0
 Tested up to: 6.5
 Requires PHP: 8.0
-Stable tag: 1.5.57
+Stable tag: 1.5.59
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -64,6 +64,12 @@ Sì. Il plugin è sviluppato e testato con PHP 8+.
 4. Tooltip informativo con logo e crediti
 
 == Changelog ==
+
+= 1.5.59 =
+* Aggiunta l’impostazione per mostrare o nascondere il titolo interno delle schede fungo.
+
+= 1.5.58 =
+* Percorso guidato anche per la modifica delle schede, con anteprima del titolo e riepilogo.
 
 = 1.5.57 =
 * Modulo nuova scheda con quattro passaggi, riepilogo unico e layout adattabile.

@@ -1108,6 +1108,7 @@ function amShowNotice(type, message){
     var back = form.querySelector('[data-am-back]');
     var next = form.querySelector('[data-am-next]');
     var submit = form.querySelector('.am-submit');
+    var reviewButton = form.querySelector('#am-save-review-btn');
     var config = JSON.parse(form.querySelector('[data-am-wizard-config]').textContent);
     var titlePreview = form.querySelector('#am-generated-title-preview');
     var emptyTitle = titlePreview.textContent;
@@ -1172,7 +1173,7 @@ function amShowNotice(type, message){
       var count = 0;
       form.querySelectorAll('[data-am-check]').forEach(function (item) {
         var key = item.dataset.amCheck;
-        var optional = key === 'pdf';
+        var optional = item.hasAttribute('data-am-optional');
         var complete = checks[key];
         if (complete && !optional) count++;
         item.classList.toggle('is-ok', complete);
@@ -1181,7 +1182,7 @@ function amShowNotice(type, message){
         item.querySelector('[data-am-check-state]').textContent = ' – ' + (complete ? config.complete : (optional ? config.optional : config.missing));
       });
       progress.value = count;
-      var message = config.progress.replace('%d', String(count));
+      var message = config.progress.replace('%1$d', String(count)).replace('%2$d', String(progress.max));
       if (progressLabel.textContent !== message) progressLabel.textContent = message;
     }
 
@@ -1197,6 +1198,7 @@ function amShowNotice(type, message){
       next.hidden = last;
       next.textContent = config.next[index] || '';
       submit.hidden = !last;
+      if (reviewButton) reviewButton.hidden = !last;
       updateSummary();
       if (moveFocus) panels[index].querySelector('h3').focus();
     }
@@ -1242,7 +1244,7 @@ function amShowNotice(type, message){
     var errors = {
       missing_title: 0, missing_classification: 0, missing_infra: 0, missing_author: 0,
       missing_content: 1, macro_too_short: 1, missing_macro_micro: 1,
-      missing_featured: 2, missing_gallery: 2, insert_failed: 3
+      missing_featured: 2, missing_gallery: 2, insert_failed: 3, update_failed: 3
     };
     var initialStep = Object.prototype.hasOwnProperty.call(errors, config.error) ? errors[config.error] : 0;
     showStep(initialStep, false);
