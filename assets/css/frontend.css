@@ -1375,7 +1375,7 @@
 }
 
 /* New mushroom entry wizard */
-#am-submit-form { container-type: inline-size; }
+#am-submit-form, #am-edit-form { container-type: inline-size; }
 .am-wizard {
   --am-forest: #225744;
   --am-ink: #20322a;

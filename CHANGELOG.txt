@@ -1,3 +1,9 @@
+= 1.5.59 =
+- Aggiunta l’impostazione per mostrare o nascondere il titolo interno delle schede fungo.
+
+= 1.5.58 =
+- Percorso guidato anche per la modifica delle schede, con anteprima del titolo e riepilogo.
+
 = 1.5.57 =
 - Modulo nuova scheda con quattro passaggi, riepilogo unico e layout adattabile.
 

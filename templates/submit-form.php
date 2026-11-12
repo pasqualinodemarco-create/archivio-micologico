@@ -120,29 +120,10 @@ if (is_user_logged_in() && (int) get_option('am_show_submit_result_admin', 1) ==
       ?>
     </div>
 
-    <header class="am-wizard__header">
-      <div>
-        <span class="am-wizard__eyebrow"><?php echo esc_html__('Archivio Micologico', 'archivio-micologico'); ?></span>
-        <h2><?php echo esc_html__('Nuova scheda fungo', 'archivio-micologico'); ?></h2>
-        <p><?php echo esc_html__('Inserisci i dati scientifici e le immagini della scheda.', 'archivio-micologico'); ?></p>
-      </div>
-      <span class="am-wizard__badge"><?php echo esc_html__('In compilazione', 'archivio-micologico'); ?></span>
-    </header>
-    <?php $am_steps = [
-      'classification' => __('Classificazione', 'archivio-micologico'),
-      'descriptions' => __('Descrizioni', 'archivio-micologico'),
-      'media' => __('Media e allegati', 'archivio-micologico'),
-      'review' => __('Controllo finale', 'archivio-micologico'),
-    ]; ?>
-    <nav class="am-wizard__nav" hidden aria-label="<?php echo esc_attr__('Passaggi compilazione', 'archivio-micologico'); ?>">
-      <ol>
-        <?php $am_step_number = 0; foreach ($am_steps as $am_step => $am_label) : ?>
-          <li><button type="button" data-am-go="<?php echo esc_attr($am_step); ?>" aria-controls="am-step-<?php echo esc_attr($am_step); ?>"><span aria-hidden="true"><?php echo ++$am_step_number; ?></span><?php echo esc_html($am_label); ?></button></li>
-        <?php endforeach; ?>
-      </ol>
-    </nav>
-    <div class="am-wizard__layout">
-    <div class="am-wizard__panels">
+    <?php
+    $am_wizard_edit = false;
+    include __DIR__ . '/wizard-start.php';
+    ?>
     <div class="am-section am-section--classification" id="am-step-classification" data-am-step="classification">
       <h3 class="am-section__title" tabindex="-1"><?php echo esc_html__('Classificazione', 'archivio-micologico'); ?></h3>
 
@@ -396,60 +377,11 @@ $am_can_add_terms = (is_user_logged_in() && (in_array('editor', $roles, true) ||
   </div>
 
   
-    <div class="am-section am-section--final-check" id="am-step-review" data-am-step="review">
-      <h3 class="am-section__title" tabindex="-1"><?php echo esc_html__('Controllo finale', 'archivio-micologico'); ?></h3>
-      <p class="am-section__intro"><?php echo esc_html__('Controlla il titolo e i requisiti nel riepilogo prima di inviare la scheda. Puoi tornare a ogni passaggio per fare correzioni.', 'archivio-micologico'); ?></p>
-      <div class="am-generated-title-card" data-am-final-title hidden>
-        <span class="am-generated-title-card__label"><?php echo esc_html__('Titolo scheda generato', 'archivio-micologico'); ?></span>
-        <strong class="am-generated-title-card__value" data-am-title></strong>
-      </div>
-    </div>
-    </div><!-- /.am-wizard__panels -->
-
-    <aside class="am-wizard__summary" aria-labelledby="am-wizard-summary-title">
-      <h3 id="am-wizard-summary-title"><?php echo esc_html__('Stato della scheda', 'archivio-micologico'); ?></h3>
-      <div data-am-progress-box hidden>
-        <div id="am-wizard-progress-label" class="am-wizard__progress-label" aria-live="polite"><?php echo esc_html__('Requisiti completati: 0/4', 'archivio-micologico'); ?></div>
-        <progress data-am-progress value="0" max="4" aria-labelledby="am-wizard-progress-label"></progress>
-      </div>
-      <?php $am_checks = [
-        'classification' => ['classification', __('Classificazione', 'archivio-micologico')],
-        'description' => ['descriptions', __('Descrizione macroscopica', 'archivio-micologico')],
-        'featured' => ['media', __('Immagine di anteprima', 'archivio-micologico')],
-        'gallery' => ['media', __('Galleria immagini', 'archivio-micologico')],
-        'pdf' => ['media', __('PDF facoltativo', 'archivio-micologico')],
-      ]; ?>
-      <ul class="am-submit-checklist" id="am-submit-checklist">
-        <?php foreach ($am_checks as $am_check => [$am_step, $am_label]) : ?>
-          <li data-am-check="<?php echo esc_attr($am_check); ?>">
-            <span class="am-submit-checklist__status" aria-hidden="true"><?php echo $am_check === 'pdf' ? '–' : '○'; ?></span>
-            <a href="#am-step-<?php echo esc_attr($am_step); ?>" data-am-go="<?php echo esc_attr($am_step); ?>"><?php echo esc_html($am_label); ?><span class="screen-reader-text" data-am-check-state></span></a>
-          </li>
-        <?php endforeach; ?>
-      </ul>
-      <div class="am-form-meta" id="am-form-meta">
-      <div class="am-form-meta__row">
-        <span class="am-form-meta__label"><?php echo esc_html__('Autore della scheda', 'archivio-micologico'); ?></span>
-        <?php $am_cu = wp_get_current_user(); $am_author_top = (is_user_logged_in() && $am_cu && !empty($am_cu->display_name)) ? $am_cu->display_name : ""; ?>
-        <span class="am-form-meta__value" id="am-author-top"><?php echo esc_html($am_author_top); ?></span>
-        <span class="am-form-meta__review" id="am-review-top" style="display:none;"></span>
-      </div>
-    </div>
-    </aside>
-    </div><!-- /.am-wizard__layout -->
-
-    <script type="application/json" data-am-wizard-config><?php echo wp_json_encode([
-      'error' => is_string($_GET['am_error'] ?? null) ? sanitize_key($_GET['am_error']) : '',
-      'progress' => __('Requisiti completati: %d/4', 'archivio-micologico'),
-      'complete' => __('completo', 'archivio-micologico'),
-      'missing' => __('da completare', 'archivio-micologico'),
-      'optional' => __('facoltativo', 'archivio-micologico'),
-      'next' => [
-        __('Continua alle descrizioni', 'archivio-micologico'),
-        __('Continua ai media', 'archivio-micologico'),
-        __('Vai al controllo finale', 'archivio-micologico'),
-      ],
-    ], JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT); ?></script>
+    <?php
+    $am_author_top = wp_get_current_user()->display_name;
+    $am_review_display = '';
+    include __DIR__ . '/wizard-end.php';
+    ?>
 
 <?php
 $am_show_tax_debug = (am_user_can_review() && isset($_GET['am_debug']));
