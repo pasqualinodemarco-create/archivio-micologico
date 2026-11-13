@@ -200,6 +200,7 @@ const NONCE_ACTION = 'am_submit_fungo';
 			'autoplay' => $default_autoplay ? '1' : '0',
 			'intervallo' => $default_interval,
 			'visibili' => $default_visible,
+			'righe' => get_option('am_random_widget_rows', 1),
 		], $atts, 'am_random_funghi');
 
 		$count = max(1, min(12, absint($atts['numero'])));
@@ -212,6 +213,7 @@ const NONCE_ACTION = 'am_submit_fungo';
 			'autoplay' => $autoplay,
 			'interval' => $interval,
 			'visible' => $visible,
+			'rows' => (int) $atts['righe'],
 		]);
 	}
 
@@ -220,6 +222,7 @@ const NONCE_ACTION = 'am_submit_fungo';
 		$autoplay = isset($args['autoplay']) ? (bool) $args['autoplay'] : ((int) get_option('am_random_widget_autoplay', 1) === 1);
 		$interval = isset($args['interval']) ? max(2, min(20, (int) $args['interval'])) : max(2, min(20, (int) get_option('am_random_widget_interval', 4)));
 		$visible = isset($args['visible']) ? max(1, min(3, (int) $args['visible'])) : max(1, min(3, (int) get_option('am_random_widget_visible', 3)));
+		$rows = max(1, min(4, (int) ($args['rows'] ?? get_option('am_random_widget_rows', 1))));
 		$query = new WP_Query([
 			'post_type' => AM_CPT,
 			'post_status' => 'publish',
@@ -232,7 +235,7 @@ const NONCE_ACTION = 'am_submit_fungo';
 		$carousel_id = 'am-random-carousel-' . wp_generate_uuid4();
 
 		ob_start();
-		echo '<div class="am-random-funghi-widget am-random-funghi-carousel" data-am-carousel data-am-autoplay="' . esc_attr($autoplay ? '1' : '0') . '" data-am-interval="' . esc_attr((string) $interval) . '" data-am-visible="' . esc_attr((string) $visible) . '" id="' . esc_attr($carousel_id) . '">';
+		echo '<div class="am-random-funghi-widget am-random-funghi-carousel" data-am-carousel data-am-autoplay="' . esc_attr($autoplay ? '1' : '0') . '" data-am-interval="' . esc_attr((string) $interval) . '" data-am-visible="' . esc_attr((string) $visible) . '" data-am-rows="' . esc_attr($rows) . '" id="' . esc_attr($carousel_id) . '">';
 		if ($title !== '') {
 			echo '<h3 class="am-random-funghi-widget__title">' . esc_html($title) . '</h3>';
 		}
