@@ -1542,3 +1542,17 @@
   .am-wizard__nav ol { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .am-wizard .am-grid { grid-template-columns: minmax(0, 1fr); }
 }
+
+.am-random-funghi-carousel--rows .am-random-funghi-carousel__track {
+	display: grid;
+	grid-auto-flow: column;
+	grid-template-rows: repeat(var(--am-rows), auto);
+	grid-auto-columns: calc((100% - var(--am-gap) * (var(--am-visible) - 1)) / var(--am-visible));
+}
+.am-random-funghi-carousel--rows .am-random-funghi-carousel__slide {
+	min-width: 0;
+	max-width: none;
+}
+.am-random-funghi-carousel__controls[hidden] {
+	display: none;
+}

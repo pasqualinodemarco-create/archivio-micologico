@@ -1,3 +1,6 @@
+= 1.5.60 =
+- Il carosello delle schede casuali supporta da una a quattro righe. Lo shortcode accetta il parametro righe.
+
 = 1.5.59 =
 - Aggiunta l’impostazione per mostrare o nascondere il titolo interno delle schede fungo.
 

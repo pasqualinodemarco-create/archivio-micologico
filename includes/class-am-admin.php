@@ -883,8 +883,14 @@ add_settings_section('am_main', __('Generali', 'archivio-micologico'), function 
 		add_settings_field('am_random_widget_visible', __('Immagini visibili contemporaneamente', 'archivio-micologico'), function () {
 			$val = (int) get_option('am_random_widget_visible', 3);
 			echo '<input type="number" min="1" max="3" name="am_random_widget_visible" value="' . esc_attr((string) $val) . '" />';
-			echo '<p class="description">' . esc_html__('Numero di schede visibili insieme nel desktop. Su schermi stretti il carosello si adatta automaticamente a 1 o 2 elementi.', 'archivio-micologico') . '</p>';
+			echo '<p class="description">' . esc_html__('Numero di schede per riga su desktop. Su schermi stretti il carosello si adatta a una o due colonne.', 'archivio-micologico') . '</p>';
 		}, 'am_settings', 'am_widget_random');
+
+		add_settings_field('am_random_widget_rows', __('Numero di righe', 'archivio-micologico'), function () {
+			$rows = max(1, min(4, (int) get_option('am_random_widget_rows', 1)));
+			echo '<input type="number" min="1" max="4" id="am_random_widget_rows" name="am_random_widget_rows" value="' . esc_attr($rows) . '" />';
+			echo '<p class="description">' . esc_html__('Disponi le schede su un massimo di quattro righe. Per riempire due righe da tre schede, imposta almeno sei schede da mostrare.', 'archivio-micologico') . '</p>';
+		}, 'am_settings', 'am_widget_random', ['label_for' => 'am_random_widget_rows']);
 
 		add_settings_field('am_random_widget_autoplay', __('Movimento automatico', 'archivio-micologico'), function () {
 			$val = (int) get_option('am_random_widget_autoplay', 1);
@@ -1365,7 +1371,7 @@ if (isset($_GET['am_err'])) {
 
 		// Render existing sections/fields (main settings)
 		do_settings_sections('am_settings');
-		echo '<p class="description" style="margin-top:8px;max-width:900px">' . esc_html__('Le impostazioni del widget valgono sia per il widget WordPress sia, come default, per lo shortcode [am_random_funghi]. Lo shortcode può comunque sovrascrivere numero, titolo, immagini visibili, autoplay e intervallo.', 'archivio-micologico') . '</p>';
+		echo '<p class="description" style="margin-top:8px;max-width:900px">' . esc_html__('Le impostazioni del widget valgono sia per il widget WordPress sia, come default, per lo shortcode [am_random_funghi]. Lo shortcode può comunque sovrascrivere numero, titolo, immagini per riga, righe, autoplay e intervallo.', 'archivio-micologico') . '</p>';
 
 
 		// 1.5.0: fixed permissions summary. No AM custom profiles and no role matrix.
@@ -1646,6 +1652,10 @@ wp_safe_redirect(add_query_arg(['page' => 'am_settings', 'am_err' => 'caps'], ad
 			update_option('am_random_widget_count', $random_widget_count);
 			update_option('am_random_widget_autoplay', $random_widget_autoplay);
 			update_option('am_random_widget_visible', $random_widget_visible);
+			$rows = $_POST['am_random_widget_rows'] ?? null;
+			if (is_scalar($rows)) {
+				update_option('am_random_widget_rows', max(1, min(4, (int) $rows)));
+			}
 			update_option('am_random_widget_interval', $random_widget_interval);
 
 

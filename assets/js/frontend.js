@@ -618,6 +618,8 @@ function amShowNotice(type, message){
 			if (configuredVisible < 1) { configuredVisible = 1; }
 			if (configuredVisible > 3) { configuredVisible = 3; }
 
+			var configuredRows = Math.max(1, Math.min(4, parseInt(carousel.dataset.amRows, 10) || 1));
+			var controls = carousel.querySelector('.am-random-funghi-carousel__controls');
 			var interval = intervalSeconds * 1000;
 			var dots = [];
 			var visibleCount = 1;
@@ -634,7 +636,7 @@ function amShowNotice(type, message){
 				if (!dotsWrap) { return; }
 				dotsWrap.innerHTML = '';
 				dots = [];
-				var positions = Math.max(1, slides.length - visibleCount + 1);
+				var positions = maxIndex + 1;
 				for (var i = 0; i < positions; i++) {
 					var dot = document.createElement('button');
 					dot.type = 'button';
@@ -653,7 +655,12 @@ function amShowNotice(type, message){
 
 			function applyLayout(){
 				visibleCount = getVisibleCount();
-				maxIndex = Math.max(0, slides.length - visibleCount);
+				var rows = Math.min(configuredRows, Math.ceil(slides.length / visibleCount));
+				var columns = Math.ceil(slides.length / rows);
+				maxIndex = Math.max(0, columns - visibleCount);
+				carousel.classList.toggle('am-random-funghi-carousel--rows', rows > 1);
+				carousel.style.setProperty('--am-rows', String(rows));
+				if (controls) { controls.hidden = maxIndex === 0; }
 				if (index > maxIndex) {
 					index = maxIndex;
 				}
@@ -664,7 +671,7 @@ function amShowNotice(type, message){
 
 			function getStepWidth(){
 				if (!slides.length) { return 0; }
-				return slides[0].offsetWidth + parseFloat(window.getComputedStyle(track).columnGap || window.getComputedStyle(track).gap || '0');
+				return slides[0].getBoundingClientRect().width + parseFloat(window.getComputedStyle(track).columnGap || window.getComputedStyle(track).gap || '0');
 			}
 
 			function render(){
