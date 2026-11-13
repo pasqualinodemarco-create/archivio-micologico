@@ -559,8 +559,8 @@ wp_enqueue_script('am-frontend', AM_URL . 'assets/js/frontend.js', (defined('ELE
 		}
 
 		
-		// Prevent duplicates across different parents (common source of "same genus in different families").
-		$global_exists = term_exists($name, $tax);
+		// Species epithets can recur in different genera. The parent-scoped check above handles true duplicates.
+		$global_exists = $level === 'species' ? null : term_exists($name, $tax);
 		if ($global_exists && !is_wp_error($global_exists)) {
 			$gid = is_array($global_exists) ? (int) $global_exists['term_id'] : (int) $global_exists;
 			$gterm = get_term($gid, $tax);

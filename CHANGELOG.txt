@@ -1,3 +1,6 @@
+= 1.5.62 =
+- Consente lo stesso epiteto specifico in generi diversi, evitando duplicati nello stesso genere.
+
 = 1.5.61 =
 - Corretto il layout del carosello quando il numero di schede è inferiore a righe × colonne. Caricati gli asset anche nelle pagine con il solo widget o shortcode.
 
