@@ -655,7 +655,7 @@ function amShowNotice(type, message){
 
 			function applyLayout(){
 				visibleCount = getVisibleCount();
-				var rows = Math.min(configuredRows, Math.ceil(slides.length / visibleCount));
+				var rows = Math.min(configuredRows, slides.length);
 				var columns = Math.ceil(slides.length / rows);
 				maxIndex = Math.max(0, columns - visibleCount);
 				carousel.classList.toggle('am-random-funghi-carousel--rows', rows > 1);
@@ -664,7 +664,7 @@ function amShowNotice(type, message){
 				if (index > maxIndex) {
 					index = maxIndex;
 				}
-				carousel.style.setProperty('--am-visible', String(visibleCount));
+				carousel.style.setProperty('--am-visible', String(Math.min(visibleCount, columns)));
 				buildDots();
 				render();
 			}
