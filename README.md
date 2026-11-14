@@ -2,7 +2,7 @@
 
 Plugin WordPress per la gestione di schede micologiche, classificazioni gerarchiche, articoli, ricerca e moduli frontend.
 
-**Versione corrente: 1.6.8**. Richiede WordPress 6.0+ e PHP 8.0+.
+**Versione corrente: 1.6.9**. Richiede WordPress 6.0+ e PHP 8.0+.
 
 ## Installazione
 

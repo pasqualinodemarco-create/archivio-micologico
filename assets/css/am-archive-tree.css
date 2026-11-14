@@ -400,9 +400,8 @@
 }
 .am-archive__index {
   display: grid;
-  grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr);
+  grid-template-columns: minmax(0, 1fr);
   gap: 16px;
-  align-items: start;
 }
 .am-archive__classification,
 .am-archive--scientific .am-archive__recent {
@@ -414,7 +413,6 @@
   background: var(--am-catalog-paper);
   overflow-wrap: anywhere;
 }
-.am-archive__classification:only-child, .am-archive__classification[hidden] + .am-archive__recent { grid-column: 1 / -1; }
 .am-archive__classification h2 {
   font: 400 clamp(1.35rem, 3vw, 1.85rem)/1.15 Georgia, serif;
   margin: 0;
@@ -445,8 +443,5 @@
   border-top: 1px solid var(--am-catalog-line);
   border-radius: 0;
   padding: 8px 0;
-}
-@media (max-width: 720px) {
-  .am-archive__index { grid-template-columns: minmax(0, 1fr); }
 }
 .am-archive--scientific .am-archive__classification[hidden] { display: none; }

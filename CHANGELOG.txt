@@ -1,3 +1,6 @@
+= 1.6.9 =
+- Ultime schede pubblicate sotto l’albero tassonomico anche su desktop.
+
 = 1.6.8 =
 - Nuova presentazione della pagina Archivio con indice tassonomico e ultime schede affiancati su desktop.
 
