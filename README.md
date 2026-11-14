@@ -2,15 +2,15 @@
 
 Plugin WordPress per la gestione di schede micologiche, classificazioni gerarchiche, articoli, ricerca e moduli frontend.
 
-**Versione: 1.5.56** — WordPress 6.0+ e PHP 8.0+.
+**Versione corrente: 1.6.7**. Richiede WordPress 6.0+ e PHP 8.0+.
 
 ## Installazione
 
-1. Scarica [archivio-micologico-1.5.56.zip](downloads/archivio-micologico-1.5.56.zip?raw=true).
-2. In WordPress apri **Plugin → Aggiungi nuovo → Carica plugin**.
-3. Seleziona lo ZIP e conferma l’aggiornamento di Archivio Micologico.
+1. Apri [GitHub Actions → Test e pacchetto installabile](../../actions/workflows/ci.yml?query=branch%3Amain) e seleziona l’ultima esecuzione riuscita su `main`.
+2. Scarica l’artifact **archivio-micologico-installabile** ed estrai l’archivio. Al suo interno trovi lo ZIP del plugin e il checksum SHA-256.
+3. In WordPress apri **Plugin → Aggiungi nuovo → Carica plugin**, seleziona lo ZIP interno e conferma l’installazione o l’aggiornamento.
 
-Lo ZIP in `downloads` contiene soltanto il plugin nella cartella `archivio-micologico`. **Code → Download ZIP** scarica invece l’intero repository, compresi i test.
+Per configurare il plugin con Anna Weather, consulta **Archivio Micologico → Istruzioni** in WordPress.
 
 ## Permessi
 
@@ -19,26 +19,13 @@ Lo ZIP in `downloads` contiene soltanto il plugin nella cartella `archivio-micol
 - L’Editore conserva il normale ruolo WordPress e non riceve `manage_options`.
 - La sincronizzazione rimuove agli altri ruoli soltanto capability specifiche AM; conserva i permessi generali già presenti. Non può ricostruire permessi eventualmente rimossi dalle versioni precedenti o da altri strumenti.
 
-## Correzione 1.5.56
-
-Ripristinata la pagina **Info / Versione**: legge le modifiche della versione corrente da `CHANGELOG.txt`, gestisce un file mancante senza errore fatale e riconosce anche le intestazioni storiche.
-
-## Correzioni 1.5.55
-
-- Revisione scientifica allineata tra pulsanti, JavaScript e server, con controllo del singolo contenuto.
-- Corrette classificazione, gestione dei PDF e conservazione degli allegati nei salvataggi frontend parziali.
-- Cancellazione personalizzata unificata, protetta da nonce e permesso sul contenuto, con spostamento nel cestino. Se il cestino WordPress è disattivato, l’operazione viene bloccata.
-- Salvataggio corretto di SEO e ordinamento articoli, limiti dei campi coerenti e rispetto dello stato predefinito delle nuove schede.
-- Limite immagini applicato ai nuovi upload dai moduli AM; restano validi i limiti del server. I file già presenti non vengono modificati.
-- Corretti messaggi di errore, pagina di inserimento di riserva e chiamata al log debug.
-
 ## Shortcode
 
 | Shortcode | Funzione |
 |---|---|
-| `[am_archive]` | Archivio |
-| `[am_search_page]` | Ricerca |
-| `[am_random_funghi]` | Schede casuali |
+| `[am_archive]` | Albero tassonomico, ricerca live e ultime schede |
+| `[am_search_page]` | Ricerca dedicata e paginata |
+| `[am_random_funghi]` | Carosello delle schede casuali, con 1–4 righe |
 | `[am_submit_form]` | Inserimento schede |
 | `[am_edit_form]` | Modifica schede |
 | `[am_article_form]` | Inserimento articoli |
@@ -47,8 +34,6 @@ Ripristinata la pagina **Info / Versione**: legge le modifiche della versione co
 ## Verifica
 
 Test di integrazione su WordPress 7.1.4, PHP 8.3.6 e SQLite Database Integration. I test usano il core WordPress e account con ruoli diversi; i dettagli sono in [tests/README.md](tests/README.md). Non sostituiscono una prova sul sito di destinazione con i suoi temi, cache e plugin.
-
-Questo aggiornamento riguarda i quattro interventi sui permessi dell’Editore e sui relativi flussi. Non chiude l’intero audit precedente: restano da affrontare la riservatezza di anteprime e schede protette, le protezioni aggiuntive delle tassonomie e i limiti delle richieste pubbliche.
 
 ## Documentazione e licenza
 

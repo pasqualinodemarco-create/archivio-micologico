@@ -1516,63 +1516,37 @@ public static function render_instructions_page(): void {
 
 		echo '<p><strong>' . esc_html__('Versione plugin:', 'archivio-micologico') . '</strong> <code>' . esc_html(AM_VERSION) . '</code></p>';
 
-		echo '<h2>' . esc_html__('Shortcode disponibili', 'archivio-micologico') . '</h2>';
+		echo '<h2>' . esc_html__('Configurazione delle pagine', 'archivio-micologico') . '</h2>';
+		echo '<p>' . esc_html__('Con Anna Weather, modifica la pagina nell’editor a blocchi di WordPress, aggiungi un blocco Shortcode e incolla lo shortcode della funzione desiderata.', 'archivio-micologico') . '</p>';
 		echo '<ul>';
-		echo '<li><code>[am_archive_filters]</code> – ' . esc_html__('Filtri tassonomici (Famiglia/Genere/Specie) per l’archivio.', 'archivio-micologico') . '</li>';
-		echo '<li><code>[am_archive]</code> – ' . esc_html__('Archivio: tabella per classificazione oppure risultati filtrati.', 'archivio-micologico') . '</li>';
-		echo '<li><code>[am_search_page]</code> – ' . esc_html__('Pagina Ricerca dedicata (campo + pulsante + risultati).', 'archivio-micologico') . '</li>';
-		echo '<li><code>[am_submit_form]</code> – ' . esc_html__('Nuovo inserimento scheda fungo (front-end, in base ai permessi).', 'archivio-micologico') . '</li>';
-		echo '<li><code>[am_edit_form]</code> – ' . esc_html__('Modifica scheda fungo da front-end (in base ai permessi).', 'archivio-micologico') . '</li>';
-		echo '<li><code>[am_article_form]</code> – ' . esc_html__('Inserimento Articolo (Archivio Micologico) da front-end: immagine, galleria, PDF, categorie.', 'archivio-micologico') . '</li>';
+		echo '<li><code>[am_archive]</code> – ' . esc_html__('Albero delle classificazioni, ricerca live e ultime schede pubblicate.', 'archivio-micologico') . '</li>';
+		echo '<li><code>[am_archive_filters]</code> – ' . esc_html__('Filtri per divisione, famiglia, genere e specie.', 'archivio-micologico') . '</li>';
+		echo '<li><code>[am_search_page]</code> – ' . esc_html__('Pagina di ricerca con risultati paginati.', 'archivio-micologico') . '</li>';
+		echo '<li><code>[am_submit_form]</code> – ' . esc_html__('Modulo guidato per inserire una scheda fungo.', 'archivio-micologico') . '</li>';
+		echo '<li><code>[am_edit_form]</code> – ' . esc_html__('Modulo guidato per modificare una scheda fungo.', 'archivio-micologico') . '</li>';
+		echo '<li><code>[am_article_form]</code> – ' . esc_html__('Modulo per inserire articoli con immagini, galleria e PDF.', 'archivio-micologico') . '</li>';
+		echo '<li><code>[am_random_funghi]</code> – ' . esc_html__('Carosello di schede fungo casuali.', 'archivio-micologico') . '</li>';
 		echo '</ul>';
 
-		echo '<hr />';
+		echo '<h2>' . esc_html__('Archivio e ricerca', 'archivio-micologico') . '</h2>';
+		echo '<p>' . esc_html__('L’archivio organizza le schede in un albero con quattro livelli: Divisione, Famiglia, Genere e Specie. Per mostrare anche i filtri, inserisci [am_archive_filters] sopra [am_archive] nella stessa pagina.', 'archivio-micologico') . '</p>';
+		echo '<p>' . esc_html__('La ricerca live, la pagina dedicata e il caricamento dei risultati successivi cercano in titoli, contenuti, autore, forma o varietà e tassonomie. I risultati includono contenuti pubblicati senza password.', 'archivio-micologico') . '</p>';
+		echo '<p>' . esc_html__('In Impostazioni → Ultime schede pubblicate scegli quante schede mostrare (5 per impostazione predefinita, fino a 20). Imposta 0 per nascondere il pannello. Per aprirlo dal menu di Anna Weather, aggiungi #ultime-schede all’indirizzo della pagina Archivio.', 'archivio-micologico') . '</p>';
 
-		echo '<h2>' . esc_html__('Nuovo inserimento (scheda fungo)', 'archivio-micologico') . '</h2>';
-		echo '<p>' . esc_html__('Per creare una scheda fungo, inserisci in una pagina del sito lo shortcode:', 'archivio-micologico') . '</p>';
-		echo '<pre><code>[am_submit_form]</code></pre>';
+		echo '<h2>' . esc_html__('Inserimento, modifica e revisione', 'archivio-micologico') . '</h2>';
+		echo '<p>' . esc_html__('Usa [am_submit_form] nella pagina Nuovo inserimento e [am_edit_form] in una pagina dedicata alla modifica. In Archivio Micologico → Impostazioni seleziona quest’ultima in Pagina modifica schede (front-end). Il pulsante Modifica scheda compare per chi può modificare la scheda.', 'archivio-micologico') . '</p>';
+		echo '<p>' . esc_html__('Segui i passaggi Classificazione, Descrizioni, Media e allegati e Controllo finale. Per creare una scheda scegli Invia scheda. Per aggiornare una scheda esistente scegli Salva modifiche. Se l’invio restituisce un avviso, leggi il messaggio nel modulo.', 'archivio-micologico') . '</p>';
+		echo '<p>' . esc_html__('Amministratore ed Editore possono usare Salva revisione sulle schede che hanno il permesso di modificare. Il pulsante registra il revisore e la data e l’ora della revisione.', 'archivio-micologico') . '</p>';
+		echo '<p>' . esc_html__('Se Anna Weather mostra già il titolo nel template della scheda, disattiva Mostra il titolo all’interno della scheda nelle impostazioni del plugin.', 'archivio-micologico') . '</p>';
 
-		echo '<h3>' . esc_html__('Pulsanti e messaggi', 'archivio-micologico') . '</h3>';
-		echo '<ul>';
-		echo '<li>' . esc_html__('Invia scheda / Salva modifiche: pulsante verde.', 'archivio-micologico') . '</li>';
-		echo '<li>' . esc_html__('Salva revisione: pulsante arancione (solo amministratori).', 'archivio-micologico') . '</li>';
-		echo '<li>' . esc_html__('Gli altri pulsanti della scheda (Immagini, Galleria, PDF, Classificazione ecc.) sono coerenti e usano lo stesso colore del pulsante “Immagini”.', 'archivio-micologico') . '</li>';
-		echo '<li>' . esc_html__('Dopo “Salva revisione” e dopo “Salva modifiche”/“Invia scheda” viene mostrato un messaggio sotto i pulsanti. Tutti gli avvisi del form compaiono in questa stessa posizione.', 'archivio-micologico') . '</li>';
-		echo '</ul>';
+		echo '<h2>' . esc_html__('Carosello delle schede casuali', 'archivio-micologico') . '</h2>';
+		echo '<p>' . esc_html__('Con Anna Weather inserisci [am_random_funghi] in un blocco Shortcode. Nei temi che dispongono di aree widget puoi anche usare Archivio Micologico – Schede casuali.', 'archivio-micologico') . '</p>';
+		echo '<p>' . esc_html__('Lo shortcode accetta numero (1–12), titolo, visibili (1–3 colonne su desktop), righe (1–4), autoplay (0 o 1) e intervallo (2–20 secondi). I parametri omessi ereditano le impostazioni del plugin.', 'archivio-micologico') . '</p>';
+		echo '<pre><code>[am_random_funghi numero="6" visibili="3" righe="2" autoplay="1" intervallo="4"]</code></pre>';
 
-		echo '<h3>' . esc_html__('Revisione (solo admin)', 'archivio-micologico') . '</h3>';
-		echo '<p>' . esc_html__('Cliccando “Salva revisione”, il plugin salva automaticamente il nome del revisore (utente loggato) e la data/ora della revisione. La revisione viene mostrata in alto, di fianco al nome dell’autore, e anche nella pagina pubblica della scheda.', 'archivio-micologico') . '</p>';
-
-		echo '<hr />';
-
-		echo '<h2>' . esc_html__('Tassonomia (Divisione > Famiglia > Genere > Specie)', 'archivio-micologico') . '</h2>';
-		echo '<p>' . esc_html__('La classificazione è su 4 livelli (Divisione > Famiglia > Genere > Specie). Dalla pagina di Nuovo inserimento è possibile selezionare la classificazione e, se il tuo ruolo lo consente, crearne di nuove.', 'archivio-micologico') . '</p>';
-
-		echo '<hr />';
-
-		echo '<h2>' . esc_html__('Problemi comuni: il form non carica correttamente', 'archivio-micologico') . '</h2>';
-		echo '<ol>';
-		echo '<li><strong>' . esc_html__('Inserisci lo shortcode in un blocco “Shortcode”.', 'archivio-micologico') . '</strong></li>';
-		echo '<li><strong>' . esc_html__('Tema: assicurati che esistano wp_head() e wp_footer().', 'archivio-micologico') . '</strong> ' . esc_html__('Se il tema o un template “canvas” non stampa wp_footer, gli script del form (media/JS) non funzionano.', 'archivio-micologico') . '</li>';
-		echo '<li><strong>' . esc_html__('Cache/ottimizzazioni JS.', 'archivio-micologico') . '</strong> ' . esc_html__('Disattiva temporaneamente minify/merge/defer (Autoptimize, LiteSpeed, ecc.) e riprova.', 'archivio-micologico') . '</li>';
-		echo '<li><strong>' . esc_html__('Controlla la console del browser.', 'archivio-micologico') . '</strong> ' . esc_html__('Un errore JavaScript blocca il caricamento di galleria, PDF e pulsanti (F12 → Console).', 'archivio-micologico') . '</li>';
-		echo '<li><strong>' . esc_html__('Permessi utente.', 'archivio-micologico') . '</strong> ' . esc_html__('Se non sei loggato o non hai il ruolo previsto, il form può mostrare solo un messaggio di accesso negato.', 'archivio-micologico') . '</li>';
-		echo '</ol>';
-
-		echo '<p>' . esc_html__('Se il problema persiste, apri Impostazioni → Debug e copia le ultime righe: ci dicono esattamente quale passaggio si è interrotto.', 'archivio-micologico') . '</p>';
-
-		echo '<hr />';
-		echo '<h2>' . esc_html__('Widget: carosello di schede fungo casuali', 'archivio-micologico') . '</h2>';
-		echo '<p>' . esc_html__('Il plugin include un widget WordPress che mostra schede fungo pubblicate scelte in modo casuale in un carosello orizzontale. Numero elementi, immagini visibili contemporaneamente, titolo e movimento possono essere personalizzati dalla pagina Impostazioni.', 'archivio-micologico') . '</p>';
-		echo '<ol>';
-		echo '<li>' . esc_html__('Vai in Aspetto → Widget (oppure Aspetto → Personalizza → Widget, in base al tema).', 'archivio-micologico') . '</li>';
-		echo '<li>' . esc_html__('Seleziona il widget “Archivio Micologico - Schede casuali”.', 'archivio-micologico') . '</li>';
-		echo '<li>' . esc_html__('Inseriscilo nella sidebar, nel footer o in un’altra area widget del tema.', 'archivio-micologico') . '</li>';
-		echo '<li>' . esc_html__('Il campo Titolo del widget è facoltativo. Se lo lasci vuoto, viene usato il titolo predefinito impostato nella pagina Impostazioni.', 'archivio-micologico') . '</li>';
-		echo '</ol>';
-		echo '<p>' . esc_html__('Alternativa rapida: puoi usare anche lo shortcode seguente in un blocco Shortcode nella pagina. Se non specifichi parametri, usa i valori predefiniti salvati in Impostazioni. Parametri utili: numero, titolo, visibili, autoplay, intervallo.', 'archivio-micologico') . '</p>';
-		echo '<pre><code>[am_random_funghi]</code></pre><pre><code>[am_random_funghi numero="5" visibili="3" autoplay="1" intervallo="4"]</code></pre>';
-		echo '<p>' . esc_html__('Il widget e lo shortcode mostrano schede casuali tra quelle pubblicate, con una immagine in evidenza per ogni scheda quando disponibile. Ora il carosello può mostrare fino a 3 immagini contemporaneamente nel desktop. Se l’autoplay è attivo, le schede scorrono in orizzontale automaticamente e possono sempre essere mosse anche con i pulsanti precedente/successiva. Se una scheda non ha immagine in evidenza, viene mostrato un riquadro segnaposto.', 'archivio-micologico') . '</p>';
+		echo '<h2>' . esc_html__('Se il modulo non funziona', 'archivio-micologico') . '</h2>';
+		echo '<p>' . esc_html__('Verifica che la pagina usi il blocco Shortcode e che l’utente abbia il ruolo e i permessi necessari. Se il problema è comparso dopo un aggiornamento, svuota la cache e riprova.', 'archivio-micologico') . '</p>';
+		echo '<p>' . esc_html__('Se il problema persiste, attiva Mostra pannello debug nelle Impostazioni del plugin e consulta la sezione Debug. Per problemi con i controlli multimediali, verifica anche gli errori nella console del browser.', 'archivio-micologico') . '</p>';
 
 		echo '</div>';
 	}
