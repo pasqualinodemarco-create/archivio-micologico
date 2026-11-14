@@ -1,7 +1,10 @@
 <?php
+
+namespace ArchivioMicologico;
+
 if (!defined('ABSPATH')) { exit; }
 
-class AM_Post_Types {
+class PostTypes {
 	public static function init(): void {
 		add_action('init', [__CLASS__, 'register']);
 	}

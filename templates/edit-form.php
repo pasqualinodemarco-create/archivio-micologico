@@ -1,10 +1,11 @@
 <?php
+use ArchivioMicologico\Frontend;
 // Front-end edit form for "Scheda Fungo".
-// Keep markup theme-friendly (Elementor), avoid fieldset/legend issues.
+// Keep markup theme-friendly, avoid fieldset/legend issues.
 
 if (!defined('ABSPATH')) { exit; }
 
-// Expected variables prepared in AM_Frontend::render_edit_form:
+// Expected variables prepared in Frontend::render_edit_form:
 // $am_post, $am_selected_family, $am_selected_genus, $am_selected_species
 // $am_selected_infra, $am_selected_author, $am_macro_micro, $am_notes
 // $am_featured_id, $am_gallery_ids
@@ -30,7 +31,7 @@ $am_gallery_ids_csv = implode(',', array_map('absint', $am_gallery_ids));
 // Token used for sticky values on validation errors (same mechanism as submit form).
 $am_token = isset($_GET['am_token']) ? sanitize_text_field((string) $_GET['am_token']) : '';
 if ($am_token === '') { $am_token = wp_generate_password(12, false, false); }
-$am_sticky = AM_Frontend::am_get_sticky($am_token);
+$am_sticky = Frontend::am_get_sticky($am_token);
 
 $user = wp_get_current_user();
 $roles = is_array($user->roles) ? $user->roles : [];
@@ -39,7 +40,7 @@ $am_can_add_terms = (is_user_logged_in() && (in_array('editor', $roles, true) ||
 
 <form id="am-main-form" class="am-form am-wizard" method="post" action="<?php echo esc_url(admin_url('admin-post.php')); ?>">
   <input type="hidden" name="action" value="am_update_fungo" />
-  <?php wp_nonce_field(AM_Frontend::NONCE_ACTION_UPDATE, AM_Frontend::NONCE_NAME); ?>
+  <?php wp_nonce_field(Frontend::NONCE_ACTION_UPDATE, Frontend::NONCE_NAME); ?>
   <input type="hidden" name="am_token" value="<?php echo esc_attr($am_token); ?>" />
   <input type="hidden" name="am_action" value="update" />
   <input type="hidden" name="am_save_review" id="am_save_review" value="0" />
@@ -173,6 +174,7 @@ $am_can_add_terms = (is_user_logged_in() && (in_array('editor', $roles, true) ||
     <h3 class="am-section__title" tabindex="-1"><?php echo esc_html__('Descrizioni e osservazioni', 'archivio-micologico'); ?></h3>
   <div class="am-field">
     <label for="am_content"><?php echo esc_html__('Descrizione macroscopica', 'archivio-micologico'); ?></label>
+    <p class="am-notice am-notice--error" data-am-description-error role="alert" hidden><?php echo esc_html__('La descrizione macroscopica deve essere lunga almeno 20 caratteri.', 'archivio-micologico'); ?></p>
     <div class="am-editor">
       <?php
       wp_editor(

@@ -1,7 +1,12 @@
 <?php
+
+namespace ArchivioMicologico;
+
+use Throwable;
+
 if (!defined('ABSPATH')) { exit; }
 
-class AM_Admin {
+class Admin {
 
 	/**
 	 * Append an entry to the internal debug log (stored in option am_debug_log).
@@ -854,6 +859,13 @@ public static function apply_admin_post_filters($query) {
 		register_setting('am_settings', 'am_enable_debug_panel');
 		register_setting('am_settings', 'am_seo_mode');
 		register_setting('am_settings', 'am_articles_order');
+		register_setting('am_settings', 'am_recent_entries_count', [
+			'type' => 'integer',
+			'default' => 5,
+			'sanitize_callback' => static function ($value): int {
+				return is_numeric($value) ? max(0, min(20, (int) $value)) : 5;
+			},
+		]);
 
 		register_setting('am_settings', 'am_random_widget_title');
 		register_setting('am_settings', 'am_random_widget_count', ['sanitize_callback' => function($v){ $v = (int) $v; return max(1, min(12, $v)); }]);
@@ -863,6 +875,13 @@ public static function apply_admin_post_filters($query) {
 add_settings_section('am_main', __('Generali', 'archivio-micologico'), function () {
 			echo '<p>' . esc_html__('Configurazione di base per l\'inserimento front-end.', 'archivio-micologico') . '</p>';
 		}, 'am_settings');
+
+		add_settings_section('am_recent_entries', __('Ultime schede pubblicate', 'archivio-micologico'), '__return_empty_string', 'am_settings');
+		add_settings_field('am_recent_entries_count', __('Numero di schede da mostrare', 'archivio-micologico'), static function () {
+			$count = max(0, min(20, (int) get_option('am_recent_entries_count', 5)));
+			echo '<input type="number" min="0" max="20" id="am_recent_entries_count" name="am_recent_entries_count" value="' . esc_attr((string) $count) . '" aria-describedby="am_recent_entries_count_help" />';
+			echo '<p class="description" id="am_recent_entries_count_help">' . esc_html__('Scegli quante schede mostrare, fino a 20. Imposta 0 per nascondere il pannello nell’archivio.', 'archivio-micologico') . '</p>';
+		}, 'am_settings', 'am_recent_entries', ['label_for' => 'am_recent_entries_count']);
 
 		add_settings_section('am_widget_random', __('Widget schede casuali', 'archivio-micologico'), function () {
 			echo '<p>' . esc_html__('Impostazioni predefinite del widget/carosello e dello shortcode [am_random_funghi].', 'archivio-micologico') . '</p>';
@@ -1309,7 +1328,7 @@ echo '<input type="number" min="0" max="600" name="am_submit_result_ttl" value="
 			echo '</tr>';
 		}
 
-		$widget_exists = class_exists('AM_Widget_Random_Funghi');
+		$widget_exists = class_exists(RandomFungiWidget::class);
 		echo '<tr>';
 		echo '<td><code>AM_Widget_Random_Funghi</code></td>';
 		echo '<td>' . esc_html__('Widget WordPress: Archivio Micologico - Schede casuali', 'archivio-micologico') . '</td>';
@@ -1533,7 +1552,7 @@ public static function render_instructions_page(): void {
 
 		echo '<h2>' . esc_html__('Problemi comuni: il form non carica correttamente', 'archivio-micologico') . '</h2>';
 		echo '<ol>';
-		echo '<li><strong>' . esc_html__('Inserisci lo shortcode in un blocco “Shortcode”.', 'archivio-micologico') . '</strong> ' . esc_html__('Con Elementor usa il widget “Shortcode” (non “HTML”/testo semplice) e pubblica la pagina.', 'archivio-micologico') . '</li>';
+		echo '<li><strong>' . esc_html__('Inserisci lo shortcode in un blocco “Shortcode”.', 'archivio-micologico') . '</strong></li>';
 		echo '<li><strong>' . esc_html__('Tema: assicurati che esistano wp_head() e wp_footer().', 'archivio-micologico') . '</strong> ' . esc_html__('Se il tema o un template “canvas” non stampa wp_footer, gli script del form (media/JS) non funzionano.', 'archivio-micologico') . '</li>';
 		echo '<li><strong>' . esc_html__('Cache/ottimizzazioni JS.', 'archivio-micologico') . '</strong> ' . esc_html__('Disattiva temporaneamente minify/merge/defer (Autoptimize, LiteSpeed, ecc.) e riprova.', 'archivio-micologico') . '</li>';
 		echo '<li><strong>' . esc_html__('Controlla la console del browser.', 'archivio-micologico') . '</strong> ' . esc_html__('Un errore JavaScript blocca il caricamento di galleria, PDF e pulsanti (F12 → Console).', 'archivio-micologico') . '</li>';
@@ -1551,7 +1570,7 @@ public static function render_instructions_page(): void {
 		echo '<li>' . esc_html__('Inseriscilo nella sidebar, nel footer o in un’altra area widget del tema.', 'archivio-micologico') . '</li>';
 		echo '<li>' . esc_html__('Il campo Titolo del widget è facoltativo. Se lo lasci vuoto, viene usato il titolo predefinito impostato nella pagina Impostazioni.', 'archivio-micologico') . '</li>';
 		echo '</ol>';
-		echo '<p>' . esc_html__('Alternativa rapida: puoi usare anche lo shortcode seguente in una pagina, in Elementor o in un blocco Shortcode. Se non specifichi parametri, usa i valori predefiniti salvati in Impostazioni. Parametri utili: numero, titolo, visibili, autoplay, intervallo.', 'archivio-micologico') . '</p>';
+		echo '<p>' . esc_html__('Alternativa rapida: puoi usare anche lo shortcode seguente in un blocco Shortcode nella pagina. Se non specifichi parametri, usa i valori predefiniti salvati in Impostazioni. Parametri utili: numero, titolo, visibili, autoplay, intervallo.', 'archivio-micologico') . '</p>';
 		echo '<pre><code>[am_random_funghi]</code></pre><pre><code>[am_random_funghi numero="5" visibili="3" autoplay="1" intervallo="4"]</code></pre>';
 		echo '<p>' . esc_html__('Il widget e lo shortcode mostrano schede casuali tra quelle pubblicate, con una immagine in evidenza per ogni scheda quando disponibile. Ora il carosello può mostrare fino a 3 immagini contemporaneamente nel desktop. Se l’autoplay è attivo, le schede scorrono in orizzontale automaticamente e possono sempre essere mosse anche con i pulsanti precedente/successiva. Se una scheda non ha immagine in evidenza, viene mostrato un riquadro segnaposto.', 'archivio-micologico') . '</p>';
 
@@ -1636,6 +1655,10 @@ wp_safe_redirect(add_query_arg(['page' => 'am_settings', 'am_err' => 'caps'], ad
 		try {
 			update_option('am_seo_mode', $am_seo_mode);
 			update_option('am_articles_order', $articles_order);
+			$recent_count = $_POST['am_recent_entries_count'] ?? null;
+			if (is_numeric($recent_count)) {
+				update_option('am_recent_entries_count', $recent_count);
+			}
 			update_option('am_require_login', $require_login);
 			update_option('am_default_status', $default_status);
 			update_option('am_max_upload_mb', $max_upload);

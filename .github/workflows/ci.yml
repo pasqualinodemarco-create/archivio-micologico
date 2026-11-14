@@ -45,6 +45,13 @@ jobs:
       - name: Genera ZIP installabile
         run: python3 scripts/build_plugin.py
 
+      - name: Verifica l’autoload nel pacchetto
+        run: |
+          package_dir="$(mktemp -d)"
+          unzip -q "dist/archivio-micologico-$(cat VERSION.txt).zip" -d "$package_dir"
+          php8.3 -r 'define("ABSPATH", __DIR__); require $argv[1]; exit(class_exists("ArchivioMicologico\\Archive") && class_exists("AM_Frontend") && class_exists("ArchivioMicologico\\EntryForms") ? 0 : 1);' "$package_dir/archivio-micologico/autoload.php"
+          (cd dist && sha256sum --check *.zip.sha256)
+
       - name: Rendi scaricabile il plugin
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:

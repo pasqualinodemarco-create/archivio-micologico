@@ -20,6 +20,7 @@ $options = [
 	'am_roles_edit',
 	'am_random_widget_title',
 	'am_random_widget_count',
+	'am_recent_entries_count',
 	'am_random_widget_autoplay',
 	'am_random_widget_interval',
 	'am_random_widget_visible',

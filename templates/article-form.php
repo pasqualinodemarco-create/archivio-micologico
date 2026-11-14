@@ -1,4 +1,5 @@
 <?php
+use ArchivioMicologico\Frontend;
 // AM_NO_MEDIA_BUTTONS_CLEAN: hide "Aggiungi media" buttons for wp_editor on this page
 add_filter('wp_editor_settings', function($settings, $editor_id){
   $settings['media_buttons'] = false;
@@ -12,7 +13,7 @@ $am_token = isset($_GET['am_token']) ? sanitize_text_field((string) $_GET['am_to
 if ($am_token === '') {
   $am_token = wp_generate_password(12, false, false);
 }
-$am_sticky = AM_Frontend::am_get_sticky($am_token);
+$am_sticky = Frontend::am_get_sticky($am_token);
 
 // Categories (multiple)
 $cats = get_terms([
@@ -28,7 +29,7 @@ if (isset($am_sticky['am_article_cats']) && is_array($am_sticky['am_article_cats
 ?>
 <form id="am-article-form" class="am-form" method="post" action="<?php echo esc_url( admin_url('admin-post.php') ); ?>">
   <input type="hidden" name="action" value="am_submit_article" />
-  <?php wp_nonce_field(AM_Frontend::NONCE_ACTION, AM_Frontend::NONCE_NAME); ?>
+  <?php wp_nonce_field(Frontend::NONCE_ACTION, Frontend::NONCE_NAME); ?>
   <input type="hidden" name="am_token" value="<?php echo esc_attr($am_token); ?>" />
 
   <div class="am-section">

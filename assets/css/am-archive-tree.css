@@ -1,5 +1,5 @@
 /* AM Archive Tree (Famiglia → Genere → Schede)
-   NOTE: must play nicely inside Elementor columns, so no fixed max-width. */
+   NOTE: must play nicely in narrow columns, so no fixed max-width. */
 .am-archive{max-width:100%;margin:0;width:100%}
 .am-archive *{box-sizing:border-box}
 
@@ -8,7 +8,7 @@
 .am-archive__search-btn{flex:0 0 auto}
 .am-archive__status{font-size:13px;opacity:.8;min-width:180px;text-align:right}
 
-/* Mobile: stack controls to avoid the classic "Elementor column squeezes everything" mess */
+/* Mobile: stack controls to avoid squeezing controls */
 @media (max-width: 767px){
   .am-archive__top{gap:10px}
   .am-archive__search{flex:1 1 100%}
@@ -50,12 +50,12 @@
 .am-archive__search-btn:hover{filter:brightness(0.98)}
 .am-archive__search-btn:disabled{opacity:.6;cursor:not-allowed}
 
-/* Ensure text is visible even if the theme forces white button text (Elementor/Hello sometimes does). */
+/* Ensure text is visible even if the theme forces white button text. */
 .am-archive .am-archive-node,
 .am-archive .am-archive__search-btn,
 .am-archive .am-archive-entry,
 .am-archive .am-archive-entry *{
-  color: var(--e-global-color-text, #111) !important;
+  color: #111 !important;
 }
 
 .am-archive .am-archive-node *{
@@ -66,20 +66,20 @@
 .am-archive .am-archive-node__chev{color: inherit !important;}
 .am-archive .am-archive-node__label{color: inherit !important;}
 
-/* Inputs should inherit Elementor typography/colors */
+/* Keep search input colors readable */
 .am-archive .am-archive__search{
-  color: var(--e-global-color-text, #111) !important;
-  background: var(--e-global-color-white, #fff) !important;
+  color: #111 !important;
+  background: #fff !important;
 }
 
-/* Fix: Elementor/Hello theme may force white text on buttons/links. Keep archive tree labels visible. */
+/* Fix: The theme may force white text on buttons/links. Keep archive tree labels visible. */
 .am-archive .am-archive-node,
 .am-archive .am-archive-node *,
 .am-archive .am-archive__search-btn,
 .am-archive .am-archive__search-btn *,
 .am-archive .am-archive-entry,
 .am-archive .am-archive-entry *{
-  color: var(--e-global-color-text, #111) !important;
+  color: #111 !important;
 }
 
 /* Ensure chevron/icon follows text color */
@@ -87,14 +87,14 @@
 
 /* Inputs sometimes inherit weird colors too */
 .am-archive .am-archive__search{
-  color: var(--e-global-color-text, #111) !important;
+  color: #111 !important;
 }
 
 .am-archive .am-archive-node__chev{color: currentColor !important;}
 
 /* Inputs too, just in case */
 .am-archive .am-archive__search{
-  color: var(--e-global-color-text, #111) !important;
+  color: #111 !important;
 }
 
 /* ==========================================================
@@ -210,6 +210,11 @@
   border-left-color:var(--am-acc-division);
   background:linear-gradient(90deg, rgba(46,125,50,.10), rgba(255,255,255,1) 24%);
 }
+
+.am-archive__recent{scroll-margin-top:calc(var(--wp-admin--admin-bar--height, 0px) + 16px)}
+.am-archive__recent summary::-webkit-details-marker{display:none}
+.am-archive__recent[open] .am-archive-node__chev{transform:rotate(90deg)}
+.am-archive__recent .am-archive-entry__meta{display:block}
 
 .am-archive .am-archive-node--family{
   border-left-color:var(--am-acc-family);

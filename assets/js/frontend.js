@@ -752,15 +752,6 @@ function amShowNotice(type, message){
 		boot();
 	}
 
-	if (window.jQuery) {
-		jQuery(window).on('elementor/frontend/init', function(){
-			if (window.elementorFrontend && elementorFrontend.hooks) {
-				elementorFrontend.hooks.addAction('frontend/element_ready/global', function($scope){
-					initAMRandomCarousels($scope && $scope[0] ? $scope[0] : document);
-				});
-			}
-		});
-	}
 })();
 
 
@@ -1139,6 +1130,17 @@ function amShowNotice(type, message){
         ? input.options[input.selectedIndex].text.trim() : '';
     }
 
+    function syncEditors() {
+      if (!window.tinymce) return;
+      ['am_content', 'am_macro_micro', 'am_notes'].forEach(function (id) {
+        var editor = window.tinymce.get(id);
+        var textarea = field(id);
+        if (textarea && editor && editor.initialized && !editor.isHidden() && editor.getElement() === textarea) {
+          editor.save();
+        }
+      });
+    }
+
     function descriptionText() {
       var editor = window.tinymce && window.tinymce.get('am_content');
       if (editor && editor.initialized && !editor.isHidden()) {
@@ -1194,6 +1196,7 @@ function amShowNotice(type, message){
     }
 
     function showStep(index, moveFocus) {
+      syncEditors();
       active = index;
       var last = index === panels.length - 1;
       panels.forEach(function (panel, position) {
@@ -1226,10 +1229,22 @@ function amShowNotice(type, message){
         showStep(active + 1, true);
         return;
       }
-      if (window.tinymce) window.tinymce.triggerSave();
+      syncEditors();
+      if (Array.from(descriptionText()).length < 20) {
+        event.preventDefault();
+        showStep(1, true);
+        var message = form.querySelector('[data-am-description-error]');
+        message.hidden = false;
+        message.scrollIntoView({block: 'nearest'});
+      }
     });
 
-    form.addEventListener('input', updateSummary);
+    var descriptionError = form.querySelector('[data-am-description-error]');
+    function updateDescription() {
+      if (Array.from(descriptionText()).length >= 20) descriptionError.hidden = true;
+      updateSummary();
+    }
+    form.addEventListener('input', updateDescription);
     // Taxonomy controls also emit jQuery change events after async population.
     jQuery(form).on('change', 'select, input, textarea', function () {
       window.requestAnimationFrame(updateSummary);
@@ -1240,7 +1255,7 @@ function amShowNotice(type, message){
     });
     function watchEditor(editor) {
       if (editor && editor.id === 'am_content') {
-        editor.on('init input change SetContent Undo Redo', updateSummary);
+        editor.on('init input change SetContent Undo Redo', updateDescription);
       }
     }
     if (window.tinymce) {

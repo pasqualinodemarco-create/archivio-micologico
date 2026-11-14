@@ -1,8 +1,8 @@
-/* Front-end forms: keep styles minimal so the theme (e.g. Elementor) controls the look */
+/* Front-end forms: keep styles minimal so the theme controls the look */
 .am-form{max-width:100%}
 .am-form{width:100%}
 .am-form, .am-form *{box-sizing:border-box}
-/* Prevent Elementor columns from collapsing due to editors/media having "min-width:auto" */
+/* Prevent narrow columns from collapsing due to editors/media having "min-width:auto" */
 .am-form .am-editor,
 .am-form .wp-editor-wrap,
 .am-form .wp-editor-container,
@@ -31,8 +31,7 @@
 .am-required{font-weight:700}
 
 /* Buttons used by the plugin
-   Goal: look coherent with Elementor styles.
-   We rely on Elementor global variables when available, with safe fallbacks. */
+   Use explicit colors. */
 .am-form .am-btn,
 .am-form .am-submit{
   display:inline-flex;
@@ -50,8 +49,8 @@
 
 .am-form .am-btn--primary,
 .am-form .am-submit{
-  background: var(--e-global-color-accent, #d14c4c);
-  color: var(--e-global-color-secondary, #ffffff);
+  background: #d14c4c;
+  color: #ffffff;
 }
 
 .am-form .am-btn--primary:hover,
@@ -61,9 +60,9 @@
 
 /* Make term "Salva" buttons consistent too */
 .am-form .am-add-term__save_term.button{
-  background: var(--e-global-color-accent, #d14c4c);
-  border-color: var(--e-global-color-accent, #d14c4c);
-  color: var(--e-global-color-secondary, #ffffff);
+  background: #d14c4c;
+  border-color: #d14c4c;
+  color: #ffffff;
   padding:10px 14px;
   border-radius:8px;
 }
@@ -449,7 +448,7 @@
 }
 
 
-/* v1.2.68 - Elementor-proof: galleria full in colonna, allineata a destra, senza link/lightbox */
+/* v1.2.68 - galleria full in colonna, allineata a destra, senza link/lightbox */
 .am-entry-gallery{display:block !important; grid-template-columns:none !important;}
 .am-entry-gallery__item a{pointer-events:none !important;}
 .am-entry-gallery__figure{margin:0 0 15px !important; text-align:right !important;}
@@ -462,7 +461,7 @@
 }
 
 
-/* v1.2.68 - Override ad alta specificità per Elementor */
+/* v1.2.68 - Override ad alta specificità */
 .am-entry-gallery figure.am-entry-gallery__figure{
   margin: 0 0 6px !important;
   text-align: right !important;
@@ -478,7 +477,7 @@
 }
 
 
-/* v1.2.68 - Riduci distanza immagini + didascalie a destra (Elementor-proof) */
+/* v1.2.68 - Riduci distanza immagini + didascalie a destra */
 .am-entry-gallery{display:flex !important;flex-direction:column !important;gap:8px !important;align-items:flex-end !important;}
 .am-entry-gallery figure.am-entry-gallery__figure{margin:0 !important;display:flex !important;flex-direction:column !important;align-items:flex-end !important;text-align:right !important;}
 .am-entry-gallery .am-entry-caption{margin:5px 0 0 !important;padding:0 !important;font-size:16px !important;text-align:left !important;line-height:1.4 !important;}
@@ -651,7 +650,7 @@
   padding: 0 !important;
 }
 
-/* Forza piena larghezza anche contro CSS del tema/Elementor */
+/* Forza piena larghezza anche contro CSS del tema */
 .am-gallery--journal img {
   width: 100% !important;
   max-width: 100% !important;
@@ -806,12 +805,7 @@
 .am-entry-title .am-taxon-gs i{font-style:italic !important; font-weight:700 !important;}
 
 
-/* v1.2.68 - Titolo fungo: supporto Elementor */
-.single-am_fungo .elementor-heading-title .am-taxon-gs{font-weight:700 !important;}
-.single-am_fungo .elementor-heading-title .am-taxon-gs i{font-style:italic !important; font-weight:700 !important;}
-
-
-/* v1.2.68 - Titolo: Genere+specie in corsivo+grassetto (anche Elementor via JS) */
+/* v1.2.68 - Titolo: Genere+specie in corsivo+grassetto */
 .am-taxon-gs{font-weight:700 !important;}
 .am-taxon-gs i{font-style:italic !important; font-weight:700 !important;}
 
@@ -1256,8 +1250,7 @@
 
 /* AM 1.5.42 - stronger featured image full width render support */
 .am-entry-featured,
-.entry-content .am-entry-featured,
-.elementor-widget-theme-post-content .am-entry-featured {
+.entry-content .am-entry-featured {
   display: block !important;
   width: 100% !important;
   max-width: 100% !important;
@@ -1266,8 +1259,7 @@
 .am-entry-featured img,
 .am-entry-featured img.wp-post-image,
 .am-entry-featured .am-entry-featured-image,
-.entry-content .am-entry-featured img,
-.elementor-widget-theme-post-content .am-entry-featured img {
+.entry-content .am-entry-featured img img {
   display: block !important;
   width: 100% !important;
   max-width: 100% !important;

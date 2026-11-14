@@ -3,13 +3,19 @@
  * Plugin Name: Archivio Micologico
  * Plugin URI: https://cervignanometeo.altervista.org
  * Description: Archivio Micologico: archivio micologico online con CPT dedicato, tassonomie gerarchiche e inserimento/gestione front-end.
- * Version: 1.5.62
+ * Version: 1.6.6
  * Author: Pasqualino De Marco
  * Author URI: https://cervignanometeo.altervista.org
  * Requires at least: 6.0
  * Requires PHP: 8.0
  * Text Domain: archivio-micologico
  */
+
+use ArchivioMicologico\Activator;
+use ArchivioMicologico\PostTypes;
+use ArchivioMicologico\Taxonomies;
+use ArchivioMicologico\Admin;
+use ArchivioMicologico\Frontend;
 
 if (!defined('ABSPATH')) { exit; }
 
@@ -46,7 +52,7 @@ if ( ! function_exists('am_fatal_logger_register') ) {
 	am_fatal_logger_register();
 }
 
-define('AM_VERSION', '1.5.62');
+define('AM_VERSION', '1.6.6');
 define('AM_PATH', plugin_dir_path(__FILE__));
 define('AM_URL', plugin_dir_url(__FILE__));
 
@@ -184,22 +190,16 @@ function am_cleanup_legacy_roles_and_permissions(): void {
 }
 
 
-require_once AM_PATH . 'includes/class-am-activator.php';
-require_once AM_PATH . 'includes/class-am-post-types.php';
-require_once AM_PATH . 'includes/class-am-taxonomies.php';
-require_once AM_PATH . 'includes/class-am-admin.php';
-require_once AM_PATH . 'includes/class-am-frontend.php';
-require_once AM_PATH . 'includes/class-am-widget-random-funghi.php';
-require_once AM_PATH . 'includes/elementor/class-am-elementor-conditions.php';
+require_once AM_PATH . 'autoload.php';
 
-register_activation_hook(__FILE__, ['AM_Activator', 'activate']);
-register_deactivation_hook(__FILE__, ['AM_Activator', 'deactivate']);
+register_activation_hook(__FILE__, [Activator::class, 'activate']);
+register_deactivation_hook(__FILE__, [Activator::class, 'deactivate']);
 
 add_action('plugins_loaded', function () {
 	// Keep roles/capabilities in sync even after updates.
-	AM_Activator::ensure_caps();
-	AM_Post_Types::init();
-	AM_Taxonomies::init();
-	AM_Admin::init();
-	AM_Frontend::init();
+	Activator::ensure_caps();
+	PostTypes::init();
+	Taxonomies::init();
+	Admin::init();
+	Frontend::init();
 });

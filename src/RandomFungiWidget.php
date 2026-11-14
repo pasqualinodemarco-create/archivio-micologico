@@ -1,7 +1,12 @@
 <?php
+
+namespace ArchivioMicologico;
+
+use WP_Widget;
+
 if (!defined('ABSPATH')) { exit; }
 
-class AM_Widget_Random_Funghi extends WP_Widget {
+class RandomFungiWidget extends WP_Widget {
 	public function __construct() {
 		parent::__construct(
 			'am_widget_random_funghi',
@@ -16,21 +21,18 @@ class AM_Widget_Random_Funghi extends WP_Widget {
 	public function widget($args, $instance): void {
 		$title = isset($instance['title']) ? sanitize_text_field((string) $instance['title']) : '';
 		echo $args['before_widget'];
-		$default_count = max(1, min(12, (int) get_option('am_random_widget_count', 5)));
-		$default_title = sanitize_text_field((string) get_option('am_random_widget_title', ''));
-		$autoplay = (int) get_option('am_random_widget_autoplay', 1) === 1;
-		$interval = max(2, min(20, (int) get_option('am_random_widget_interval', 4)));
-		$visible = max(1, min(3, (int) get_option('am_random_widget_visible', 3)));
+		$settings = RandomFungiCarousel::defaults();
 		if ($title === '') {
-			$title = $default_title;
+			$title = $settings['titolo'];
 		}
 		if ($title !== '') {
 			echo $args['before_title'] . esc_html($title) . $args['after_title'];
 		}
-		echo AM_Frontend::get_random_funghi_markup($default_count, '', [
-			'autoplay' => $autoplay,
-			'interval' => $interval,
-			'visible' => $visible,
+		echo RandomFungiCarousel::render($settings['numero'], '', [
+			'autoplay' => $settings['autoplay'] === '1',
+			'interval' => $settings['intervallo'],
+			'visible' => $settings['visibili'],
+			'rows' => $settings['righe'],
 		]);
 		echo $args['after_widget'];
 	}
