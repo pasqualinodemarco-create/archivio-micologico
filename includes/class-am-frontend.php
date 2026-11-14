@@ -232,6 +232,10 @@ const NONCE_ACTION = 'am_submit_fungo';
 			'no_found_rows' => true,
 		]);
 
+		// Builders can render the shortcode outside the page's post_content.
+		if ($query->have_posts() && !wp_script_is('am-frontend', 'enqueued') && !wp_script_is('am-frontend', 'done')) {
+			self::enqueue_assets(true);
+		}
 		$carousel_id = 'am-random-carousel-' . wp_generate_uuid4();
 
 		ob_start();
@@ -395,8 +399,8 @@ const NONCE_ACTION = 'am_submit_fungo';
 		]);
 	}
 
-	public static function enqueue_assets(): void {
-		$should_load = false;
+	public static function enqueue_assets(bool $for_carousel = false): void {
+		$should_load = $for_carousel || is_active_widget(false, false, 'am_widget_random_funghi');
 		$needs_editor_media = false;
 
 		// Load assets on single "Scheda Fungo" to support gallery lightbox.
@@ -412,7 +416,8 @@ const NONCE_ACTION = 'am_submit_fungo';
 			strpos((string) $post->post_content, '[am_edit_form') !== false ||
 			strpos((string) $post->post_content, '[am_archive_filters') !== false ||
 			strpos((string) $post->post_content, '[am_archive') !== false ||
-			strpos((string) $post->post_content, '[am_search_page') !== false
+			strpos((string) $post->post_content, '[am_search_page') !== false ||
+			strpos((string) $post->post_content, '[am_random_funghi') !== false
 		)) {
 			 $should_load = true;
 			$needs_editor_media = (
@@ -554,8 +559,8 @@ wp_enqueue_script('am-frontend', AM_URL . 'assets/js/frontend.js', (defined('ELE
 		}
 
 		
-		// Prevent duplicates across different parents (common source of "same genus in different families").
-		$global_exists = term_exists($name, $tax);
+		// Species epithets can recur in different genera. The parent-scoped check above handles true duplicates.
+		$global_exists = $level === 'species' ? null : term_exists($name, $tax);
 		if ($global_exists && !is_wp_error($global_exists)) {
 			$gid = is_array($global_exists) ? (int) $global_exists['term_id'] : (int) $global_exists;
 			$gterm = get_term($gid, $tax);

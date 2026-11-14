@@ -889,7 +889,7 @@ add_settings_section('am_main', __('Generali', 'archivio-micologico'), function 
 		add_settings_field('am_random_widget_rows', __('Numero di righe', 'archivio-micologico'), function () {
 			$rows = max(1, min(4, (int) get_option('am_random_widget_rows', 1)));
 			echo '<input type="number" min="1" max="4" id="am_random_widget_rows" name="am_random_widget_rows" value="' . esc_attr($rows) . '" />';
-			echo '<p class="description">' . esc_html__('Disponi le schede su un massimo di quattro righe. Per riempire due righe da tre schede, imposta almeno sei schede da mostrare.', 'archivio-micologico') . '</p>';
+			echo '<p class="description">' . esc_html__('Scegli da una a quattro righe. Con 5 schede e 3 righe, la seconda colonna avrà due schede. Per riempire 3 righe da 3, imposta almeno 9 schede.', 'archivio-micologico') . '</p>';
 		}, 'am_settings', 'am_widget_random', ['label_for' => 'am_random_widget_rows']);
 
 		add_settings_field('am_random_widget_autoplay', __('Movimento automatico', 'archivio-micologico'), function () {

@@ -5,7 +5,7 @@ Tags: fungi, mycology, taxonomy, scientific archive, biodiversity, search
 Requires at least: 6.0
 Tested up to: 6.5
 Requires PHP: 8.0
-Stable tag: 1.5.60
+Stable tag: 1.5.62
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -64,6 +64,12 @@ Sì. Il plugin è sviluppato e testato con PHP 8+.
 4. Tooltip informativo con logo e crediti
 
 == Changelog ==
+
+= 1.5.62 =
+* Consente lo stesso epiteto specifico in generi diversi, evitando duplicati nello stesso genere.
+
+= 1.5.61 =
+* Corretto il layout del carosello quando il numero di schede è inferiore a righe × colonne. Caricati gli asset anche nelle pagine con il solo widget o shortcode.
 
 = 1.5.60 =
 * Il carosello delle schede casuali supporta da una a quattro righe. Lo shortcode accetta il parametro righe.
