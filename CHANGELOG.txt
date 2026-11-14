@@ -1,3 +1,6 @@
+= 1.6.8 =
+- Nuova presentazione della pagina Archivio con indice tassonomico e ultime schede affiancati su desktop.
+
 = 1.6.7 =
 - Aggiornata la pagina Istruzioni e allineato il README su GitHub.
 

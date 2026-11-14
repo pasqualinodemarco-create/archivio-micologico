@@ -77,16 +77,10 @@ function amDispatchArchiveUpdated1546(target){
     btn.setAttribute("data-id", item.id);
     btn.setAttribute("aria-expanded", "false");
 
-    var icons = {
-      division: "🌍",
-      family: "🔍",
-      genus: "🍄"
-    };
     var count = (item && typeof item.count !== "undefined" && item.count !== null) ? String(item.count) : "";
     var countHtml = count !== "" ? ('<span class="am-archive-node__count" aria-label="' + escHtml(count) + ' schede">' + escHtml(count) + '</span>') : "";
 
     btn.innerHTML = '<span class="am-archive-node__chev" aria-hidden="true">▸</span>' +
-                    '<span class="am-archive-node__icon" aria-hidden="true">' + (icons[type] || "•") + '</span>' +
                     '<span class="am-archive-node__label">' + escHtml(item.name) + '</span>' +
                     countHtml;
       amDispatchArchiveUpdated1546(document);
@@ -363,7 +357,7 @@ var famPage = 1;
       q = (q||"").trim();
       if(!q){
         results.hidden = true;
-        tree.hidden = false;
+        tree.closest(".am-archive__classification").hidden = false;
         setStatus(status, "");
         return;
       }
@@ -373,7 +367,7 @@ var famPage = 1;
           setStatus(status, "Errore ricerca.");
           return;
         }
-        tree.hidden = true;
+        tree.closest(".am-archive__classification").hidden = true;
         results.hidden = false;
         renderSearch(resp.data.items || []);
         setStatus(status, "");

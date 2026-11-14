@@ -374,3 +374,79 @@
     padding:2px 8px;
   }
 }
+
+/* Catalogo tassonomico */
+.am-archive--scientific {
+  --am-catalog-paper: #fbfaf4;
+  --am-catalog-ink: #233a30;
+  --am-catalog-line: #d7ded2;
+  --am-catalog-muted: #52675a;
+  color: var(--am-catalog-ink);
+}
+.am-archive--scientific .am-archive__catalog-count {
+  margin: 0 0 14px;
+  color: var(--am-catalog-muted);
+}
+.am-archive__catalog-count strong {
+  color: var(--am-catalog-ink);
+  font-size: 1.35em;
+  font-variant-numeric: tabular-nums;
+}
+.am-archive--scientific .am-archive__top { margin-bottom: 20px; }
+.am-archive--scientific .am-archive__search-btn {
+  background: #234a37;
+  color: #fff !important;
+  min-height: 44px;
+}
+.am-archive__index {
+  display: grid;
+  grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr);
+  gap: 16px;
+  align-items: start;
+}
+.am-archive__classification,
+.am-archive--scientific .am-archive__recent {
+  min-width: 0;
+  margin: 0;
+  padding: 16px;
+  border: 1px solid var(--am-catalog-line);
+  border-radius: 7px;
+  background: var(--am-catalog-paper);
+  overflow-wrap: anywhere;
+}
+.am-archive__classification:only-child, .am-archive__classification[hidden] + .am-archive__recent { grid-column: 1 / -1; }
+.am-archive__classification h2 {
+  font: 400 clamp(1.35rem, 3vw, 1.85rem)/1.15 Georgia, serif;
+  margin: 0;
+  color: var(--am-catalog-ink);
+}
+.am-archive__rank-guide { color: var(--am-catalog-muted); margin: 5px 0 12px; }
+.am-archive--scientific .am-archive-node {
+  background: transparent;
+  border: 0;
+  border-top: 1px solid var(--am-catalog-line);
+  border-radius: 0;
+  padding: 8px 4px;
+  min-height: 44px;
+  box-shadow: none;
+}
+.am-archive--scientific summary.am-archive-node { border-top: 0; }
+.am-archive--scientific .am-archive-node--genus .am-archive-node__label { font-style: italic; }
+.am-archive--scientific .am-archive-branch--genus .am-archive-node { margin-left: 0; }
+.am-archive--scientific .am-archive-children {
+  margin: 0 0 0 8px;
+  padding-left: 8px;
+  border-left: 1px solid var(--am-catalog-line);
+}
+.am-archive--scientific .am-archive-node__count { font-variant-numeric: tabular-nums; }
+.am-archive--scientific .am-archive__recent .am-archive-entry {
+  background: transparent;
+  border: 0;
+  border-top: 1px solid var(--am-catalog-line);
+  border-radius: 0;
+  padding: 8px 0;
+}
+@media (max-width: 720px) {
+  .am-archive__index { grid-template-columns: minmax(0, 1fr); }
+}
+.am-archive--scientific .am-archive__classification[hidden] { display: none; }

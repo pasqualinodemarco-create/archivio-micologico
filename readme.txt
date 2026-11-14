@@ -5,7 +5,7 @@ Tags: fungi, mycology, taxonomy, scientific archive, biodiversity, search
 Requires at least: 6.0
 Tested up to: 6.5
 Requires PHP: 8.0
-Stable tag: 1.6.7
+Stable tag: 1.6.8
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -64,6 +64,9 @@ Sì. Il plugin è sviluppato e testato con PHP 8+.
 4. Tooltip informativo con logo e crediti
 
 == Changelog ==
+
+= 1.6.8 =
+* Nuova presentazione della pagina Archivio, con indice tassonomico e ultime schede affiancati su desktop.
 
 = 1.6.7 =
 * Aggiornata la pagina Istruzioni per la configurazione delle pagine e dei moduli con Anna Weather.

@@ -102,31 +102,32 @@ public static function render_archive($atts = []): string {
 			return (string) ob_get_clean();
 		}
 
-		echo '<div class="am-archive" id="am-archive" data-per-page-families="' . esc_attr((string) (int) $atts['families_per_page']) . '" data-per-page-entries="' . esc_attr((string) (int) $atts['entries_per_page']) . '">';
-		echo '<div class="am-archive__top">';
-		$total = 0;
+		echo '<div class="am-archive am-archive--scientific" id="am-archive" data-per-page-families="' . esc_attr((string) (int) $atts['families_per_page']) . '" data-per-page-entries="' . esc_attr((string) (int) $atts['entries_per_page']) . '">';
+	$total = 0;
 		if (defined('AM_CPT')) {
 			$cnt = wp_count_posts(AM_CPT);
 			if ($cnt && isset($cnt->publish)) {
 				$total = (int) $cnt->publish;
 			}
 		}
-		$ph = __('Cerca per nome, descrizione, contenuti…', 'archivio-micologico');
-		echo '<input type="search" class="am-archive__search" placeholder="' . esc_attr($ph) . '" />';
+	echo '<p class="am-archive__catalog-count"><strong>' . esc_html(number_format_i18n($total)) . '</strong> ' . esc_html(_n('scheda pubblicata', 'schede pubblicate', $total, 'archivio-micologico')) . '</p>';
+	$ph = __('Nome scientifico, autore o famiglia', 'archivio-micologico');
+	echo '<div class="am-archive__top">';
+	echo '<input type="search" class="am-archive__search" aria-label="' . esc_attr__('Cerca nell’archivio', 'archivio-micologico') . '" placeholder="' . esc_attr($ph) . '" />';
 		echo '<button type="button" class="am-archive__search-btn">' . esc_html(__('Cerca', 'archivio-micologico')) . '</button>';
 		echo '<div class="am-archive__status" aria-live="polite"></div>';
 		echo '</div>';
 		// Search previews must appear directly under the search field.
 		echo '<div class="am-archive__results" hidden></div>';
 		echo '<div class="am-archive__articles" role="region" aria-label="' . esc_attr__('Articoli', 'archivio-micologico') . '"></div>';
-		echo '<div class="am-archive__tree" role="tree"></div>';
+		echo '<div class="am-archive__index">';
+	echo '<section class="am-archive__classification" aria-label="' . esc_attr__('Classificazione tassonomica', 'archivio-micologico') . '">';
+	echo '<h2>' . esc_html__('Classificazione tassonomica', 'archivio-micologico') . '</h2>';
+	echo '<p class="am-archive__rank-guide">' . esc_html__('Divisione › Famiglia › Genere › Specie', 'archivio-micologico') . '</p>';
+	echo '<div class="am-archive__tree"></div></section>';
 	self::render_recent_archive_entries();
-		echo '<div class="am-archive__species-summary" role="status" aria-label="' . esc_attr__('Specie presenti nell’archivio', 'archivio-micologico') . '">';
-		echo '<span class="am-archive__species-summary-icon" aria-hidden="true">🍄</span>';
-		echo '<span class="am-archive__species-summary-label">' . esc_html__('Specie presenti nell’archivio', 'archivio-micologico') . '</span>';
-		echo '<span class="am-archive__species-summary-count">' . esc_html((string) $total) . '</span>';
-		echo '</div>';
-		echo '<div class="am-archive__sentinel" aria-hidden="true"></div>';
+	echo '</div>';
+	echo '<div class="am-archive__sentinel" aria-hidden="true"></div>';
 		echo '</div>';
 		return ob_get_clean();
 	}
