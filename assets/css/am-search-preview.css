@@ -92,8 +92,8 @@
 
 /* Ensure preview text is visible even if theme overrides link/button colors */
 .am-search-preview, .am-search-preview *{
-  color: var(--e-global-color-text, #111);
+  color: #111;
 }
 
 /* Keep preview text visible under aggressive theme button/link colors */
-.am-search-preview, .am-search-preview *{ color: var(--e-global-color-text, #111) !important; }
+.am-search-preview, .am-search-preview *{ color: #111 !important; }

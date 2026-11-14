@@ -1,4 +1,5 @@
 <?php
+use ArchivioMicologico\Frontend;
 
 // AM_NO_MEDIA_BUTTONS_CLEAN: hide "Aggiungi media" buttons for wp_editor on this page
 add_filter('wp_editor_settings', function($settings, $editor_id){
@@ -19,7 +20,7 @@ if (!$am_has_submit_error_context) {
 if ($am_token === '') {
   $am_token = wp_generate_password(12, false, false);
 }
-$am_sticky = $am_has_submit_error_context ? AM_Frontend::am_get_sticky($am_token) : [];
+$am_sticky = $am_has_submit_error_context ? Frontend::am_get_sticky($am_token) : [];
 ?>
 <form id="am-main-form" class="am-form am-wizard" method="post" action="<?php echo esc_url( admin_url('admin-post.php') ); ?>">
 
@@ -39,7 +40,10 @@ if (is_user_logged_in() && (int) get_option('am_show_submit_result_admin', 1) ==
     }
   }
 
-  if (is_array($last) && !empty($last['ok'])) {
+  if (!$am_has_submit_error_context && !isset($_GET['am_error'])
+      && ($_GET['am_submitted'] ?? '') === '1'
+      && is_array($last) && !empty($last['ok'])
+      && absint($_GET['am_post_id'] ?? 0) === absint($last['post_id'] ?? 0)) {
     $status = isset($last['status']) ? (string) $last['status'] : '';
     $title  = __('Scheda creata correttamente', 'archivio-micologico');
     $text   = ($status === 'publish')
@@ -98,7 +102,7 @@ if (is_user_logged_in() && (int) get_option('am_show_submit_result_admin', 1) ==
 ?>
 
   <input type="hidden" name="action" value="am_submit_fungo" />
-  <?php wp_nonce_field(AM_Frontend::NONCE_ACTION, AM_Frontend::NONCE_NAME); ?>
+  <?php wp_nonce_field(Frontend::NONCE_ACTION, Frontend::NONCE_NAME); ?>
     <input type="hidden" name="am_token" value="<?php echo esc_attr($am_token); ?>" />
     <input type="hidden" name="am_save_review" id="am_save_review" value="0" />
 
@@ -242,6 +246,7 @@ $am_can_add_terms = (is_user_logged_in() && (in_array('editor', $roles, true) ||
 
   <div class="am-field">
     <label for="am_content"><?php echo esc_html__('Descrizione macroscopica', 'archivio-micologico'); ?> *</label>
+    <p class="am-notice am-notice--error" data-am-description-error role="alert" hidden><?php echo esc_html__('La descrizione macroscopica deve essere lunga almeno 20 caratteri.', 'archivio-micologico'); ?></p>
     <p class="am-help"><?php echo esc_html__('Suggerimento: descrivi cappello, lamelle, gambo, carne, odore, sapore, habitat e osservazioni principali.', 'archivio-micologico'); ?></p>
     <div class="am-guided-template">
       <button type="button" class="button am-btn am-btn--secondary" id="am-insert-macro-template">

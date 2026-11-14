@@ -30,10 +30,8 @@
   }
 
   function run(){
-    // Elementor headings + common WP titles + our plugin title
+    // WordPress and plugin titles
     var selectors = [
-      '.elementor-widget-theme-post-title .elementor-heading-title',
-      '.elementor-heading-title',
       'h1.entry-title',
       'h1.post-title',
       'h1.am-entry-title',

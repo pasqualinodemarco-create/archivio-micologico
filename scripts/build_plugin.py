@@ -10,8 +10,8 @@ if not re.search(r'^ \* Version:\s*'+re.escape(version)+r'\s*$',main,re.M):
  raise SystemExit('Plugin header version mismatch')
 if f"define('AM_VERSION', '{version}');" not in main or f'Stable tag: {version}\n' not in readme:
  raise SystemExit('Runtime/readme version mismatch')
-files=[root/n for n in ['archivio-micologico.php','uninstall.php','VERSION.txt','CHANGELOG.txt','readme.txt']]
-for folder in ['assets','includes','templates']:
+files=[root/n for n in ['archivio-micologico.php','autoload.php','uninstall.php','VERSION.txt','CHANGELOG.txt','readme.txt']]
+for folder in ['assets','src','templates']:
  files.extend(p for p in (root/folder).rglob('*') if p.is_file())
 output=root/'dist';output.mkdir(exist_ok=True)
 target=output/f'archivio-micologico-{version}.zip'

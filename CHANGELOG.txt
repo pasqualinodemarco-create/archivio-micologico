@@ -1,3 +1,31 @@
+= 1.6.6 =
+- Ricerca uniforme nella pagina dedicata, nella ricerca live e nella paginazione.
+- Rimossi blocchi e variabili inutilizzati.
+
+= 1.6.5 =
+- Corretto l’errore fatale nella scheda singola con note o descrizione microscopica.
+
+= 1.6.4 =
+- Estrazione dei moduli e delle azioni di gestione in una classe dedicata.
+
+= 1.6.3 =
+- Estrazione della visualizzazione e della ricerca dell’archivio in una classe dedicata.
+
+= 1.6.2 =
+- Estrazione del carosello e condivisione dei valori predefiniti tra widget e shortcode.
+
+= 1.6.1 =
+- Rimossi integrazione, hook e selettori specifici per Elementor.
+
+= 1.6.0 =
+- Autoload PSR-4 e alias per le classi storiche.
+
+= 1.5.64 =
+- Pannello delle ultime schede pubblicate con quantità configurabile e collegamento diretto #ultime-schede.
+
+= 1.5.63 =
+- Sincronizza gli editor nei moduli guidati e mostra la conferma di inserimento solo per il salvataggio appena concluso.
+
 = 1.5.62 =
 - Consente lo stesso epiteto specifico in generi diversi, evitando duplicati nello stesso genere.
 

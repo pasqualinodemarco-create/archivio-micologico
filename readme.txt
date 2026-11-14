@@ -5,7 +5,7 @@ Tags: fungi, mycology, taxonomy, scientific archive, biodiversity, search
 Requires at least: 6.0
 Tested up to: 6.5
 Requires PHP: 8.0
-Stable tag: 1.5.62
+Stable tag: 1.6.6
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -64,6 +64,33 @@ Sì. Il plugin è sviluppato e testato con PHP 8+.
 4. Tooltip informativo con logo e crediti
 
 == Changelog ==
+
+= 1.6.6 =
+* Ricerca uniforme per contenuti, autore, forma e tassonomie. Rimossi blocchi e variabili inutilizzati.
+
+= 1.6.5 =
+* Corretto l’errore fatale nella scheda singola con note o descrizione microscopica.
+
+= 1.6.4 =
+* Estrazione dei moduli e delle azioni di gestione in una classe dedicata.
+
+= 1.6.3 =
+* Estrazione della visualizzazione e della ricerca dell’archivio in una classe dedicata.
+
+= 1.6.2 =
+* Estrazione del carosello delle schede casuali in una classe dedicata. Widget e shortcode condividono i valori predefiniti.
+
+= 1.6.1 =
+* Rimossi integrazione, hook e selettori specifici per Elementor.
+
+= 1.6.0 =
+* Migrazione delle classi al namespace ArchivioMicologico e autoload PSR-4 incluso nel plugin. I nomi storici rimangono disponibili tramite alias.
+
+= 1.5.64 =
+* Pannello delle ultime schede pubblicate con quantità configurabile e collegamento diretto #ultime-schede.
+
+= 1.5.63 =
+* Sincronizza gli editor nei moduli guidati e mostra la conferma di inserimento solo per il salvataggio appena concluso.
 
 = 1.5.62 =
 * Consente lo stesso epiteto specifico in generi diversi, evitando duplicati nello stesso genere.

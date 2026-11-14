@@ -17,7 +17,6 @@ function amDispatchArchiveUpdated1546(target){
   "use strict";
 
   function qs(sel, el){ return (el||document).querySelector(sel); }
-  function qsa(sel, el){ return Array.prototype.slice.call((el||document).querySelectorAll(sel)); }
 
   function escHtml(s){
     return String(s||"").replace(/[&<>"']/g, function(m){
@@ -420,5 +419,25 @@ var famPage = 1;
     loadFamilies();
   }
 
+  function openRecentArchiveEntries(){
+    if(window.location.hash !== "#ultime-schede") return;
+    var panel = document.getElementById("ultime-schede");
+    if(!panel) return;
+    panel.open = true;
+    panel.querySelector("summary").focus({preventScroll: true});
+    panel.scrollIntoView({block: "start"});
+  }
+
   document.addEventListener("DOMContentLoaded", initArchive);
+  document.addEventListener("DOMContentLoaded", openRecentArchiveEntries);
+  window.addEventListener("hashchange", openRecentArchiveEntries);
+  // Selecting the same fragment again does not fire hashchange.
+  document.addEventListener("click", function(event){
+    if(event.defaultPrevented || event.button !== 0 || event.ctrlKey || event.metaKey || event.shiftKey || event.altKey) return;
+    var link = event.target.closest("a[href]");
+    if(!link || link.target && link.target !== "_self") return;
+    if(window.location.hash === "#ultime-schede" && link.href === window.location.href){
+      openRecentArchiveEntries();
+    }
+  });
 })();

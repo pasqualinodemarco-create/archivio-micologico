@@ -1,14 +1,17 @@
 <?php
+
+namespace ArchivioMicologico;
+
 if (!defined('ABSPATH')) { exit; }
 
-class AM_Activator {
+class Activator {
 	public static function activate(): void {
 		// Register types before flushing rules.
-		if (class_exists('AM_Post_Types')) {
-			AM_Post_Types::register();
+		if (class_exists(PostTypes::class)) {
+			PostTypes::register();
 		}
-		if (class_exists('AM_Taxonomies')) {
-			AM_Taxonomies::register();
+		if (class_exists(Taxonomies::class)) {
+			Taxonomies::register();
 		}
 
 		self::add_roles_and_caps();

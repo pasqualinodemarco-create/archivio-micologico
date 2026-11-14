@@ -1,7 +1,12 @@
 <?php
+
+namespace ArchivioMicologico;
+
+use WP_Error;
+
 if (!defined('ABSPATH')) { exit; }
 
-class AM_Taxonomies {
+class Taxonomies {
 	public static function init(): void {
 		add_action('init', [__CLASS__, 'register']);
 		add_action('init', [__CLASS__, 'maybe_migrate_add_division_level'], 20);
