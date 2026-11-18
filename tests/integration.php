@@ -159,6 +159,8 @@ try {
             }
             AM_Frontend::handle_submit(); break;
         case 'duplicates':
+            // Behave as a real admin-ajax request: wp_send_json then ends through the (throwing) wp_die handler.
+            add_filter('wp_doing_ajax', '__return_true');
             $_POST=['nonce'=>wp_create_nonce('am_ajax'),'taxon_id'=>$terms[3],'infra_id'=>0];
             $_REQUEST=$_POST;
             ArchivioMicologico\EntryForms::ajax_find_duplicates(); break;

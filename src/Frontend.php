@@ -529,7 +529,7 @@ public static function filter_single_content(string $content): string {
 				if (trim($reviewer) !== '' && trim($review_dt) !== '') {
 					$review_html = ' <span class="am-entry-review" style="margin-left:10px; opacity:.9;">' . esc_html(sprintf(__('Revisione: %1$s (%2$s)', 'archivio-micologico'), $reviewer, $review_dt)) . '</span>';
 				}
-				$title_html .= '<div class="am-entry-wp-author" style="margin:0 0 4px 0; display:flex; align-items:center; gap:8px;">' . '<svg width="28" height="28" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" style="flex-shrink:0; opacity:0.7;">' . '<circle cx="8" cy="5" r="3" stroke="currentColor" stroke-width="1.5"/>' . '<path d="M2 14c0-3.314 2.686-5 6-5s6 1.686 6 5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>' . '</svg>' . '<span style="font-size:16px; color:#34424f;">' . esc_html($author_credit) . '</span>' . $review_html . '</div>';
+				$title_html .= '<div class="am-entry-wp-author" style="margin:0 0 4px 0; display:flex; align-items:center; gap:8px;">' . '<svg width="28" height="28" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" style="flex-shrink:0; opacity:0.7;">' . '<circle cx="8" cy="5" r="3" stroke="currentColor" stroke-width="1.5"/>' . '<path d="M2 14c0-3.314 2.686-5 6-5s6 1.686 6 5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>' . '</svg>' . '<span style="font-size:17px; color:#34424f;">' . esc_html($author_credit) . '</span>' . $review_html . '</div>';
 			}
 			$sequenced = (string) get_post_meta($post->ID, 'am_sequenced', true);
 			if ($sequenced === '1' || $sequenced === 'yes' || $sequenced === 'on') {
