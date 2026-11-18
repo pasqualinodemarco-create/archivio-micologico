@@ -220,6 +220,7 @@ var famPage = 1;
     var famLoading = false;
 
     function renderDivisions(items){
+      var largest = null;
       items.forEach(function(it){
         var wrap = document.createElement("div");
         wrap.className = "am-archive-branch am-archive-branch--division";
@@ -231,7 +232,11 @@ var famPage = 1;
         wrap.appendChild(children);
         tree.appendChild(wrap);
         node.addEventListener("click", function(){ toggleDivision(node, children); });
+        var n = parseInt(it.count, 10) || 0;
+        if(!largest || n > largest.n){ largest = { n: n, node: node, children: children }; }
       });
+      // On the first page, open the division holding most entries: families are one click away.
+      if(famPage === 1 && largest && largest.n > 0){ toggleDivision(largest.node, largest.children); }
     }
 
     function renderFamilies(items, host){
@@ -413,6 +418,12 @@ var famPage = 1;
     loadFamilies();
   }
 
+  // Desktop: the panel sits beside the index, so it starts open.
+  function openRecentOnDesktop(){
+    var panel = document.getElementById("ultime-schede");
+    if(panel && window.matchMedia && window.matchMedia("(min-width: 1100px)").matches){ panel.open = true; }
+  }
+
   function openRecentArchiveEntries(){
     if(window.location.hash !== "#ultime-schede") return;
     var panel = document.getElementById("ultime-schede");
@@ -423,6 +434,7 @@ var famPage = 1;
   }
 
   document.addEventListener("DOMContentLoaded", initArchive);
+  document.addEventListener("DOMContentLoaded", openRecentOnDesktop);
   document.addEventListener("DOMContentLoaded", openRecentArchiveEntries);
   window.addEventListener("hashchange", openRecentArchiveEntries);
   // Selecting the same fragment again does not fire hashchange.

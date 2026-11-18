@@ -403,6 +403,13 @@
   grid-template-columns: minmax(0, 1fr);
   gap: 16px;
 }
+@media (min-width: 1100px) {
+  .am-archive__index {
+    grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr);
+    align-items: start;
+  }
+}
+.am-archive__catalog-updated::before { content: " · "; }
 .am-archive__classification,
 .am-archive--scientific .am-archive__recent {
   min-width: 0;
