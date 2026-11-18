@@ -1,3 +1,7 @@
+= 1.6.11 =
+- Il log di debug conserva gli ultimi 50 eventi in tutto il plugin, come indicato nelle Impostazioni.
+- Testi più chiari per numero di schede e righe del carosello casuale.
+
 = 1.6.10 =
 - I visitatori non loggati non scrivono più nel log di debug.
 - I dati di ripristino dei moduli sono legati all'utente e non vengono più salvati per i visitatori.
