@@ -96,7 +96,8 @@ register_shutdown_function(function() use (&$checks, &$error, &$redirects, &$plu
             $checks['media_required'] = (bool) array_filter($redirects, static fn($url) => str_contains($url, 'am_error=' . $expected_error));
         }
     } elseif ($kind === 'duplicates') {
-        $json = json_decode(trim(substr($output, (int) strpos($output, '{'))), true);
+        $raw = (string) ($GLOBALS['am_test_json'] ?? '');
+        $json = json_decode(trim(substr($raw, (int) strpos($raw, '{'))), true);
         if ($can_manage) {
             $titles = array_column($json['data']['items'] ?? [], 'title');
             $checks['duplicate_found'] = ($json['success'] ?? false) && $titles === ['Original title'];
@@ -163,7 +164,12 @@ try {
             add_filter('wp_doing_ajax', '__return_true');
             $_POST=['nonce'=>wp_create_nonce('am_ajax'),'taxon_id'=>$terms[3],'infra_id'=>0];
             $_REQUEST=$_POST;
-            ArchivioMicologico\EntryForms::ajax_find_duplicates(); break;
+            // WordPress flushes every output buffer in its own shutdown hook, which runs before
+            // the one above: capture the JSON here.
+            ob_start();
+            try { ArchivioMicologico\EntryForms::ajax_find_duplicates(); } catch (Throwable $e) { /* wp_die after the JSON */ }
+            $GLOBALS['am_test_json'] = (string) ob_get_clean();
+            break;
         case 'ui':
             $_GET['am_edit']=$post_id;
             $html=AM_Frontend::render_edit_form();
