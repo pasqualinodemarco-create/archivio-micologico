@@ -5,7 +5,7 @@ Tags: fungi, mycology, taxonomy, scientific archive, biodiversity, search
 Requires at least: 6.0
 Tested up to: 7.1
 Requires PHP: 8.0
-Stable tag: 1.6.14
+Stable tag: 1.6.15
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -64,6 +64,9 @@ Sì. Il plugin è sviluppato e testato con PHP 8+.
 4. Tooltip informativo con logo e crediti
 
 == Changelog ==
+
+= 1.6.15 =
+* Nuova scheda: immagine di anteprima e galleria tornano facoltative, così si può iniziare una scheda con una sola foto (o nessuna) e completarla in seguito. Requisiti obbligatori: classificazione e descrizione macroscopica.
 
 = 1.6.14 =
 * Nuova scheda: l’immagine di anteprima e almeno un’immagine della galleria sono obbligatorie, sia nel modulo sia nel salvataggio.

@@ -1115,7 +1115,6 @@ function amShowNotice(type, message){
     var progressLabel = form.querySelector('#am-wizard-progress-label');
     var active = 0;
     var creating = config.mode === 'create';
-    var mediaError = form.querySelector('[data-am-media-error]');
     var duplicateBox = form.querySelector('[data-am-duplicate]');
     var duplicateList = duplicateBox ? duplicateBox.querySelector('[data-am-duplicate-list]') : null;
     var duplicateConfirm = duplicateBox ? duplicateBox.querySelector('[data-am-duplicate-confirm]') : null;
@@ -1197,14 +1196,8 @@ function amShowNotice(type, message){
         item.querySelector('[data-am-check-state]').textContent = ' – ' + (complete ? config.complete : (optional ? config.optional : config.missing));
       });
       progress.value = count;
-      if (mediaError && hasMedia()) mediaError.hidden = true;
       var message = config.progress.replace('%1$d', String(count)).replace('%2$d', String(progress.max));
       if (progressLabel.textContent !== message) progressLabel.textContent = message;
-    }
-
-    function hasMedia() {
-      return Number(value('am_featured_id')) > 0
-        && value('am_gallery_ids').split(',').some(function (id) { return Number(id) > 0; });
     }
 
     // Same rule as the server: the most specific rank chosen, plus form/variety.
@@ -1301,13 +1294,6 @@ function amShowNotice(type, message){
         return;
       }
       if (!creating) return;
-      if (mediaError && !hasMedia()) {
-        event.preventDefault();
-        showStep(2, true);
-        mediaError.hidden = false;
-        mediaError.scrollIntoView({block: 'nearest'});
-        return;
-      }
       if (duplicateBox && (duplicates.key !== duplicateKey() || duplicates.pending)) {
         // The check for the current species has not answered yet: wait, then decide.
         event.preventDefault();

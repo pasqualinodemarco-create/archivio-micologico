@@ -433,11 +433,6 @@ echo '</div>';
 		return (string) ob_get_clean();
 	}
 
-	private static function am_is_image($attachment_id): bool {
-		$attachment_id = absint($attachment_id);
-		return $attachment_id > 0 && get_post_type($attachment_id) === 'attachment' && wp_attachment_is_image($attachment_id);
-	}
-
 	/**
 	 * Existing schede for the same taxon (and form/variety), so the form can warn before a duplicate is sent.
 	 */
@@ -681,16 +676,6 @@ echo '</div>';
 			}
 		}
 
-
-		// A new scheda needs a preview image and at least one gallery image.
-		$missing_media = !self::am_is_image($featured_id) ? 'missing_featured'
-			: (!array_filter($gallery_ids, [self::class, 'am_is_image']) ? 'missing_gallery' : '');
-		if ($missing_media !== '') {
-			self::am_set_last_submit(['ok'=>0,'msg'=>'Errore submit: ' . $missing_media,'ts'=>time()]);
-			self::am_save_sticky($am_token, self::am_collect_sticky_post());
-			wp_safe_redirect(add_query_arg(['am_error' => $missing_media,'am_token'=>$am_token], $redirect));
-			exit;
-		}
 
 		$status = (string) get_option('am_default_status', 'pending');
 		if (!in_array($status, ['draft', 'pending', 'publish', 'private'], true)) { $status = 'pending'; }

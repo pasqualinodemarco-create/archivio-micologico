@@ -88,13 +88,9 @@ register_shutdown_function(function() use (&$checks, &$error, &$redirects, &$plu
     } elseif ($kind === 'submit') {
         $last = get_user_meta($user->ID, 'am_last_submit', true);
         $new_id = (int) ($last['post_id'] ?? 0);
-        $media = $case['media'] ?? 'full';
-        $checks['submit_permission'] = ($new_id > 0) === (!$denied && $media === 'full');
-        if (!$denied && $media === 'full') { $checks['default_status'] = get_post_status($new_id) === $case['status']; }
-        if (!$denied && $media !== 'full') {
-            $expected_error = $media === 'none' ? 'missing_featured' : 'missing_gallery';
-            $checks['media_required'] = (bool) array_filter($redirects, static fn($url) => str_contains($url, 'am_error=' . $expected_error));
-        }
+        // Images are optional: a scheda may start with one photo, or none, and be completed later.
+        $checks['submit_permission'] = ($new_id > 0) === !$denied;
+        if (!$denied) { $checks['default_status'] = get_post_status($new_id) === $case['status']; }
     } elseif ($kind === 'duplicates') {
         $raw = (string) ($GLOBALS['am_test_json'] ?? '');
         $json = json_decode(trim(substr($raw, (int) strpos($raw, '{'))), true);
