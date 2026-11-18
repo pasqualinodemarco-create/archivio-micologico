@@ -1,3 +1,7 @@
+= 1.6.10 =
+- I visitatori non loggati non scrivono più nel log di debug.
+- I dati di ripristino dei moduli sono legati all'utente e non vengono più salvati per i visitatori.
+
 = 1.6.9 =
 - Ultime schede pubblicate sotto l’albero tassonomico anche su desktop.
 
