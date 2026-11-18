@@ -94,6 +94,7 @@ class Frontend {
 
 // Controlled creation of classification terms from front-end (Editor+).
 		add_action('wp_ajax_am_add_term', [__CLASS__, 'ajax_add_term']);
+		add_action('wp_ajax_am_find_duplicates', [EntryForms::class, 'ajax_find_duplicates']);
 		add_action('init', [__CLASS__, 'handle_add_term_post']);
 
 		add_action('admin_post_am_submit_fungo', [__CLASS__, 'handle_submit']);
