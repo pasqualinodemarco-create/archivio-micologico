@@ -19,8 +19,8 @@
     <aside class="am-wizard__summary" aria-labelledby="am-wizard-summary-title">
       <h3 id="am-wizard-summary-title"><?php echo esc_html__('Stato della scheda', 'archivio-micologico'); ?></h3>
       <div data-am-progress-box hidden>
-        <div id="am-wizard-progress-label" class="am-wizard__progress-label" aria-live="polite"><?php echo esc_html(sprintf(__('Requisiti completati: %1$d/%2$d', 'archivio-micologico'), 0, $am_wizard_edit ? 2 : 4)); ?></div>
-        <progress data-am-progress value="0" max="<?php echo $am_wizard_edit ? 2 : 4; ?>" aria-labelledby="am-wizard-progress-label"></progress>
+        <div id="am-wizard-progress-label" class="am-wizard__progress-label" aria-live="polite"><?php echo esc_html(sprintf(__('Requisiti completati: %1$d/%2$d', 'archivio-micologico'), 0, 2)); ?></div>
+        <progress data-am-progress value="0" max="2" aria-labelledby="am-wizard-progress-label"></progress>
       </div>
       <?php $am_checks = [
         'classification' => ['classification', __('Classificazione', 'archivio-micologico')],
@@ -31,7 +31,7 @@
       ]; ?>
       <ul class="am-submit-checklist" id="am-submit-checklist">
         <?php foreach ($am_checks as $am_check => [$am_step, $am_label]) : ?>
-          <li data-am-check="<?php echo esc_attr($am_check); ?>"<?php if ($am_check === 'pdf' || ($am_wizard_edit && in_array($am_check, ['featured', 'gallery'], true))) { echo ' data-am-optional'; } ?>>
+          <li data-am-check="<?php echo esc_attr($am_check); ?>"<?php if (in_array($am_check, ['featured', 'gallery', 'pdf'], true)) { echo ' data-am-optional'; } ?>>
             <span class="am-submit-checklist__status" aria-hidden="true">–</span>
             <a href="#am-step-<?php echo esc_attr($am_step); ?>" data-am-go="<?php echo esc_attr($am_step); ?>"><?php echo esc_html($am_label); ?><span class="screen-reader-text" data-am-check-state></span></a>
           </li>

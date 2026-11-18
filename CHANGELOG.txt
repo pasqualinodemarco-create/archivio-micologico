@@ -1,3 +1,6 @@
+= 1.6.15 =
+- Nuova scheda: immagine di anteprima e galleria tornano facoltative, così si può iniziare una scheda con una sola foto (o nessuna) e completarla in seguito. Requisiti obbligatori: classificazione e descrizione macroscopica.
+
 = 1.6.14 =
 - Nuova scheda: l’immagine di anteprima e almeno un’immagine della galleria sono obbligatorie, sia nel modulo sia nel salvataggio.
 - Prima dell’invio il modulo avvisa se esiste già una scheda per la stessa specie (e forma o varietà), con i collegamenti: si può inviare comunque confermando.
