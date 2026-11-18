@@ -1,3 +1,8 @@
+= 1.6.12 =
+- Pagina Archivio su desktop: indice tassonomico e ultime schede affiancati, con il pannello delle ultime schede già aperto.
+- L’indice apre da subito la divisione con più schede.
+- Accanto al numero di schede compare la data dell’ultima aggiunta.
+
 = 1.6.11 =
 - Il log di debug conserva gli ultimi 50 eventi in tutto il plugin, come indicato nelle Impostazioni.
 - Testi più chiari per numero di schede e righe del carosello casuale.

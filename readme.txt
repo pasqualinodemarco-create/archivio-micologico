@@ -5,7 +5,7 @@ Tags: fungi, mycology, taxonomy, scientific archive, biodiversity, search
 Requires at least: 6.0
 Tested up to: 7.1
 Requires PHP: 8.0
-Stable tag: 1.6.11
+Stable tag: 1.6.12
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -64,6 +64,11 @@ Sì. Il plugin è sviluppato e testato con PHP 8+.
 4. Tooltip informativo con logo e crediti
 
 == Changelog ==
+
+= 1.6.12 =
+* Pagina Archivio su desktop: indice tassonomico e ultime schede affiancati, con il pannello delle ultime schede già aperto.
+* L’indice apre da subito la divisione con più schede.
+* Accanto al numero di schede compare la data dell’ultima aggiunta.
 
 = 1.6.11 =
 * Il log di debug conserva gli ultimi 50 eventi in tutto il plugin, come indicato nelle Impostazioni.

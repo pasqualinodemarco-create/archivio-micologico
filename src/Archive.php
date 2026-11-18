@@ -110,7 +110,20 @@ public static function render_archive($atts = []): string {
 				$total = (int) $cnt->publish;
 			}
 		}
-	echo '<p class="am-archive__catalog-count"><strong>' . esc_html(number_format_i18n($total)) . '</strong> ' . esc_html(_n('scheda pubblicata', 'schede pubblicate', $total, 'archivio-micologico')) . '</p>';
+	echo '<p class="am-archive__catalog-count"><strong>' . esc_html(number_format_i18n($total)) . '</strong> ' . esc_html(_n('scheda pubblicata', 'schede pubblicate', $total, 'archivio-micologico'));
+	$latest = $total > 0 ? get_posts([
+		'post_type' => AM_CPT,
+		'post_status' => 'publish',
+		'has_password' => false,
+		'numberposts' => 1,
+		'orderby' => 'date',
+		'order' => 'DESC',
+		'suppress_filters' => false,
+	]) : [];
+	if ($latest) {
+		echo '<span class="am-archive__catalog-updated">' . esc_html__('ultima aggiunta il', 'archivio-micologico') . ' <time datetime="' . esc_attr(get_the_date(DATE_W3C, $latest[0])) . '">' . esc_html(get_the_date('', $latest[0])) . '</time></span>';
+	}
+	echo '</p>';
 	$ph = __('Nome scientifico, autore o famiglia', 'archivio-micologico');
 	echo '<div class="am-archive__top">';
 	echo '<input type="search" class="am-archive__search" aria-label="' . esc_attr__('Cerca nell’archivio', 'archivio-micologico') . '" placeholder="' . esc_attr($ph) . '" />';
