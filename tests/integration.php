@@ -88,8 +88,22 @@ register_shutdown_function(function() use (&$checks, &$error, &$redirects, &$plu
     } elseif ($kind === 'submit') {
         $last = get_user_meta($user->ID, 'am_last_submit', true);
         $new_id = (int) ($last['post_id'] ?? 0);
-        $checks['submit_permission'] = ($new_id > 0) === !$denied;
-        if (!$denied) { $checks['default_status'] = get_post_status($new_id) === $case['status']; }
+        $media = $case['media'] ?? 'full';
+        $checks['submit_permission'] = ($new_id > 0) === (!$denied && $media === 'full');
+        if (!$denied && $media === 'full') { $checks['default_status'] = get_post_status($new_id) === $case['status']; }
+        if (!$denied && $media !== 'full') {
+            $expected_error = $media === 'none' ? 'missing_featured' : 'missing_gallery';
+            $checks['media_required'] = (bool) array_filter($redirects, static fn($url) => str_contains($url, 'am_error=' . $expected_error));
+        }
+    } elseif ($kind === 'duplicates') {
+        $raw = (string) ($GLOBALS['am_test_json'] ?? '');
+        $json = json_decode(trim(substr($raw, (int) strpos($raw, '{'))), true);
+        if ($can_manage) {
+            $titles = array_column($json['data']['items'] ?? [], 'title');
+            $checks['duplicate_found'] = ($json['success'] ?? false) && $titles === ['Original title'];
+        } else {
+            $checks['duplicate_denied'] = ($json['success'] ?? true) === false;
+        }
     }
     // Expected permission/nonce rejections are ordinary test outcomes; undefined callbacks are never allowed.
     $checks['no_plugin_warnings'] = count($plugin_warnings) === 0;
@@ -139,7 +153,23 @@ try {
             update_option('am_default_status',$case['status']);
             delete_user_meta($user->ID,'am_last_submit');
             $_POST=['am_nonce'=>!empty($case['bad_nonce'])?'bad':wp_create_nonce('am_submit_fungo'),'am_species'=>$terms[3],'am_content'=>'Descrizione del fungo con informazioni sufficienti per la validazione.'];
+            $media = $case['media'] ?? 'full';
+            if ($media !== 'none') {
+                $_POST['am_featured_id'] = (string) wp_insert_attachment(['post_title'=>'Anteprima','post_mime_type'=>'image/jpeg','post_status'=>'inherit'], 'test-featured.jpg');
+                $_POST['am_gallery_ids'] = $media === 'full' ? (string) wp_insert_attachment(['post_title'=>'Galleria','post_mime_type'=>'image/jpeg','post_status'=>'inherit'], 'test-gallery.jpg') : '';
+            }
             AM_Frontend::handle_submit(); break;
+        case 'duplicates':
+            // Behave as a real admin-ajax request: wp_send_json then ends through the (throwing) wp_die handler.
+            add_filter('wp_doing_ajax', '__return_true');
+            $_POST=['nonce'=>wp_create_nonce('am_ajax'),'taxon_id'=>$terms[3],'infra_id'=>0];
+            $_REQUEST=$_POST;
+            // WordPress flushes every output buffer in its own shutdown hook, which runs before
+            // the one above: capture the JSON here.
+            ob_start();
+            try { ArchivioMicologico\EntryForms::ajax_find_duplicates(); } catch (Throwable $e) { /* wp_die after the JSON */ }
+            $GLOBALS['am_test_json'] = (string) ob_get_clean();
+            break;
         case 'ui':
             $_GET['am_edit']=$post_id;
             $html=AM_Frontend::render_edit_form();

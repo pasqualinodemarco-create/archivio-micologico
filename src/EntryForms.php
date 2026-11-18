@@ -433,6 +433,56 @@ echo '</div>';
 		return (string) ob_get_clean();
 	}
 
+	private static function am_is_image($attachment_id): bool {
+		$attachment_id = absint($attachment_id);
+		return $attachment_id > 0 && get_post_type($attachment_id) === 'attachment' && wp_attachment_is_image($attachment_id);
+	}
+
+	/**
+	 * Existing schede for the same taxon (and form/variety), so the form can warn before a duplicate is sent.
+	 */
+	public static function ajax_find_duplicates(): void {
+		if (!self::am_current_user_is_admin_or_editor()) {
+			wp_send_json_error(['message' => __('Non autorizzato.', 'archivio-micologico')], 403);
+		}
+		check_ajax_referer('am_ajax', 'nonce');
+
+		$taxon_id = absint($_POST['taxon_id'] ?? 0);
+		$infra_id = absint($_POST['infra_id'] ?? 0);
+		if ($taxon_id <= 0) {
+			wp_send_json_success(['items' => []]);
+		}
+
+		$tax_query = [[
+			'taxonomy' => AM_TAX_CLASSIFICAZIONE,
+			'field' => 'term_id',
+			'terms' => [$taxon_id],
+			'include_children' => false,
+		]];
+		$tax_query[] = $infra_id > 0
+			? ['taxonomy' => AM_TAX_INFRASPEC, 'field' => 'term_id', 'terms' => [$infra_id]]
+			: ['taxonomy' => AM_TAX_INFRASPEC, 'operator' => 'NOT EXISTS'];
+
+		$posts = get_posts([
+			'post_type' => AM_CPT,
+			'post_status' => ['publish', 'pending', 'draft', 'private', 'future'],
+			'numberposts' => 5,
+			'tax_query' => array_merge(['relation' => 'AND'], $tax_query),
+			'orderby' => 'date',
+			'order' => 'DESC',
+		]);
+
+		$statuses = get_post_statuses();
+		wp_send_json_success(['items' => array_map(static function ($p) use ($statuses) {
+			return [
+				'title' => html_entity_decode(wp_strip_all_tags(get_the_title($p)), ENT_QUOTES, 'UTF-8'),
+				'url' => $p->post_status === 'publish' ? get_permalink($p) : get_edit_post_link($p, 'raw'),
+				'status' => $p->post_status === 'publish' ? '' : ($statuses[$p->post_status] ?? $p->post_status),
+				'date' => get_the_date('', $p),
+			];
+		}, $posts)]);
+	}
+
 	public static function ajax_get_terms(): void {
 		check_ajax_referer('am_ajax', 'nonce');
 
@@ -631,6 +681,16 @@ echo '</div>';
 			}
 		}
 
+
+		// A new scheda needs a preview image and at least one gallery image.
+		$missing_media = !self::am_is_image($featured_id) ? 'missing_featured'
+			: (!array_filter($gallery_ids, [self::class, 'am_is_image']) ? 'missing_gallery' : '');
+		if ($missing_media !== '') {
+			self::am_set_last_submit(['ok'=>0,'msg'=>'Errore submit: ' . $missing_media,'ts'=>time()]);
+			self::am_save_sticky($am_token, self::am_collect_sticky_post());
+			wp_safe_redirect(add_query_arg(['am_error' => $missing_media,'am_token'=>$am_token], $redirect));
+			exit;
+		}
 
 		$status = (string) get_option('am_default_status', 'pending');
 		if (!in_array($status, ['draft', 'pending', 'publish', 'private'], true)) { $status = 'pending'; }

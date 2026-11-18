@@ -15,6 +15,8 @@ for kind in ['review','update']:
  cases.append(dict(kind=kind,role='editor',revoke_object=True))
 for status in ['draft','pending','publish','private']:
  cases.append(dict(kind='submit',role='editor',status=status))
+cases += [dict(kind='submit',role='editor',status='publish',media='none'),dict(kind='submit',role='editor',status='publish',media='featured_only')]
+cases += [dict(kind='duplicates',role='editor'),dict(kind='duplicates',role='author')]
 cases += [dict(kind='update',role='editor',clear_media=True),dict(kind='update',role='editor',extra_author=True),dict(kind='delete',role='editor',wrong_type=True),dict(kind='delete',role='editor',method='GET'),dict(kind='fallback',role='editor')]
 cases += [dict(kind='delete',role='editor',trash_disabled=True)]
 for role in ['editor','author']:

@@ -1547,3 +1547,18 @@
 .am-random-funghi-carousel__controls[hidden] {
 	display: none;
 }
+
+/* 1.6.14 - Avviso scheda già esistente nel controllo finale */
+.am-duplicate-warning {
+  margin: 16px 0 0;
+  padding: 12px 16px;
+  border: 1px solid #b7791f;
+  border-left-width: 4px;
+  border-radius: 8px;
+  background: #fff8e6;
+  color: #3d2f12;
+}
+.am-duplicate-warning p { margin: 0 0 6px; }
+.am-duplicate-warning ul { margin: 0 0 10px 1.2em; padding: 0; }
+.am-duplicate-warning a { color: #6b4a00; text-decoration: underline; }
+.am-duplicate-warning__confirm { display: flex; gap: 8px; align-items: center; font-weight: 600; }

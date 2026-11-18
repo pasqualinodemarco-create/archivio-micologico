@@ -6,6 +6,13 @@
         <span class="am-generated-title-card__label"><?php echo esc_html__('Titolo scheda generato', 'archivio-micologico'); ?></span>
         <strong class="am-generated-title-card__value" data-am-title></strong>
       </div>
+      <?php if (!$am_wizard_edit) : ?>
+      <div class="am-notice am-notice--warning am-duplicate-warning" data-am-duplicate role="alert" hidden>
+        <p><strong><?php echo esc_html__('Esiste già una scheda per questa specie.', 'archivio-micologico'); ?></strong> <?php echo esc_html__('Controlla prima di inviarne un’altra:', 'archivio-micologico'); ?></p>
+        <ul data-am-duplicate-list></ul>
+        <label class="am-duplicate-warning__confirm"><input type="checkbox" data-am-duplicate-confirm /> <?php echo esc_html__('Ho controllato: crea comunque una nuova scheda', 'archivio-micologico'); ?></label>
+      </div>
+      <?php endif; ?>
     </div>
     </div><!-- /.am-wizard__panels -->
 
@@ -46,6 +53,8 @@
       'complete' => __('completo', 'archivio-micologico'),
       'missing' => __('da completare', 'archivio-micologico'),
       'optional' => __('facoltativo', 'archivio-micologico'),
+      'mode' => $am_wizard_edit ? 'edit' : 'create',
+      'notPublished' => __('non pubblicata', 'archivio-micologico'),
       'next' => [
         __('Continua alle descrizioni', 'archivio-micologico'),
         __('Continua ai media', 'archivio-micologico'),

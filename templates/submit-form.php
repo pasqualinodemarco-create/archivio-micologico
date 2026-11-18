@@ -334,6 +334,7 @@ $am_can_add_terms = (is_user_logged_in() && (in_array('editor', $roles, true) ||
   <div class="am-section am-section--media" id="am-step-media" data-am-step="media">
     <h3 class="am-section__title" tabindex="-1"><?php echo esc_html__('Media e allegati', 'archivio-micologico'); ?></h3>
     <p class="am-section__intro"><?php echo esc_html__('Seleziona l’immagine di anteprima, la galleria e, se disponibile, un PDF collegato alla scheda.', 'archivio-micologico'); ?></p>
+    <p class="am-notice am-notice--error" data-am-media-error role="alert" hidden><?php echo esc_html__('Per inviare la scheda servono l’immagine di anteprima e almeno un’immagine nella galleria.', 'archivio-micologico'); ?></p>
 
     <div class="am-field">
       <label><?php echo esc_html__('Immagine anteprima', 'archivio-micologico'); ?></label>

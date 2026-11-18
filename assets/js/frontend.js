@@ -344,7 +344,7 @@ function amShowNotice(type, message){
 		var pdfFrame = null;
 
 		function renderFeatured(id, url) {
-			$('#am_featured_id').val(String(id || ''));
+			$('#am_featured_id').val(String(id || '')).trigger('change');
 			var $p = $('#am_featured_preview');
 			if (!$p.length) return;
 			if (!id || !url) { $p.empty(); return; }
@@ -352,7 +352,7 @@ function amShowNotice(type, message){
 		}
 
 		function renderGallery(ids, urls) {
-			$('#am_gallery_ids').val((ids || []).join(','));
+			$('#am_gallery_ids').val((ids || []).join(',')).trigger('change');
 			var $p = $('#am_gallery_preview');
 			if (!$p.length) return;
 			$p.empty();
@@ -1114,6 +1114,12 @@ function amShowNotice(type, message){
     var progress = form.querySelector('[data-am-progress]');
     var progressLabel = form.querySelector('#am-wizard-progress-label');
     var active = 0;
+    var creating = config.mode === 'create';
+    var mediaError = form.querySelector('[data-am-media-error]');
+    var duplicateBox = form.querySelector('[data-am-duplicate]');
+    var duplicateList = duplicateBox ? duplicateBox.querySelector('[data-am-duplicate-list]') : null;
+    var duplicateConfirm = duplicateBox ? duplicateBox.querySelector('[data-am-duplicate-confirm]') : null;
+    var duplicates = {key: '', items: [], pending: null};
 
     function field(id) {
       return form.querySelector('#' + id);
@@ -1191,8 +1197,63 @@ function amShowNotice(type, message){
         item.querySelector('[data-am-check-state]').textContent = ' – ' + (complete ? config.complete : (optional ? config.optional : config.missing));
       });
       progress.value = count;
+      if (mediaError && hasMedia()) mediaError.hidden = true;
       var message = config.progress.replace('%1$d', String(count)).replace('%2$d', String(progress.max));
       if (progressLabel.textContent !== message) progressLabel.textContent = message;
+    }
+
+    function hasMedia() {
+      return Number(value('am_featured_id')) > 0
+        && value('am_gallery_ids').split(',').some(function (id) { return Number(id) > 0; });
+    }
+
+    // Same rule as the server: the most specific rank chosen, plus form/variety.
+    function duplicateKey() {
+      var taxon = value('am_species') || value('am_genus') || value('am_family');
+      return taxon ? taxon + ':' + (value('am_infra') || '0') : '';
+    }
+
+    function renderDuplicates() {
+      if (!duplicateBox) return;
+      duplicateList.replaceChildren();
+      duplicates.items.forEach(function (item) {
+        var li = document.createElement('li');
+        var link = document.createElement('a');
+        link.href = item.url;
+        link.target = '_blank';
+        link.rel = 'noopener';
+        link.textContent = item.title;
+        li.append(link, ' – ' + item.date + (item.status ? ' (' + item.status + ')' : ''));
+        duplicateList.appendChild(li);
+      });
+      duplicateBox.hidden = duplicates.items.length === 0;
+    }
+
+    function checkDuplicates() {
+      var key = duplicateKey();
+      if (!creating || !duplicateBox) return Promise.resolve();
+      if (key === duplicates.key) return duplicates.pending || Promise.resolve();
+      duplicates.key = key;
+      duplicates.items = [];
+      duplicateConfirm.checked = false;
+      renderDuplicates();
+      if (!key) return Promise.resolve();
+      var body = new URLSearchParams({
+        action: 'am_find_duplicates',
+        nonce: window.AMFront ? AMFront.nonce : '',
+        taxon_id: key.split(':')[0],
+        infra_id: key.split(':')[1]
+      });
+      duplicates.pending = fetch(window.AMFront ? AMFront.ajaxUrl : '/wp-admin/admin-ajax.php', {method: 'POST', credentials: 'same-origin', body: body})
+        .then(function (response) { return response.json(); })
+        .then(function (data) {
+          if (duplicates.key !== key) return;
+          duplicates.items = data && data.success && data.data && Array.isArray(data.data.items) ? data.data.items : [];
+          renderDuplicates();
+        })
+        .catch(function () {})
+        .then(function () { if (duplicates.key === key) duplicates.pending = null; });
+      return duplicates.pending;
     }
 
     function showStep(index, moveFocus) {
@@ -1209,6 +1270,7 @@ function amShowNotice(type, message){
       next.textContent = config.next[index] || '';
       submit.hidden = !last;
       if (reviewButton) reviewButton.hidden = !last;
+      if (last) checkDuplicates();
       updateSummary();
       if (moveFocus) panels[index].querySelector('h3').focus();
     }
@@ -1236,7 +1298,33 @@ function amShowNotice(type, message){
         var message = form.querySelector('[data-am-description-error]');
         message.hidden = false;
         message.scrollIntoView({block: 'nearest'});
+        return;
       }
+      if (!creating) return;
+      if (mediaError && !hasMedia()) {
+        event.preventDefault();
+        showStep(2, true);
+        mediaError.hidden = false;
+        mediaError.scrollIntoView({block: 'nearest'});
+        return;
+      }
+      if (duplicateBox && (duplicates.key !== duplicateKey() || duplicates.pending)) {
+        // The check for the current species has not answered yet: wait, then decide.
+        event.preventDefault();
+        checkDuplicates().then(function () {
+          if (!duplicates.items.length) form.requestSubmit(submit);
+          else duplicateBox.scrollIntoView({block: 'nearest'});
+        });
+        return;
+      }
+      if (duplicates.items.length && !duplicateConfirm.checked) {
+        event.preventDefault();
+        duplicateBox.scrollIntoView({block: 'nearest'});
+        duplicateConfirm.focus();
+      }
+    });
+    jQuery(form).on('change', '#am_family, #am_genus, #am_species, #am_infra', function () {
+      if (active === panels.length - 1) window.requestAnimationFrame(checkDuplicates);
     });
 
     var descriptionError = form.querySelector('[data-am-description-error]');

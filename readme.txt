@@ -5,7 +5,7 @@ Tags: fungi, mycology, taxonomy, scientific archive, biodiversity, search
 Requires at least: 6.0
 Tested up to: 7.1
 Requires PHP: 8.0
-Stable tag: 1.6.13
+Stable tag: 1.6.14
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -64,6 +64,12 @@ Sì. Il plugin è sviluppato e testato con PHP 8+.
 4. Tooltip informativo con logo e crediti
 
 == Changelog ==
+
+= 1.6.14 =
+* Nuova scheda: l’immagine di anteprima e almeno un’immagine della galleria sono obbligatorie, sia nel modulo sia nel salvataggio.
+* Prima dell’invio il modulo avvisa se esiste già una scheda per la stessa specie (e forma o varietà), con i collegamenti: si può inviare comunque confermando.
+* Il riepilogo dei requisiti si aggiorna subito dopo la scelta delle immagini.
+* Scheda fungo: «Testo di …» passa a 17 px, come la didascalia delle foto.
 
 = 1.6.13 =
 * Indice tassonomico a colori: verde per la divisione, ocra per la famiglia, ruggine per il genere e ametista per le schede, ripresi nella legenda sotto il titolo.
