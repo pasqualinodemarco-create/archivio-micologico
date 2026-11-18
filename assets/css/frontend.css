@@ -259,7 +259,6 @@
 .am-entry-featured{margin:0 0 16px 0;}
 .am-entry-caption{
   font-size:0.9em;
-  opacity:0.8;
   margin-top:6px;
 }
 .am-entry-gallery__figure{
@@ -452,7 +451,7 @@
 .am-entry-gallery{display:block !important; grid-template-columns:none !important;}
 .am-entry-gallery__item a{pointer-events:none !important;}
 .am-entry-gallery__figure{margin:0 0 15px !important; text-align:right !important;}
-.am-entry-caption{margin:5px 0 0 !important; text-align:right !important; font-size:16px !important;}
+.am-entry-caption{margin:5px 0 0 !important; text-align:right !important; font-size:17px !important;}
 
 
 /* v1.2.68 - Riduzione spazio tra immagini galleria */
@@ -480,7 +479,7 @@
 /* v1.2.68 - Riduci distanza immagini + didascalie a destra */
 .am-entry-gallery{display:flex !important;flex-direction:column !important;gap:8px !important;align-items:flex-end !important;}
 .am-entry-gallery figure.am-entry-gallery__figure{margin:0 !important;display:flex !important;flex-direction:column !important;align-items:flex-end !important;text-align:right !important;}
-.am-entry-gallery .am-entry-caption{margin:5px 0 0 !important;padding:0 !important;font-size:16px !important;text-align:left !important;line-height:1.4 !important;}
+.am-entry-gallery .am-entry-caption{margin:5px 0 0 !important;padding:0 !important;font-size:17px !important;text-align:left !important;line-height:1.4 !important;}
 .am-entry-gallery .am-entry-caption p{margin:0 !important;padding:0 !important;}
 
 
@@ -508,7 +507,7 @@
 .am-entry-gallery .am-entry-caption{
   margin:2px 0 0 0 !important;
   padding:0 !important;
-  font-size:16px !important;
+  font-size:17px !important;
   line-height:1.4 !important;
   text-align:left !important;
 }
@@ -554,7 +553,7 @@
   text-align:left !important;
   margin:4px 0 0 0 !important;
   padding:0 !important;
-  font-size:16px !important;
+  font-size:17px !important;
   line-height:1.4 !important;
 }
 
@@ -615,9 +614,9 @@
   margin: 6px 0 0 0 !important;
   padding: 0 !important;
   text-align: left !important;
-  font-size: 16px !important;
+  font-size: 17px !important;
   line-height: 1.4 !important;
-  color: rgba(0,0,0,.62) !important;
+  color: #3d4852 !important;
 }
 .am-entry-caption p {
   margin: 0 !important;
@@ -666,9 +665,9 @@
   text-align: left !important;
   margin: 6px 0 0 !important;
   padding: 0 !important;
-  font-size: 16px !important;
+  font-size: 17px !important;
   line-height: 1.4 !important;
-  color: rgba(0,0,0,.65) !important;
+  color: #3d4852 !important;
 }
 .am-gallery--journal .am-entry-caption p {
   margin: 0 !important;

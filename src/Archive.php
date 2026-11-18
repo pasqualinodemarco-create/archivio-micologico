@@ -136,7 +136,17 @@ public static function render_archive($atts = []): string {
 		echo '<div class="am-archive__index">';
 	echo '<section class="am-archive__classification" aria-label="' . esc_attr__('Classificazione tassonomica', 'archivio-micologico') . '">';
 	echo '<h2>' . esc_html__('Classificazione tassonomica', 'archivio-micologico') . '</h2>';
-	echo '<p class="am-archive__rank-guide">' . esc_html__('Divisione › Famiglia › Genere › Specie', 'archivio-micologico') . '</p>';
+	$ranks = [
+		'division' => __('Divisione', 'archivio-micologico'),
+		'family'   => __('Famiglia', 'archivio-micologico'),
+		'genus'    => __('Genere', 'archivio-micologico'),
+		'species'  => __('Specie', 'archivio-micologico'),
+	];
+	$legend = [];
+	foreach ($ranks as $rank => $label) {
+		$legend[] = '<span class="am-archive__rank am-archive__rank--' . esc_attr($rank) . '">' . esc_html($label) . '</span>';
+	}
+	echo '<p class="am-archive__rank-guide">' . implode(' › ', $legend) . '</p>';
 	echo '<div class="am-archive__tree"></div></section>';
 	self::render_recent_archive_entries();
 	echo '</div>';

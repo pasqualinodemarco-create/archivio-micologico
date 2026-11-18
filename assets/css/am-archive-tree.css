@@ -452,3 +452,53 @@
   padding: 8px 0;
 }
 .am-archive--scientific .am-archive__classification[hidden] { display: none; }
+
+/* 1.6.13 - Un colore per rango tassonomico: barra laterale, contatore, linea dei figli e legenda. */
+.am-archive--scientific {
+  --am-rank-division: #2e6b46; /* verde bosco */
+  --am-rank-family: #8a5d0c;   /* ocra */
+  --am-rank-genus: #a5462f;    /* ruggine */
+  --am-rank-species: #6b4a8a;  /* ametista */
+}
+.am-archive--scientific .am-archive__tree .am-archive-node--division { --am-rank: var(--am-rank-division); }
+.am-archive--scientific .am-archive__tree .am-archive-node--family { --am-rank: var(--am-rank-family); }
+.am-archive--scientific .am-archive__tree .am-archive-node--genus { --am-rank: var(--am-rank-genus); }
+.am-archive--scientific .am-archive__tree .am-archive-node {
+  border-left: 4px solid var(--am-rank);
+  padding-left: 10px;
+  background: transparent;
+}
+.am-archive--scientific .am-archive__tree .am-archive-node[aria-expanded="true"] {
+  background: color-mix(in srgb, var(--am-rank) 9%, transparent);
+}
+.am-archive--scientific .am-archive__tree .am-archive-node__chev { color: var(--am-rank); }
+.am-archive--scientific .am-archive__tree .am-archive-node .am-archive-node__count {
+  color: var(--am-rank) !important;
+  background: color-mix(in srgb, var(--am-rank) 12%, #fff);
+  border-color: color-mix(in srgb, var(--am-rank) 30%, #fff);
+}
+.am-archive--scientific .am-archive__tree .am-archive-branch--division > .am-archive-children { border-left: 2px solid color-mix(in srgb, var(--am-rank-division) 40%, transparent); }
+.am-archive--scientific .am-archive__tree .am-archive-branch--family > .am-archive-children { border-left: 2px solid color-mix(in srgb, var(--am-rank-family) 40%, transparent); }
+.am-archive--scientific .am-archive__tree .am-archive-branch--genus > .am-archive-children { border-left: 2px solid color-mix(in srgb, var(--am-rank-genus) 40%, transparent); }
+.am-archive--scientific .am-archive__tree .am-archive-entry {
+  border: 1px solid color-mix(in srgb, var(--am-rank-species) 22%, #fff);
+  border-left: 4px solid var(--am-rank-species);
+  background: color-mix(in srgb, var(--am-rank-species) 6%, #fff);
+}
+.am-archive--scientific .am-archive__tree .am-archive-entry:hover {
+  background: color-mix(in srgb, var(--am-rank-species) 11%, #fff);
+}
+.am-archive__rank { font-weight: 600; }
+.am-archive__rank::before {
+  content: "";
+  display: inline-block;
+  inline-size: 0.6em;
+  block-size: 0.6em;
+  margin-inline-end: 0.3em;
+  border-radius: 2px;
+  background: currentColor;
+}
+.am-archive__rank--division { color: var(--am-rank-division); }
+.am-archive__rank--family { color: var(--am-rank-family); }
+.am-archive__rank--genus { color: var(--am-rank-genus); }
+.am-archive__rank--species { color: var(--am-rank-species); }
