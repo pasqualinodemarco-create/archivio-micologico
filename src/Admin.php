@@ -23,7 +23,7 @@ class Admin {
 			'data' => $data,
 		];
 		array_unshift($log, $entry);
-		$log = array_slice($log, 0, 80);
+		$log = array_slice($log, 0, 50);
 		update_option('am_debug_log', $log, false);
 	}
 
@@ -896,7 +896,7 @@ add_settings_section('am_main', __('Generali', 'archivio-micologico'), function 
 		add_settings_field('am_random_widget_count', __('Numero schede da mostrare', 'archivio-micologico'), function () {
 			$val = (int) get_option('am_random_widget_count', 5);
 			echo '<input type="number" min="1" max="12" name="am_random_widget_count" value="' . esc_attr((string) $val) . '" />';
-			echo '<p class="description">' . esc_html__('Quante schede fungo casuali mostrare nel carosello. Consigliato: 5.', 'archivio-micologico') . '</p>';
+			echo '<p class="description">' . esc_html__('Quante schede fungo casuali caricare nel carosello, da 1 a 12. Per avere sempre la griglia piena, usa un multiplo del numero di righe.', 'archivio-micologico') . '</p>';
 		}, 'am_settings', 'am_widget_random');
 
 		add_settings_field('am_random_widget_visible', __('Immagini visibili contemporaneamente', 'archivio-micologico'), function () {
@@ -908,7 +908,7 @@ add_settings_section('am_main', __('Generali', 'archivio-micologico'), function 
 		add_settings_field('am_random_widget_rows', __('Numero di righe', 'archivio-micologico'), function () {
 			$rows = max(1, min(4, (int) get_option('am_random_widget_rows', 1)));
 			echo '<input type="number" min="1" max="4" id="am_random_widget_rows" name="am_random_widget_rows" value="' . esc_attr($rows) . '" />';
-			echo '<p class="description">' . esc_html__('Scegli da una a quattro righe. Con 5 schede e 3 righe, la seconda colonna avrà due schede. Per riempire 3 righe da 3, imposta almeno 9 schede.', 'archivio-micologico') . '</p>';
+			echo '<p class="description">' . esc_html__('Da una a quattro righe. Le schede riempiono le colonne dall’alto in basso: con 9 schede, 3 per riga e 2 righe vedi 6 schede alla volta e le altre scorrono.', 'archivio-micologico') . '</p>';
 		}, 'am_settings', 'am_widget_random', ['label_for' => 'am_random_widget_rows']);
 
 		add_settings_field('am_random_widget_autoplay', __('Movimento automatico', 'archivio-micologico'), function () {

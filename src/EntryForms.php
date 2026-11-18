@@ -85,7 +85,7 @@ class EntryForms {
 			'data' => $data,
 		];
 		array_unshift($log, $entry);
-		$log = array_slice($log, 0, 80);
+		$log = array_slice($log, 0, 50);
 		update_option('am_debug_log', $log, false);
 	}
 
