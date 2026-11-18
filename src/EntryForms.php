@@ -12,23 +12,34 @@ class EntryForms {
 	private const STICKY_TTL = 900; // 15 minutes
 	private const STICKY_PREFIX = 'am_sticky_';
 
-	public static function am_get_sticky(string $token): array {
+	/**
+	 * Transient key bound to the current user: guests get no sticky data, and a token
+	 * planted by one user cannot prefill another user's form.
+	 */
+	private static function am_sticky_key(string $token): string {
 		$token = preg_replace('/[^a-zA-Z0-9_-]/', '', $token);
-		if ($token === '') return [];
-		$val = get_transient(self::STICKY_PREFIX . $token);
+		$user_id = get_current_user_id();
+		if ($token === '' || $user_id <= 0) return '';
+		return self::STICKY_PREFIX . $user_id . '_' . $token;
+	}
+
+	public static function am_get_sticky(string $token): array {
+		$key = self::am_sticky_key($token);
+		if ($key === '') return [];
+		$val = get_transient($key);
 		return is_array($val) ? $val : [];
 	}
 
 	private static function am_save_sticky(string $token, array $data): void {
-		$token = preg_replace('/[^a-zA-Z0-9_-]/', '', $token);
-		if ($token === '') return;
-		set_transient(self::STICKY_PREFIX . $token, $data, self::STICKY_TTL);
+		$key = self::am_sticky_key($token);
+		if ($key === '') return;
+		set_transient($key, $data, self::STICKY_TTL);
 	}
 
 	private static function am_clear_sticky(string $token): void {
-		$token = preg_replace('/[^a-zA-Z0-9_-]/', '', $token);
-		if ($token === '') return;
-		delete_transient(self::STICKY_PREFIX . $token);
+		$key = self::am_sticky_key($token);
+		if ($key === '') return;
+		delete_transient($key);
 	}
 
 	private static function am_collect_sticky_post(): array {
@@ -62,6 +73,8 @@ class EntryForms {
 	}
 
 	private static function am_debug_log_append(string $tag, array $data = []): void {
+		// Guests must never write to the database.
+		if (!is_user_logged_in()) { return; }
 		$log = get_option('am_debug_log', []);
 		if (!is_array($log)) { $log = []; }
 		$user = wp_get_current_user();
@@ -74,6 +87,10 @@ class EntryForms {
 		array_unshift($log, $entry);
 		$log = array_slice($log, 0, 80);
 		update_option('am_debug_log', $log, false);
+	}
+
+	private static function am_request_uri(): string {
+		return isset($_SERVER['REQUEST_URI']) ? esc_url_raw(wp_unslash((string) $_SERVER['REQUEST_URI'])) : '';
 	}
 
 	public static function am_current_user_is_admin_or_editor(): bool {
@@ -773,41 +790,30 @@ echo '</div>';
 	}
 
 	public static function handle_update(): void {
-
-
-
 		$redirect = wp_get_referer() ?: home_url('/');
 
 		$am_token = isset($_POST['am_token']) ? sanitize_text_field((string) $_POST['am_token']) : '';
 		if ($am_token === '') { $am_token = wp_generate_password(12, false, false); }
-
-
 
 		self::am_debug_reason('UPDATE_START', [
 			'post_id' => isset($_POST['am_post_id']) ? absint($_POST['am_post_id']) : 0,
 			'has_nonce' => isset($_POST[self::NONCE_NAME]) ? 1 : 0,
 			'am_action' => isset($_POST['am_action']) ? sanitize_text_field(wp_unslash($_POST['am_action'])) : '',
 		]);
-$nonce = $_POST[self::NONCE_NAME] ?? '';
+
+		$nonce = isset($_POST[self::NONCE_NAME]) ? sanitize_text_field(wp_unslash($_POST[self::NONCE_NAME])) : '';
 		if (!$nonce || !wp_verify_nonce($nonce, self::NONCE_ACTION_UPDATE)) {
 			self::set_submit_result(false, 'nonce', __('Errore di sicurezza (nonce).', 'archivio-micologico'));
 			wp_safe_redirect(add_query_arg(['am_error' => 'nonce'], $redirect));
 			exit;
 		}
-if (empty($_POST['am_action']) || $_POST['am_action'] !== 'update') { return; }
-if (!is_user_logged_in() || !self::am_roles_allowed('edit')) {
+		if (empty($_POST['am_action']) || $_POST['am_action'] !== 'update') { return; }
+		if (!is_user_logged_in() || !self::am_roles_allowed('edit')) {
 			self::set_submit_result(false, 'not_allowed', __('Non autorizzato a modificare schede.', 'archivio-micologico'));
 			self::am_save_sticky($am_token, self::am_collect_sticky_post());
-			wp_safe_redirect(add_query_arg(['am_error'=>'not_allowed','am_token'=>$am_token], wp_get_referer() ?: home_url('/')));
+			wp_safe_redirect(add_query_arg(['am_error' => 'not_allowed', 'am_token' => $am_token], $redirect));
 			exit;
 		}
-
-$redirect = wp_get_referer() ?: home_url('/');
-
-		$am_token = isset($_POST['am_token']) ? sanitize_text_field((string) $_POST['am_token']) : '';
-		if ($am_token === '') { $am_token = wp_generate_password(12, false, false); }
-
-
 
 		$post_id = isset($_POST['am_post_id']) ? absint($_POST['am_post_id']) : 0;
 		if (!$post_id) {
@@ -1037,18 +1043,7 @@ $updated = wp_update_post([
 		}
 
 	private static function am_debug_reason(string $tag, array $data = []): void {
-		$log = get_option('am_debug_log', []);
-		if (!is_array($log)) { $log = []; }
-		$user = wp_get_current_user();
-		$entry = [
-			'time' => time(),
-			'tag'  => $tag,
-			'user' => ($user && $user->exists()) ? ($user->user_login . ' (' . $user->ID . ')') : 'guest',
-			'data' => $data,
-		];
-		array_unshift($log, $entry);
-		$log = array_slice($log, 0, 80);
-		update_option('am_debug_log', $log, false);
+		self::am_debug_log_append($tag, $data);
 	}
 
 	public static function handle_add_term_post(): void {
@@ -1148,25 +1143,12 @@ $updated = wp_update_post([
 
 		// AM_FALLBACK_FRONT_UPDATE: handle edit-form self-post (some hosts block admin-post or require re-login).
 		if ( isset($_POST['am_route']) && $_POST['am_route'] === 'front_update' ) {
-			// Log hit
-			$log = get_option('am_debug_log', []);
-			if (!is_array($log)) { $log = []; }
-			$user = wp_get_current_user();
-			$entry = [
-				'time' => time(),
-				'tag'  => 'FRONT_UPDATE_HIT',
-				'user' => ($user && $user->exists()) ? ($user->user_login . ' (' . $user->ID . ')') : 'guest',
-				'data' => [
-					'via' => 'self_post',
-					'method' => $_SERVER['REQUEST_METHOD'] ?? '',
-					'post_id' => isset($_POST['am_post_id']) ? absint($_POST['am_post_id']) : 0,
-					'uri' => $_SERVER['REQUEST_URI'] ?? '',
-					'has_nonce' => isset($_POST[self::NONCE_NAME]) ? 1 : 0,
-				],
-			];
-			array_unshift($log, $entry);
-			$log = array_slice($log, 0, 80);
-			update_option('am_debug_log', $log, false);
+			self::am_debug_log_append('FRONT_UPDATE_HIT', [
+				'via' => 'self_post',
+				'post_id' => isset($_POST['am_post_id']) ? absint($_POST['am_post_id']) : 0,
+				'uri' => self::am_request_uri(),
+				'has_nonce' => isset($_POST[self::NONCE_NAME]) ? 1 : 0,
+			]);
 
 			// Ensure flags for update handler
 			$_POST['am_front_update'] = $_POST['am_front_update'] ?? '1';
@@ -1179,10 +1161,10 @@ if ( isset($_POST['action']) && $_POST['action'] === 'am_front_update' ) { retur
 		if ( !empty($_SERVER['REQUEST_URI']) && strpos($_SERVER['REQUEST_URI'], 'admin-post.php') !== false ) { return; }
 // AM_DIAG: log action seen on front posts
 		if (!empty($_POST)) {
-			$act = isset($_POST['action']) ? (string) $_POST['action'] : '';
-			if (!empty($act) && in_array($act, ['am_front_update','am_update_fungo'], true)) {
-			self::am_debug_log_append('FRONT_POST_ACTION_SEEN', ['action' => $act, 'uri' => $_SERVER['REQUEST_URI'] ?? '']);
-		}
+			$act = isset($_POST['action']) ? sanitize_key((string) wp_unslash($_POST['action'])) : '';
+			if (in_array($act, ['am_front_update', 'am_update_fungo'], true)) {
+				self::am_debug_log_append('FRONT_POST_ACTION_SEEN', ['action' => $act, 'uri' => self::am_request_uri()]);
+			}
 		}
 if (($_SERVER['REQUEST_METHOD'] ?? '') !== 'POST') { return; }
 
@@ -1262,30 +1244,18 @@ if (($_SERVER['REQUEST_METHOD'] ?? '') !== 'POST') { return; }
 	public static function handle_admin_post_update(): void {
 		$redirect = wp_get_referer() ?: home_url('/');
 
-		// Log hit (robust, same store used by settings page)
-		$log = get_option('am_debug_log', []);
-		if (!is_array($log)) { $log = []; }
-		$user = wp_get_current_user();
-		$entry = [
-			'time' => time(),
-			'tag'  => 'FRONT_UPDATE_HIT',
-			'user' => ($user && $user->exists()) ? ($user->user_login . ' (' . $user->ID . ')') : 'guest',
-			'data' => [
-				'method' => $_SERVER['REQUEST_METHOD'] ?? '',
-				'post_id' => isset($_POST['am_post_id']) ? absint($_POST['am_post_id']) : 0,
-				'action' => isset($_POST['action']) ? sanitize_text_field(wp_unslash($_POST['action'])) : '',
-				'uri' => $_SERVER['REQUEST_URI'] ?? '',
-				'has_nonce' => isset($_POST[self::NONCE_NAME]) ? 1 : 0,
-			],
-		];
-		array_unshift($log, $entry);
-		$log = array_slice($log, 0, 80);
-		update_option('am_debug_log', $log, false);
-
 		if (!is_user_logged_in()) {
 			wp_safe_redirect( wp_login_url( $redirect ) );
 			exit;
 		}
+
+		// Log hit.
+		self::am_debug_log_append('FRONT_UPDATE_HIT', [
+			'post_id' => isset($_POST['am_post_id']) ? absint($_POST['am_post_id']) : 0,
+			'action' => isset($_POST['action']) ? sanitize_text_field(wp_unslash($_POST['action'])) : '',
+			'uri' => self::am_request_uri(),
+			'has_nonce' => isset($_POST[self::NONCE_NAME]) ? 1 : 0,
+		]);
 
 		// Delegate to the existing update handler which validates nonce, required fields, and saves.
 		self::handle_update();

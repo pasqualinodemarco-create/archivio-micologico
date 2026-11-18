@@ -3,9 +3,9 @@ Contributors: micologiabf
 Donate link: https://www.micologiabf.org/
 Tags: fungi, mycology, taxonomy, scientific archive, biodiversity, search
 Requires at least: 6.0
-Tested up to: 6.5
+Tested up to: 7.1
 Requires PHP: 8.0
-Stable tag: 1.6.9
+Stable tag: 1.6.10
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -64,6 +64,10 @@ Sì. Il plugin è sviluppato e testato con PHP 8+.
 4. Tooltip informativo con logo e crediti
 
 == Changelog ==
+
+= 1.6.10 =
+* I visitatori non loggati non scrivono più nel log di debug.
+* I dati di ripristino dei moduli sono legati all'utente e non vengono più salvati per i visitatori.
 
 = 1.6.9 =
 * Ultime schede pubblicate sotto l’albero tassonomico anche su desktop.
