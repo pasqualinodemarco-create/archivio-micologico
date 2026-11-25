@@ -5,7 +5,7 @@ Tags: fungi, mycology, taxonomy, scientific archive, biodiversity, search
 Requires at least: 6.0
 Tested up to: 7.1
 Requires PHP: 8.0
-Stable tag: 1.6.15
+Stable tag: 1.6.16
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -41,6 +41,7 @@ Sviluppato e mantenuto da **Associazione Micologica Bassa Friulana**.
    - `[am_archive]` per l’archivio
    - `[am_search_page]` per la ricerca avanzata
    - `[am_random_funghi]` per mostrare 3 schede fungo casuali
+   - `[am_tassonomia]` e `[am_vocabolari]` per gestire classificazione e vocabolari dal sito (Amministratori ed Editori)
 
 == Frequently Asked Questions ==
 
@@ -64,6 +65,12 @@ Sì. Il plugin è sviluppato e testato con PHP 8+.
 4. Tooltip informativo con logo e crediti
 
 == Changelog ==
+
+= 1.6.16 =
+* Nuovo shortcode [am_tassonomia]: gestione dal sito di divisioni, famiglie, generi e specie per Amministratori ed Editori, con ricerca, albero a colori, aggiunta, rinomina, spostamento ed eliminazione.
+* Nuovo shortcode [am_vocabolari]: gestione dal sito di forme/varietà e autori, con ricerca, rinomina, unione dei doppioni ed eliminazione.
+* Una voce si elimina solo se nessuna scheda (anche in bozza o nel cestino) e nessun livello inferiore la usa.
+* Rinomine, spostamenti e unioni riallineano titolo e dati delle schede collegate.
 
 = 1.6.15 =
 * Nuova scheda: immagine di anteprima e galleria tornano facoltative, così si può iniziare una scheda con una sola foto (o nessuna) e completarla in seguito. Requisiti obbligatori: classificazione e descrizione macroscopica.
