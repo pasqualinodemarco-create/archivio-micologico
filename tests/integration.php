@@ -155,7 +155,7 @@ register_shutdown_function(function() use (&$checks, &$error, &$redirects, &$plu
     // Expected permission/nonce rejections are ordinary test outcomes; undefined callbacks are never allowed.
     $checks['no_plugin_warnings'] = count($plugin_warnings) === 0;
     $checks['no_php_fatal'] = !($fatal && in_array($fatal['type'], [E_ERROR,E_PARSE,E_COMPILE_ERROR], true));
-    if (!$denied && in_array($kind,['update','settings','submit','info','info_missing','changelog_parser'],true)) { $checks['completed_without_exception'] = $error === null; }
+    if (!$denied && in_array($kind,['update','settings','submit','info','info_missing','changelog_parser','admin_pages'],true)) { $checks['completed_without_exception'] = $error === null; }
     echo "\nAMTEST:" . json_encode(['case'=>$case,'checks'=>$checks,'error'=>$error,'warnings'=>$plugin_warnings,'redirects'=>$redirects,'output'=>substr($output,0,600)]) . "\n";
 });
 try {
@@ -319,6 +319,39 @@ try {
             $_REQUEST = $_POST;
             $_SERVER['HTTP_REFERER'] = home_url('/altra-pagina/');
             ArchivioMicologico\TermManager::handle();
+            break;
+        case 'admin_pages':
+            require_once ABSPATH . 'wp-admin/includes/admin.php';
+            $twin = wp_insert_post(['post_type' => AM_CPT, 'post_status' => 'draft', 'post_author' => $user->ID, 'post_title' => 'Original  title', 'post_content' => 'Second copy.']);
+            wp_set_object_terms($twin, [$terms[3]], AM_TAX_CLASSIFICAZIONE);
+            $orphan = wp_insert_post(['post_type' => AM_CPT, 'post_status' => 'pending', 'post_author' => $user->ID, 'post_title' => 'Orphan scheda', 'post_content' => 'No classification.']);
+            $quality = (new ReflectionMethod('ArchivioMicologico\\AdminPages', 'quality'))->invoke(null);
+            $ids = static fn(array $items): array => array_map(static fn($i) => $i[0], $items);
+            $checks['quality_no_author'] = in_array($post_id, $ids($quality['no_author']), true);
+            $checks['quality_no_image'] = in_array($post_id, $ids($quality['no_image']), true);
+            $checks['quality_no_class'] = in_array($orphan, $ids($quality['no_class']), true) && !in_array($post_id, $ids($quality['no_class']), true);
+            $checks['quality_duplicates'] = array_diff([$post_id, $twin], $ids($quality['duplicates'])) === [] && !in_array($orphan, $ids($quality['duplicates']), true);
+            $checks['quality_unused_vocab'] = $quality['unused_terms'] >= 1;
+            $coverage = ArchivioMicologico\TermManager::coverage();
+            $checks['coverage_species'] = $coverage['ranks']['species']['documented'] >= 1 && $coverage['ranks']['species']['terms'] >= $coverage['ranks']['species']['documented'];
+            AM_Admin::register_settings();
+            $render = static function (callable $fn): string { ob_start(); $fn(); return (string) ob_get_clean(); };
+            $dash = $render([AM_Admin::class, 'render_dashboard_page']);
+            $checks['dashboard_rendered'] = str_contains($dash, 'Copertura tassonomica') && str_contains($dash, 'Controllo qualità dei dati') && str_contains($dash, 'post_status=pending') && str_contains($dash, 'Orphan scheda');
+            $settings = $render([AM_Admin::class, 'render_settings_page']);
+            foreach (['am_require_login','am_default_status','am_max_upload_mb','am_edit_page_id','am_show_submit_result_admin','am_submit_result_ttl','am_enable_debug_panel','am_seo_mode','am_articles_order','am_recent_entries_count','am_single_show_title','am_random_widget_title','am_random_widget_count','am_random_widget_visible','am_random_widget_rows','am_random_widget_autoplay','am_random_widget_interval'] as $field) {
+                $checks['settings_field_' . $field] = substr_count($settings, 'name="' . $field . '"') >= 1;
+            }
+            $checks['settings_single_form'] = substr_count($settings, 'value="am_save_settings"') === 1;
+            $checks['instructions_rendered'] = str_contains($render([AM_Admin::class, 'render_instructions_page']), 'Regole di nomenclatura');
+            $checks['taxonomy_page_rendered'] = str_contains($render([ArchivioMicologico\AdminPages::class, 'taxonomy']), 'am-mtree');
+            $checks['vocab_page_rendered'] = str_contains($render([AM_Admin::class, 'render_vocabolari_page']), 'am-mtable');
+            global $submenu;
+            $submenu = [];
+            AM_Admin::admin_menu();
+            $slugs = array_map(static fn($item) => $item[2], $submenu['am_dashboard'] ?? []);
+            $checks['menu_without_schede_links'] = !in_array('am_all_schede', $slugs, true) && !in_array('am_add_new', $slugs, true);
+            $checks['menu_has_management'] = in_array('am_classificazione', $slugs, true) && in_array('am_vocabolari', $slugs, true) && in_array('am_settings', $slugs, true);
             break;
         case 'fallback':
             $method=new ReflectionMethod('AM_Admin','get_front_submit_page_url');
