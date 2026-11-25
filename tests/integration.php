@@ -155,7 +155,7 @@ register_shutdown_function(function() use (&$checks, &$error, &$redirects, &$plu
     // Expected permission/nonce rejections are ordinary test outcomes; undefined callbacks are never allowed.
     $checks['no_plugin_warnings'] = count($plugin_warnings) === 0;
     $checks['no_php_fatal'] = !($fatal && in_array($fatal['type'], [E_ERROR,E_PARSE,E_COMPILE_ERROR], true));
-    if (!$denied && in_array($kind,['update','settings','submit','info','info_missing','changelog_parser','admin_pages'],true)) { $checks['completed_without_exception'] = $error === null; }
+    if (!$denied && in_array($kind,['update','settings','submit','info','info_missing','changelog_parser','admin_pages','sitemap_images'],true)) { $checks['completed_without_exception'] = $error === null; }
     echo "\nAMTEST:" . json_encode(['case'=>$case,'checks'=>$checks,'error'=>$error,'warnings'=>$plugin_warnings,'redirects'=>$redirects,'output'=>substr($output,0,600)]) . "\n";
 });
 try {
@@ -352,6 +352,22 @@ try {
             $slugs = array_map(static fn($item) => $item[2], $submenu['am_dashboard'] ?? []);
             $checks['menu_without_schede_links'] = !in_array('am_all_schede', $slugs, true) && !in_array('am_add_new', $slugs, true);
             $checks['menu_has_management'] = in_array('am_classificazione', $slugs, true) && in_array('am_vocabolari', $slugs, true) && in_array('am_settings', $slugs, true);
+            break;
+        case 'sitemap_images':
+            $att = static fn(string $file, string $title) => (int) wp_insert_attachment(['post_title' => $title, 'post_mime_type' => 'image/jpeg', 'post_status' => 'inherit'], $file, $post_id);
+            $featured = $att('2026/01/macro.jpg', 'Macro');
+            $micro = $att('2026/01/spore.jpg', 'Spore');
+            update_post_meta($micro, '_wp_attachment_image_alt', 'Spore 1000x');
+            update_post_meta($post_id, 'am_gallery_ids', [$featured, $micro, $micro, 999, $pdf]);
+            $base = [['src' => wp_get_attachment_image_url($featured, 'full'), 'title' => 'Macro', 'alt' => '']];
+            $out = apply_filters('wpseo_sitemap_urlimages', $base, $post_id);
+            $srcs = array_column($out, 'src');
+            $checks['gallery_added'] = in_array(wp_get_attachment_image_url($micro, 'full'), $srcs, true);
+            $checks['no_duplicates'] = count($srcs) === 2;
+            $checks['alt_kept'] = ($out[1]['alt'] ?? '') === 'Spore 1000x';
+            $checks['pdf_skipped'] = !in_array(wp_get_attachment_url($pdf), $srcs, true);
+            $page = wp_insert_post(['post_type' => 'page', 'post_status' => 'publish', 'post_title' => 'P']);
+            $checks['other_types_untouched'] = apply_filters('wpseo_sitemap_urlimages', $base, $page) === $base;
             break;
         case 'fallback':
             $method=new ReflectionMethod('AM_Admin','get_front_submit_page_url');

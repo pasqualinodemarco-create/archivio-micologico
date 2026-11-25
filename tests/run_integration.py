@@ -29,6 +29,7 @@ for role in ['editor','author']:
   cases.append(dict(kind='manage',role=role,op=op))
 for op in ['rename_species','rename_genus','move_genus','move_bad','delete_used','delete_children','delete_unused','merge']:
  cases.append(dict(kind='manage',role='editor',op=op))
+cases += [dict(kind='sitemap_images',role='editor')]
 cases += [dict(kind='admin_pages',role='administrator'),dict(kind='admin_pages',role='editor')]
 cases += [dict(kind='info',role='administrator'),dict(kind='info',role='editor'),dict(kind='info',role='author'),dict(kind='info_missing',role='editor'),dict(kind='changelog_parser',role='editor')]
 results=[]

@@ -5,7 +5,7 @@ Tags: fungi, mycology, taxonomy, scientific archive, biodiversity, search
 Requires at least: 6.0
 Tested up to: 7.1
 Requires PHP: 8.0
-Stable tag: 1.6.18
+Stable tag: 1.6.19
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -65,6 +65,10 @@ Sì. Il plugin è sviluppato e testato con PHP 8+.
 4. Tooltip informativo con logo e crediti
 
 == Changelog ==
+
+= 1.6.19 =
+* Sitemap XML (Yoast SEO): oltre all’immagine di anteprima, ogni scheda comunica a Google tutte le foto della galleria, comprese quelle microscopiche, con testo alternativo o didascalia. Doppioni e file non immagine esclusi.
+* Dopo l’aggiornamento la sitemap delle schede viene rigenerata una volta, senza attendere nuove modifiche.
 
 = 1.6.18 =
 * Menu admin riorganizzato: Dashboard, Tassonomia, Vocabolari, Articoli, Impostazioni, Istruzioni. Tolte le voci Schede e Nuova scheda: le schede si creano e si modificano dai moduli pubblici; gli elenchi per stato (revisione, bozze, private, cestino) restano nella Dashboard.
