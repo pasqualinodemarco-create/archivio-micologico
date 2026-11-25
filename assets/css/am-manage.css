@@ -31,7 +31,7 @@
   letter-spacing: .1em; text-transform: uppercase;
 }
 .am-manage__title { margin: 5px 0 8px; font-size: clamp(1.55rem, 3vw, 2.25rem); line-height: 1.15; color: var(--am-ink); }
-.am-manage__intro { margin: 0; max-width: 62ch; color: var(--am-muted); }
+.am-manage__intro { margin: 6px 0 0; max-width: 62ch; color: var(--am-muted); }
 .am-manage__stats { display: flex; flex-wrap: wrap; gap: 8px; margin: 0; }
 .am-manage__stat {
   min-width: 86px; padding: 8px 12px; border: 1px solid var(--am-line);
@@ -136,10 +136,6 @@
 }
 .am-mnode__count.is-zero { color: var(--am-muted); }
 .am-mnode__actions { display: flex; flex-wrap: wrap; gap: 5px; margin-left: auto; }
-@media (hover: hover) and (min-width: 900px) {
-  .am-mnode__actions { opacity: .35; transition: opacity .12s ease; }
-  .am-mnode__row:hover .am-mnode__actions, .am-mnode__row:focus-within .am-mnode__actions { opacity: 1; }
-}
 
 /* Vocabulary table */
 .am-mtable { width: 100%; border-collapse: collapse; }

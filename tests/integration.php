@@ -107,6 +107,10 @@ register_shutdown_function(function() use (&$checks, &$error, &$redirects, &$plu
         $code = '';
         foreach ($redirects as $url) { if (preg_match('/am_tm=([a-z_]+)/', $url, $m)) { $code = $m[1]; } }
         $title = (string) get_post_field('post_title', $post_id);
+        if ($op !== 'render') {
+            $last = (string) end($redirects);
+            $checks['returns_to_page'] = $can_manage ? str_starts_with($last, home_url('/tassonomia/?am_vocab=author')) : true;
+        }
         $exists = static fn($id, $tax = AM_TAX_CLASSIFICAZIONE) => get_term((int) $id, $tax) instanceof WP_Term;
         switch ($op) {
             case 'add':
@@ -310,8 +314,10 @@ try {
                 'merge' => ['op' => 'merge', 'tax' => 'infra', 'term_id' => $vocab_id, 'target_id' => $extra['vocab2'] ?? 0],
             ];
             $_POST = array_map('strval', $requests[$op] + ['action' => 'am_manage_term', '_wpnonce' => wp_create_nonce('am_manage_term')]);
+            // The form sends its own page as a site-relative path; the referer points elsewhere on purpose.
+            $_POST['am_return'] = '/tassonomia/?am_vocab=author';
             $_REQUEST = $_POST;
-            $_SERVER['HTTP_REFERER'] = home_url('/tassonomia/');
+            $_SERVER['HTTP_REFERER'] = home_url('/altra-pagina/');
             ArchivioMicologico\TermManager::handle();
             break;
         case 'fallback':
