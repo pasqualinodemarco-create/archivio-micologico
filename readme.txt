@@ -5,7 +5,7 @@ Tags: fungi, mycology, taxonomy, scientific archive, biodiversity, search
 Requires at least: 6.0
 Tested up to: 7.1
 Requires PHP: 8.0
-Stable tag: 1.6.16
+Stable tag: 1.6.17
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -65,6 +65,10 @@ Sì. Il plugin è sviluppato e testato con PHP 8+.
 4. Tooltip informativo con logo e crediti
 
 == Changelog ==
+
+= 1.6.17 =
+* Gestione archivio: dopo ogni operazione si torna alla stessa pagina (prima, con l’indirizzo di provenienza in forma relativa, si finiva sulla Home).
+* Pulsanti delle voci sempre ben visibili e senza titolo ripetuto sotto quello della pagina.
 
 = 1.6.16 =
 * Nuovo shortcode [am_tassonomia]: gestione dal sito di divisioni, famiglie, generi e specie per Amministratori ed Editori, con ricerca, albero a colori, aggiunta, rinomina, spostamento ed eliminazione.

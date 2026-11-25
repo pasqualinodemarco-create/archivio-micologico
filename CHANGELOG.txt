@@ -1,3 +1,7 @@
+= 1.6.17 =
+- Gestione archivio: dopo ogni operazione si torna alla stessa pagina (prima, con l’indirizzo di provenienza in forma relativa, si finiva sulla Home).
+- Pulsanti delle voci sempre ben visibili e senza titolo ripetuto sotto quello della pagina.
+
 = 1.6.16 =
 - Nuovo shortcode [am_tassonomia]: gestione dal sito di divisioni, famiglie, generi e specie per Amministratori ed Editori, con ricerca, albero a colori, aggiunta, rinomina, spostamento ed eliminazione.
 - Nuovo shortcode [am_vocabolari]: gestione dal sito di forme/varietà e autori, con ricerca, rinomina, unione dei doppioni ed eliminazione.

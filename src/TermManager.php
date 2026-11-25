@@ -274,10 +274,18 @@ final class TermManager {
 		}
 	}
 
+	/** Page the request came from: the form's own return field, then the referer, both kept on this site. */
 	private static function return_url(): string {
-		$url = wp_get_referer();
-		if (!$url || wp_parse_url($url, PHP_URL_HOST) !== wp_parse_url(home_url(), PHP_URL_HOST)) { $url = home_url('/'); }
+		$url = isset($_POST['am_return']) ? esc_url_raw(wp_unslash((string) $_POST['am_return'])) : '';
+		if ($url === '') { $url = (string) wp_get_referer(); }
+		if ($url !== '' && $url[0] === '/' && (strlen($url) < 2 || $url[1] !== '/')) { $url = home_url($url); }
+		$url = wp_validate_redirect($url, home_url('/'));
 		return remove_query_arg(['am_tm', 'am_tm_term'], $url);
+	}
+
+	private static function current_url(): string {
+		$uri = isset($_SERVER['REQUEST_URI']) ? wp_unslash((string) $_SERVER['REQUEST_URI']) : '/';
+		return remove_query_arg(['am_tm', 'am_tm_term'], home_url($uri));
 	}
 
 	private static function back(string $url, string $code, int $term_id = 0): void {
@@ -310,7 +318,8 @@ final class TermManager {
 	private static function header(string $title, string $intro, array $stats): string {
 		$html = '<header class="am-manage__header"><div>';
 		$html .= '<p class="am-manage__eyebrow">' . esc_html__('Gestione archivio', 'archivio-micologico') . '</p>';
-		$html .= '<h2 class="am-manage__title">' . esc_html($title) . '</h2>';
+		// The page already shows its own title: the shortcode keeps only the label and the intro.
+		$html .= '<p class="screen-reader-text">' . esc_html($title) . '</p>';
 		$html .= '<p class="am-manage__intro">' . esc_html($intro) . '</p></div>';
 		$html .= '<dl class="am-manage__stats">';
 		foreach ($stats as [$label, $value, $class]) {
@@ -322,6 +331,7 @@ final class TermManager {
 	private static function form_fields(string $tax): string {
 		return '<input type="hidden" name="action" value="' . esc_attr(self::ACTION) . '">'
 			. '<input type="hidden" name="tax" value="' . esc_attr($tax) . '">'
+			. '<input type="hidden" name="am_return" value="' . esc_url(self::current_url()) . '">'
 			. wp_nonce_field(self::ACTION, '_wpnonce', true, false);
 	}
 
