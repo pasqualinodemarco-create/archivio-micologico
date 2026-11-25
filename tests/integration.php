@@ -101,6 +101,53 @@ register_shutdown_function(function() use (&$checks, &$error, &$redirects, &$plu
             $checks['duplicate_denied'] = ($json['success'] ?? true) === false;
         }
     }
+    if ($kind === 'manage') {
+        $op = $case['op'];
+        $extra = $GLOBALS['am_manage_extra'] ?? [];
+        $code = '';
+        foreach ($redirects as $url) { if (preg_match('/am_tm=([a-z_]+)/', $url, $m)) { $code = $m[1]; } }
+        $title = (string) get_post_field('post_title', $post_id);
+        $exists = static fn($id, $tax = AM_TAX_CLASSIFICAZIONE) => get_term((int) $id, $tax) instanceof WP_Term;
+        switch ($op) {
+            case 'add':
+                $added = (bool) term_exists('Nuovo Genere', AM_TAX_CLASSIFICAZIONE, $terms[1]);
+                $checks['add_permission'] = $can_manage ? ($added && $code === 'added') : (!$added && $code === 'forbidden');
+                break;
+            case 'rename_species':
+                $checks['title_rebuilt'] = str_starts_with($title, 'Test Genus renamed_species') && $code === 'renamed';
+                $checks['species_meta'] = get_post_meta($post_id, 'am_species', true) === 'renamed_species';
+                break;
+            case 'rename_genus':
+                $checks['title_rebuilt'] = str_starts_with($title, 'Other Genus test_species') && $code === 'renamed';
+                break;
+            case 'move_genus':
+                $checks['moved'] = (int) get_term($terms[2], AM_TAX_CLASSIFICAZIONE)->parent === $extra['family2'] && $code === 'moved';
+                $checks['family_meta'] = (int) get_post_meta($post_id, 'am_tax_family_id', true) === $extra['family2'];
+                break;
+            case 'move_bad':
+                $checks['rank_enforced'] = (int) get_term($terms[3], AM_TAX_CLASSIFICAZIONE)->parent === $terms[2] && $code === 'bad_parent';
+                break;
+            case 'delete_used':
+                $checks['in_use_kept'] = $exists($terms[3]) && $code === 'in_use';
+                break;
+            case 'delete_children':
+                $checks['children_kept'] = $exists($terms[2]) && $code === 'has_children';
+                break;
+            case 'delete_unused':
+                $checks['unused_deleted'] = !$exists($extra['unused']) && $code === 'deleted';
+                break;
+            case 'merge':
+                $checks['merged'] = !$exists($vocab_id, AM_TAX_INFRASPEC) && has_term($extra['vocab2'], AM_TAX_INFRASPEC, $post_id) && $code === 'merged';
+                $checks['merge_meta_title'] = (int) get_post_meta($post_id, 'am_infra_id', true) === $extra['vocab2'] && str_ends_with($title, 'var. merged');
+                break;
+            case 'render':
+                [$tree, $vocab] = $GLOBALS['am_render'] ?? ['', ''];
+                $checks['render'] = $can_manage
+                    ? (str_contains($tree, 'am-mtree') && str_contains($tree, 'test_species') && str_contains($vocab, 'am-mtable'))
+                    : (str_contains($tree, 'Non hai i permessi') && !str_contains($tree, 'am-mtree') && !str_contains($vocab, 'am-mtable'));
+                break;
+        }
+    }
     // Expected permission/nonce rejections are ordinary test outcomes; undefined callbacks are never allowed.
     $checks['no_plugin_warnings'] = count($plugin_warnings) === 0;
     $checks['no_php_fatal'] = !($fatal && in_array($fatal['type'], [E_ERROR,E_PARSE,E_COMPILE_ERROR], true));
@@ -234,6 +281,38 @@ try {
             preg_match_all('/<li[^>]*>(.*?)<\/li>/s', $html, $rendered);
             $checks['current_changelog_rendered'] = $expected !== [] && array_diff($expected, $rendered[1]) === [];
             $checks['no_previous_version_entries'] = $rendered[1] === $expected;
+            break;
+        case 'manage':
+            $op = $case['op'];
+            wp_set_current_user($admin->ID);
+            foreach (['division', 'family', 'genus', 'species'] as $i => $rank) { update_post_meta($post_id, 'am_tax_' . $rank . '_id', $terms[$i]); }
+            wp_set_object_terms($post_id, [$vocab_id], AM_TAX_INFRASPEC);
+            update_post_meta($post_id, 'am_infra_id', $vocab_id);
+            $extra = [];
+            if ($op === 'move_genus') { $extra['family2'] = (int) wp_insert_term('Second Family', AM_TAX_CLASSIFICAZIONE, ['parent' => $terms[0]])['term_id']; }
+            if ($op === 'delete_unused') { $extra['unused'] = (int) wp_insert_term('unused_species', AM_TAX_CLASSIFICAZIONE, ['parent' => $terms[2]])['term_id']; }
+            if ($op === 'merge') { $extra['vocab2'] = (int) wp_insert_term('var. merged', AM_TAX_INFRASPEC)['term_id']; }
+            $GLOBALS['am_manage_extra'] = $extra;
+            wp_set_current_user($user->ID);
+            if ($op === 'render') {
+                $GLOBALS['am_render'] = [do_shortcode('[am_tassonomia]'), do_shortcode('[am_vocabolari]')];
+                break;
+            }
+            $requests = [
+                'add' => ['op' => 'add', 'tax' => 'classificazione', 'parent' => $terms[1], 'name' => 'Nuovo Genere'],
+                'rename_species' => ['op' => 'rename', 'tax' => 'classificazione', 'term_id' => $terms[3], 'name' => 'renamed_species'],
+                'rename_genus' => ['op' => 'rename', 'tax' => 'classificazione', 'term_id' => $terms[2], 'name' => 'Other Genus'],
+                'move_genus' => ['op' => 'move', 'tax' => 'classificazione', 'term_id' => $terms[2], 'parent' => $extra['family2'] ?? 0],
+                'move_bad' => ['op' => 'move', 'tax' => 'classificazione', 'term_id' => $terms[3], 'parent' => $terms[1]],
+                'delete_used' => ['op' => 'delete', 'tax' => 'classificazione', 'term_id' => $terms[3]],
+                'delete_children' => ['op' => 'delete', 'tax' => 'classificazione', 'term_id' => $terms[2]],
+                'delete_unused' => ['op' => 'delete', 'tax' => 'classificazione', 'term_id' => $extra['unused'] ?? 0],
+                'merge' => ['op' => 'merge', 'tax' => 'infra', 'term_id' => $vocab_id, 'target_id' => $extra['vocab2'] ?? 0],
+            ];
+            $_POST = array_map('strval', $requests[$op] + ['action' => 'am_manage_term', '_wpnonce' => wp_create_nonce('am_manage_term')]);
+            $_REQUEST = $_POST;
+            $_SERVER['HTTP_REFERER'] = home_url('/tassonomia/');
+            ArchivioMicologico\TermManager::handle();
             break;
         case 'fallback':
             $method=new ReflectionMethod('AM_Admin','get_front_submit_page_url');

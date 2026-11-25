@@ -2,7 +2,7 @@
 
 Plugin WordPress per la gestione di schede micologiche, classificazioni gerarchiche, articoli, ricerca e moduli frontend.
 
-**Versione corrente: 1.6.15**. Richiede WordPress 6.0+ e PHP 8.0+.
+**Versione corrente: 1.6.16**. Richiede WordPress 6.0+ e PHP 8.0+.
 
 ## Installazione
 
@@ -30,6 +30,8 @@ Per configurare il plugin con Anna Weather, consulta **Archivio Micologico → I
 | `[am_edit_form]` | Modifica schede |
 | `[am_article_form]` | Inserimento articoli |
 | `[am_archive_filters]` | Filtri |
+| `[am_tassonomia]` | Gestione pubblica della classificazione (solo Amministratori ed Editori) |
+| `[am_vocabolari]` | Gestione pubblica di forme/varietà e autori (solo Amministratori ed Editori) |
 
 ## Verifica
 

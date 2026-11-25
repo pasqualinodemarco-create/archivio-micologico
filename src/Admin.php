@@ -1309,6 +1309,8 @@ echo '<input type="number" min="0" max="600" name="am_submit_result_ttl" value="
 			'am_edit_form' => __('Modifica scheda fungo', 'archivio-micologico'),
 			'am_article_form' => __('Inserimento Articolo Archivio Micologico', 'archivio-micologico'),
 			'am_random_funghi' => __('Carosello schede fungo casuali', 'archivio-micologico'),
+			'am_tassonomia' => __('Gestione pubblica della tassonomia', 'archivio-micologico'),
+			'am_vocabolari' => __('Gestione pubblica dei vocabolari', 'archivio-micologico'),
 		];
 
 		echo '<h2 style="margin-top:24px">' . esc_html__('Audit shortcode e widget', 'archivio-micologico') . '</h2>';
