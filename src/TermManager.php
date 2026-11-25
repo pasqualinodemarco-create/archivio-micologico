@@ -30,6 +30,11 @@ final class TermManager {
 		if (!$post || (!has_shortcode((string) $post->post_content, 'am_tassonomia') && !has_shortcode((string) $post->post_content, 'am_vocabolari'))) {
 			return;
 		}
+		self::enqueue_files();
+	}
+
+	/** Same interface inside wp-admin: Archivio Micologico → Tassonomia / Vocabolari. */
+	public static function enqueue_files(): void {
 		wp_enqueue_style('am-manage', AM_URL . 'assets/css/am-manage.css', [], AM_VERSION);
 		wp_enqueue_script('am-manage', AM_URL . 'assets/js/am-manage.js', [], AM_VERSION, true);
 	}
@@ -285,6 +290,11 @@ final class TermManager {
 
 	private static function current_url(): string {
 		$uri = isset($_SERVER['REQUEST_URI']) ? wp_unslash((string) $_SERVER['REQUEST_URI']) : '/';
+		if (is_admin()) {
+			// wp-admin may live under a different base than home_url (WordPress in a subfolder).
+			$query = (string) wp_parse_url($uri, PHP_URL_QUERY);
+			return remove_query_arg(['am_tm', 'am_tm_term'], admin_url('admin.php' . ($query !== '' ? '?' . $query : '')));
+		}
 		return remove_query_arg(['am_tm', 'am_tm_term'], home_url($uri));
 	}
 
@@ -293,6 +303,46 @@ final class TermManager {
 		if ($term_id > 0) { $args['am_tm_term'] = $term_id; }
 		wp_safe_redirect(add_query_arg($args, $url) . '#am-manage');
 		exit;
+	}
+
+	/**
+	 * Published schede per rank, for the admin dashboard: how many terms each rank has and how
+	 * many of them hold at least one published scheda in their branch.
+	 */
+	public static function coverage(): array {
+		global $wpdb;
+		[$by_id, $children, $depth] = self::tree();
+		$rows = $wpdb->get_results($wpdb->prepare(
+			"SELECT tt.term_id, COUNT(DISTINCT p.ID) AS n FROM {$wpdb->term_relationships} tr
+			 INNER JOIN {$wpdb->term_taxonomy} tt ON tt.term_taxonomy_id = tr.term_taxonomy_id
+			 INNER JOIN {$wpdb->posts} p ON p.ID = tr.object_id
+			 WHERE tt.taxonomy = %s AND p.post_type = %s AND p.post_status = 'publish'
+			 GROUP BY tt.term_id",
+			AM_TAX_CLASSIFICAZIONE,
+			AM_CPT
+		), ARRAY_A) ?: [];
+		$own = [];
+		foreach ($rows as $r) { $own[(int) $r['term_id']] = (int) $r['n']; }
+		$branch = [];
+		$sum = static function (int $id) use (&$sum, &$branch, $children, $own): int {
+			$n = $own[$id] ?? 0;
+			foreach ($children[$id] ?? [] as $c) { $n += $sum($c); }
+			return $branch[$id] = $n;
+		};
+		foreach ($children[0] ?? [] as $root) { $sum($root); }
+
+		$ranks = array_fill_keys(self::RANKS, ['terms' => 0, 'documented' => 0]);
+		foreach ($by_id as $id => $t) {
+			$rank = self::RANKS[$depth[$id] ?? 0] ?? null;
+			if ($rank === null) { continue; }
+			$ranks[$rank]['terms']++;
+			if (($branch[$id] ?? 0) > 0) { $ranks[$rank]['documented']++; }
+		}
+		$divisions = [];
+		foreach ($children[0] ?? [] as $id) {
+			$divisions[] = ['name' => (string) $by_id[$id]->name, 'count' => (int) ($branch[$id] ?? 0)];
+		}
+		return ['ranks' => $ranks, 'divisions' => $divisions, 'labels' => self::rank_labels()];
 	}
 
 	/* ------------------------------------------------------------ rendering */

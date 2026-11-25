@@ -5,7 +5,7 @@ Tags: fungi, mycology, taxonomy, scientific archive, biodiversity, search
 Requires at least: 6.0
 Tested up to: 7.1
 Requires PHP: 8.0
-Stable tag: 1.6.17
+Stable tag: 1.6.18
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -65,6 +65,15 @@ Sì. Il plugin è sviluppato e testato con PHP 8+.
 4. Tooltip informativo con logo e crediti
 
 == Changelog ==
+
+= 1.6.18 =
+* Menu admin riorganizzato: Dashboard, Tassonomia, Vocabolari, Articoli, Impostazioni, Istruzioni. Tolte le voci Schede e Nuova scheda: le schede si creano e si modificano dai moduli pubblici; gli elenchi per stato (revisione, bozze, private, cestino) restano nella Dashboard.
+* Nuova Dashboard: schede per stato, specie documentate, copertura tassonomica per rango e per divisione, ultime schede modificate.
+* Controllo qualità dei dati in Dashboard: schede in revisione, senza classificazione, senza autore del nome, senza immagine di anteprima, possibili doppioni e voci di vocabolario non usate, con collegamento a ogni scheda.
+* Tassonomia e Vocabolari in admin usano la stessa interfaccia delle pagine pubbliche (albero a colori, ricerca, rinomina, spostamento, unione ed eliminazione sicura). Slug e descrizioni restano raggiungibili dall’editor WordPress.
+* Impostazioni raggruppate per scopo (Inserimento schede, Visualizzazione pubblica, Carosello, SEO, Manutenzione), con indice e pulsante Salva sempre visibile. Le opzioni salvate non cambiano.
+* Istruzioni riscritte: tre operazioni principali, regole di nomenclatura, shortcode, permessi e soluzioni ai problemi frequenti.
+* La verifica di shortcode e widget passa in Info / Versione.
 
 = 1.6.17 =
 * Gestione archivio: dopo ogni operazione si torna alla stessa pagina (prima, con l’indirizzo di provenienza in forma relativa, si finiva sulla Home).

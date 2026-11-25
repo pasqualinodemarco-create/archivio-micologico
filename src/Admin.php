@@ -135,6 +135,8 @@ class Admin {
 		add_filter('parse_query', [__CLASS__, 'apply_admin_post_filters']);
 		// Rename the automatic first submenu item to match our desired label.
 		add_action('admin_menu', [__CLASS__, 'tweak_submenu_labels'], 999);
+		// Schede lists and editor have no menu entry of their own: keep Archivio Micologico highlighted.
+		add_filter('parent_file', [__CLASS__, 'highlight_menu']);
 	}
 
 	/**
@@ -214,189 +216,7 @@ class Admin {
 	}
 
 	public static function render_vocabolari_page(): void {
-		if (!(current_user_can('manage_terms') || current_user_can('manage_options')) && !current_user_can('manage_options')) {
-			wp_die(esc_html__('Non autorizzato.', 'archivio-micologico'));
-		}
-
-		$tab = isset($_GET['tab']) ? sanitize_key((string) $_GET['tab']) : 'infra';
-		$cfg = self::vocabolari_get_tax_and_labels($tab);
-		$tax = (string) ($cfg['tax'] ?? '');
-
-		echo '<div class="wrap">';
-		echo '<h1>' . esc_html($cfg['title']) . '</h1>';
-
-		// Tabs
-		$base = admin_url('admin.php?page=am_vocabolari');
-		$tab_infra_url = add_query_arg(['tab' => 'infra'], $base);
-		$tab_author_url = add_query_arg(['tab' => 'author'], $base);
-
-		echo '<h2 class="nav-tab-wrapper" style="margin-bottom:12px">';
-		echo '<a class="nav-tab ' . ($cfg['tab'] === 'infra' ? 'nav-tab-active' : '') . '" href="' . esc_url($tab_infra_url) . '">' . esc_html__('Forma / Varietà', 'archivio-micologico') . '</a>';
-		echo '<a class="nav-tab ' . ($cfg['tab'] === 'author' ? 'nav-tab-active' : '') . '" href="' . esc_url($tab_author_url) . '">' . esc_html__('Autore', 'archivio-micologico') . '</a>';
-		echo '</h2>';
-
-		// Messages
-		if (isset($_GET['am_msg'])) {
-			$msg = sanitize_text_field((string) $_GET['am_msg']);
-			if ($msg === 'added') {
-				echo '<div class="notice notice-success"><p>' . esc_html__('Voce aggiunta.', 'archivio-micologico') . '</p></div>';
-			} elseif ($msg === 'updated') {
-				echo '<div class="notice notice-success"><p>' . esc_html__('Voce aggiornata.', 'archivio-micologico') . '</p></div>';
-			} elseif ($msg === 'deleted') {
-				echo '<div class="notice notice-success"><p>' . esc_html__('Voce eliminata.', 'archivio-micologico') . '</p></div>';
-			} elseif ($msg === 'merged') {
-				echo '<div class="notice notice-success"><p>' . esc_html__('Voci unite correttamente.', 'archivio-micologico') . '</p></div>';
-			}
-		}
-		if (isset($_GET['am_err'])) {
-			$err = sanitize_text_field((string) $_GET['am_err']);
-			echo '<div class="notice notice-error"><p>' . esc_html($err) . '</p></div>';
-		}
-
-		if (!$tax || !taxonomy_exists($tax)) {
-			echo '<div class="notice notice-error"><p>' . esc_html__('Tassonomia non disponibile. Verifica configurazione plugin.', 'archivio-micologico') . '</p></div>';
-			echo '</div>';
-			return;
-		}
-
-		$edit_id = isset($_GET['edit']) ? intval($_GET['edit']) : 0;
-		$edit_term = null;
-		if ($edit_id > 0) {
-			$edit_term = get_term($edit_id, $tax);
-			if ($edit_term && is_wp_error($edit_term)) { $edit_term = null; }
-		}
-
-		$merge_id = isset($_GET['merge']) ? intval($_GET['merge']) : 0;
-		$merge_term = null;
-		if ($merge_id > 0) {
-			$merge_term = get_term($merge_id, $tax);
-			if ($merge_term && is_wp_error($merge_term)) { $merge_term = null; }
-			if ($merge_term && $edit_id === $merge_id) { $merge_term = null; }
-		}
-
-		echo '<div style="display:flex; gap:24px; align-items:flex-start; max-width: 1100px;">';
-
-		// Left: add/edit form
-		echo '<div style="flex: 0 0 380px;">';
-		echo '<div class="card" style="max-width:380px; padding:16px;">';
-		echo '<h2 style="margin-top:0">' . esc_html($cfg['section']) . '</h2>';
-
-		if ($edit_term) {
-			echo '<h3 style="margin:12px 0 8px 0">' . esc_html__('Modifica voce', 'archivio-micologico') . '</h3>';
-			echo '<form method="post" action="' . esc_url(admin_url('admin-post.php')) . '">';
-			echo '<input type="hidden" name="action" value="am_vocab_update">';
-			echo '<input type="hidden" name="tab" value="' . esc_attr($cfg['tab']) . '">';
-			echo '<input type="hidden" name="term_id" value="' . esc_attr((string)$edit_id) . '">';
-			wp_nonce_field('am_vocab_update');
-			echo '<p><input type="text" class="regular-text" name="name" value="' . esc_attr($edit_term->name) . '" required></p>';
-			submit_button(__('Salva modifiche', 'archivio-micologico'));
-			echo '<p><a href="' . esc_url(add_query_arg(['tab' => $cfg['tab']], $base)) . '">' . esc_html__('Annulla', 'archivio-micologico') . '</a></p>';
-			echo '</form>';
-		} else {
-			echo '<h3 style="margin:12px 0 8px 0">' . esc_html($cfg['add_label']) . '</h3>';
-			echo '<form method="post" action="' . esc_url(admin_url('admin-post.php')) . '">';
-			echo '<input type="hidden" name="action" value="am_vocab_add">';
-			echo '<input type="hidden" name="tab" value="' . esc_attr($cfg['tab']) . '">';
-			wp_nonce_field('am_vocab_add');
-			echo '<p><input type="text" class="regular-text" name="name" placeholder="' . esc_attr((string)$cfg['placeholder']) . '" required></p>';
-			submit_button(__('Aggiungi', 'archivio-micologico'), 'primary');
-			echo '</form>';
-		}
-
-		echo '<p class="description" style="margin-top:10px;">' . esc_html__('Da qui puoi correggere errori di battitura o eliminare inserimenti errati. Le voci vengono usate nei menu a cascata del frontend.', 'archivio-micologico') . '</p>';
-		if ($merge_term) {
-			echo '<hr style="margin:14px 0;">';
-			echo '<h3 style="margin:0 0 8px 0">' . esc_html__('Unisci voci', 'archivio-micologico') . '</h3>';
-			echo '<p class="description" style="margin-top:0;">' . esc_html__('Usa questa funzione per unire un duplicato in una voce corretta, senza perdere le assegnazioni alle schede.', 'archivio-micologico') . '</p>';
-			echo '<form method="post" action="' . esc_url(admin_url('admin-post.php')) . '" onsubmit="return confirm(\'' . esc_js(__('Confermi l\'unione? Il duplicato verrà eliminato.', 'archivio-micologico')) . '\');">';
-			echo '<input type="hidden" name="action" value="am_vocab_merge">';
-			echo '<input type="hidden" name="tab" value="' . esc_attr($cfg['tab']) . '">';
-			echo '<input type="hidden" name="from_term_id" value="' . esc_attr((string) ((int) $merge_term->term_id)) . '">';
-			wp_nonce_field('am_vocab_merge');
-			echo '<p><strong>' . esc_html__('Da:', 'archivio-micologico') . '</strong> ' . esc_html($merge_term->name) . '</p>';
-			echo '<p><label for="am-merge-to"><strong>' . esc_html__('In:', 'archivio-micologico') . '</strong></label><br>';
-			echo '<select id="am-merge-to" name="to_term_id" required style="width:100%;">';
-			echo '<option value="">' . esc_html__('Seleziona voce di destinazione…', 'archivio-micologico') . '</option>';
-			$all_terms = get_terms(['taxonomy' => $tax, 'hide_empty' => false, 'orderby' => 'name', 'order' => 'ASC', 'number' => 0]);
-			if (!is_wp_error($all_terms) && !empty($all_terms)) {
-				foreach ($all_terms as $tt) {
-					if ((int)$tt->term_id === (int)$merge_term->term_id) { continue; }
-					echo '<option value="' . esc_attr((string)((int)$tt->term_id)) . '">' . esc_html($tt->name) . '</option>';
-				}
-			}
-			echo '</select></p>';
-			submit_button(__('Unisci e elimina duplicato', 'archivio-micologico'), 'primary');
-			echo '<p><a href="' . esc_url(add_query_arg(['tab' => $cfg['tab']], $base)) . '">' . esc_html__('Annulla', 'archivio-micologico') . '</a></p>';
-			echo '</form>';
-		}
-
-		echo '</div></div>';
-
-		// Right: list
-		echo '<div style="flex: 1 1 auto;">';
-		echo '<div class="card" style="padding:0;">';
-		echo '<h2 style="padding:16px 16px 0 16px; margin:0;">' . esc_html__('Elenco voci', 'archivio-micologico') . '</h2>';
-
-		$search_q = isset($_GET['q']) ? sanitize_text_field((string) $_GET['q']) : '';
-		echo '<div style="padding:12px 16px 0 16px;">';
-		echo '<form method="get" action="' . esc_url(admin_url('admin.php')) . '" style="display:flex; gap:8px; align-items:center; max-width: 520px;">';
-		echo '<input type="hidden" name="page" value="am_vocabolari">';
-		echo '<input type="hidden" name="tab" value="' . esc_attr($cfg['tab']) . '">';
-		echo '<input type="search" name="q" value="' . esc_attr($search_q) . '" class="regular-text" placeholder="' . esc_attr__('Cerca voce…', 'archivio-micologico') . '">';
-		submit_button(__('Cerca', 'archivio-micologico'), 'secondary', '', false);
-		echo '<a class="button" href="' . esc_url(add_query_arg(['tab' => $cfg['tab']], $base)) . '">' . esc_html__('Reset', 'archivio-micologico') . '</a>';
-		echo '</form>';
-		echo '</div>';
-
-
-		$terms = get_terms([
-			'taxonomy' => $tax,
-			'hide_empty' => false,
-			'orderby' => 'name',
-			'order' => 'ASC',
-			'number' => 0,
-			'search' => $search_q ? $search_q : '' ,
-		]);
-		if (is_wp_error($terms)) { $terms = []; }
-
-		echo '<table class="widefat striped am-vocab-table" style="margin-top:12px;">';
-		echo '<thead><tr>';
-		echo '<th>' . esc_html__('Voce', 'archivio-micologico') . '</th>';
-		echo '<th style="width:90px;text-align:right;">' . esc_html__('Usi', 'archivio-micologico') . '</th>';
-		echo '<th style="width:240px;white-space:nowrap;">' . esc_html__('Azioni', 'archivio-micologico') . '</th>';
-		echo '</tr></thead><tbody>';
-
-		if (empty($terms)) {
-			echo '<tr><td colspan="3">' . esc_html__('Nessuna voce presente.', 'archivio-micologico') . '</td></tr>';
-		} else {
-			foreach ($terms as $t) {
-				$edit_url = add_query_arg(['tab' => $cfg['tab'], 'edit' => (int)$t->term_id], $base);
-				echo '<tr>';
-				echo '<td><strong>' . esc_html($t->name) . '</strong></td>';
-				echo '<td style="text-align:right;">' . intval($t->count) . '</td>';
-				echo '<td style="white-space:nowrap;">';
-echo '<div class="am-vocab-actions">';
-
-				echo '<a class="button button-small" href="' . esc_url($edit_url) . '">' . esc_html__('Modifica', 'archivio-micologico') . '</a> ';
-				echo '<a class="button button-small"" href="' . esc_url(add_query_arg(['tab' => $cfg['tab'], 'merge' => (int)$t->term_id], $base)) . '">' . esc_html__('Unisci', 'archivio-micologico') . '</a> ';
-				echo '<form method="post" action="' . esc_url(admin_url('admin-post.php')) . '" style="display:inline-block;" onsubmit="return confirm(\'' . esc_js(__('Eliminare questa voce? Verrà rimossa anche dalle schede collegate.', 'archivio-micologico')) . '\');">';
-				echo '<input type="hidden" name="action" value="am_vocab_delete">';
-				echo '<input type="hidden" name="tab" value="' . esc_attr($cfg['tab']) . '">';
-				echo '<input type="hidden" name="term_id" value="' . esc_attr((string)((int)$t->term_id)) . '">';
-				wp_nonce_field('am_vocab_delete');
-				echo '<button type="submit" class="button button-small button-link-delete">' . esc_html__('Elimina', 'archivio-micologico') . '</button>';
-				echo '</form>';
-				
-echo '</div>';
-echo '</td>';
-				echo '</tr>';
-			}
-		}
-		echo '</tbody></table>';
-		echo '</div></div>';
-
-		echo '</div>'; // flex
-		echo '</div>'; // wrap
+		AdminPages::vocabularies();
 	}
 
 	public static function handle_vocab_add(): void {
@@ -582,40 +402,29 @@ echo '</td>';
 			[__CLASS__, 'render_dashboard_page']
 		);
 
-		$hook_all = add_submenu_page(
+		$hook_tax = add_submenu_page(
 			$parent_slug,
-			__('Schede', 'archivio-micologico'),
-			self::get_submenu_label('dashicons-category', __('Schede', 'archivio-micologico')),
-			AM_CAP_EDIT_POSTS,
-			'am_all_schede',
-			'__return_null'
+			__('Tassonomia', 'archivio-micologico'),
+			self::get_submenu_label('dashicons-networking', __('Tassonomia', 'archivio-micologico')),
+			'manage_terms',
+			'am_classificazione',
+			[AdminPages::class, 'taxonomy']
 		);
-		if ($hook_all) {
-			self::register_load_redirect(
-				(string) $hook_all,
-				'all_schede',
-				admin_url('edit.php?post_type=' . AM_CPT),
-				function() { return current_user_can(AM_CAP_EDIT_POSTS); },
-				__('Non hai il permesso di accedere a questa pagina.', 'archivio-micologico')
-			);
-		}
-
-		$hook_add = add_submenu_page(
+		$hook_vocab = add_submenu_page(
 			$parent_slug,
-			__('Nuova Scheda', 'archivio-micologico'),
-			self::get_submenu_label('dashicons-plus-alt2', __('Nuova Scheda', 'archivio-micologico')),
-			AM_CAP_CREATE_POSTS,
-			'am_add_new',
-			'__return_null'
+			__('Vocabolari', 'archivio-micologico'),
+			self::get_submenu_label('dashicons-book-alt', __('Vocabolari', 'archivio-micologico')),
+			'manage_terms',
+			'am_vocabolari',
+			[__CLASS__, 'render_vocabolari_page']
 		);
-		if ($hook_add) {
-			self::register_load_redirect(
-				(string) $hook_add,
-				'add_new_fungo',
-				self::get_front_submit_page_url(),
-				function() { return current_user_can(AM_CAP_CREATE_POSTS); },
-				__('Non hai il permesso di accedere a questa pagina.', 'archivio-micologico')
-			);
+		// The admin pages reuse the interface of [am_tassonomia] and [am_vocabolari].
+		foreach ([$hook_tax, $hook_vocab] as $hook) {
+			if ($hook) {
+				add_action('load-' . $hook, static function (): void {
+					add_action('admin_enqueue_scripts', [TermManager::class, 'enqueue_files']);
+				});
+			}
 		}
 
 		$hook_articles = add_submenu_page(
@@ -672,33 +481,6 @@ echo '</td>';
 			);
 		}
 
-		$hook_tax = add_submenu_page(
-			$parent_slug,
-			__('Tassonomia', 'archivio-micologico'),
-			self::get_submenu_label('dashicons-networking', __('Tassonomia', 'archivio-micologico')),
-			'manage_terms',
-			'am_classificazione',
-			'__return_null'
-		);
-		if ($hook_tax) {
-			self::register_load_redirect(
-				(string) $hook_tax,
-				'classificazione',
-				admin_url('edit-tags.php?taxonomy=' . AM_TAX_CLASSIFICAZIONE . '&post_type=' . AM_CPT),
-				function() { return (current_user_can('manage_terms') || current_user_can('manage_options')) || current_user_can('manage_options'); },
-				__('Non hai il permesso di accedere a questa pagina.', 'archivio-micologico')
-			);
-		}
-
-		add_submenu_page(
-			$parent_slug,
-			__('Vocabolari', 'archivio-micologico'),
-			self::get_submenu_label('dashicons-book-alt', __('Vocabolari', 'archivio-micologico')),
-			'manage_terms',
-			'am_vocabolari',
-			[__CLASS__, 'render_vocabolari_page']
-		);
-
 		add_submenu_page(
 			$parent_slug,
 			__('Impostazioni', 'archivio-micologico'),
@@ -725,6 +507,21 @@ echo '</td>';
 			'am_info_versione',
 			[__CLASS__, 'render_info_version_page']
 		);
+	}
+
+	public static function highlight_menu($parent_file) {
+		$screen = function_exists('get_current_screen') ? get_current_screen() : null;
+		if ($screen && $screen->post_type === AM_CPT && in_array($screen->base, ['edit', 'post'], true)) {
+			global $submenu_file;
+			$submenu_file = 'am_dashboard';
+			return 'am_dashboard';
+		}
+		if ($screen && $screen->base === 'edit-tags' && $screen->taxonomy === AM_TAX_CLASSIFICAZIONE) {
+			global $submenu_file;
+			$submenu_file = 'am_classificazione';
+			return 'am_dashboard';
+		}
+		return $parent_file;
 	}
 
 	public static function tweak_submenu_labels(): void {
@@ -872,34 +669,31 @@ public static function apply_admin_post_filters($query) {
 		register_setting('am_settings', 'am_random_widget_autoplay', ['sanitize_callback' => function($v){ return ((int) $v) === 1 ? 1 : 0; }]);
 		register_setting('am_settings', 'am_random_widget_interval', ['sanitize_callback' => function($v){ $v = (int) $v; return max(2, min(20, $v)); }]);
 		register_setting('am_settings', 'am_random_widget_visible', ['sanitize_callback' => function($v){ $v = (int) $v; return max(1, min(3, $v)); }]);
-add_settings_section('am_main', __('Generali', 'archivio-micologico'), function () {
-			echo '<p>' . esc_html__('Configurazione di base per l\'inserimento front-end.', 'archivio-micologico') . '</p>';
-		}, 'am_settings');
+// 1.6.18: grouped by what they control. AdminPages::settings() prints the cards.
+		foreach (AdminPages::setting_sections() as $section_id => [$section_title]) {
+			add_settings_section($section_id, $section_title, '__return_false', 'am_settings');
+		}
 
-		add_settings_section('am_recent_entries', __('Ultime schede pubblicate', 'archivio-micologico'), '__return_empty_string', 'am_settings');
-		add_settings_field('am_recent_entries_count', __('Numero di schede da mostrare', 'archivio-micologico'), static function () {
+		add_settings_field('am_recent_entries_count', __('Ultime schede in archivio', 'archivio-micologico'), static function () {
 			$count = max(0, min(20, (int) get_option('am_recent_entries_count', 5)));
 			echo '<input type="number" min="0" max="20" id="am_recent_entries_count" name="am_recent_entries_count" value="' . esc_attr((string) $count) . '" aria-describedby="am_recent_entries_count_help" />';
 			echo '<p class="description" id="am_recent_entries_count_help">' . esc_html__('Scegli quante schede mostrare, fino a 20. Imposta 0 per nascondere il pannello nell’archivio.', 'archivio-micologico') . '</p>';
-		}, 'am_settings', 'am_recent_entries', ['label_for' => 'am_recent_entries_count']);
+		}, 'am_settings', 'am_display', ['label_for' => 'am_recent_entries_count']);
 
-		add_settings_section('am_widget_random', __('Widget schede casuali', 'archivio-micologico'), function () {
-			echo '<p>' . esc_html__('Impostazioni predefinite del widget/carosello e dello shortcode [am_random_funghi].', 'archivio-micologico') . '</p>';
-		}, 'am_settings');
 
-		add_settings_field('am_random_widget_title', __('Titolo predefinito widget', 'archivio-micologico'), function () {
+		add_settings_field('am_random_widget_title', __('Titolo', 'archivio-micologico'), function () {
 			$val = (string) get_option('am_random_widget_title', '');
 			echo '<input type="text" class="regular-text" name="am_random_widget_title" value="' . esc_attr($val) . '" />';
 			echo '<p class="description">' . esc_html__('Titolo usato dal widget se non ne imposti uno manualmente nella singola area widget.', 'archivio-micologico') . '</p>';
 		}, 'am_settings', 'am_widget_random');
 
-		add_settings_field('am_random_widget_count', __('Numero schede da mostrare', 'archivio-micologico'), function () {
+		add_settings_field('am_random_widget_count', __('Schede caricate', 'archivio-micologico'), function () {
 			$val = (int) get_option('am_random_widget_count', 5);
 			echo '<input type="number" min="1" max="12" name="am_random_widget_count" value="' . esc_attr((string) $val) . '" />';
 			echo '<p class="description">' . esc_html__('Quante schede fungo casuali caricare nel carosello, da 1 a 12. Per avere sempre la griglia piena, usa un multiplo del numero di righe.', 'archivio-micologico') . '</p>';
 		}, 'am_settings', 'am_widget_random');
 
-		add_settings_field('am_random_widget_visible', __('Immagini visibili contemporaneamente', 'archivio-micologico'), function () {
+		add_settings_field('am_random_widget_visible', __('Schede per riga', 'archivio-micologico'), function () {
 			$val = (int) get_option('am_random_widget_visible', 3);
 			echo '<input type="number" min="1" max="3" name="am_random_widget_visible" value="' . esc_attr((string) $val) . '" />';
 			echo '<p class="description">' . esc_html__('Numero di schede per riga su desktop. Su schermi stretti il carosello si adatta a una o due colonne.', 'archivio-micologico') . '</p>';
@@ -916,26 +710,26 @@ add_settings_section('am_main', __('Generali', 'archivio-micologico'), function 
 			echo '<label><input type="checkbox" name="am_random_widget_autoplay" value="1" ' . checked(1, $val, false) . ' /> ' . esc_html__('Attiva lo scorrimento automatico del carosello', 'archivio-micologico') . '</label>';
 		}, 'am_settings', 'am_widget_random');
 
-		add_settings_field('am_random_widget_interval', __('Velocità autoplay (secondi)', 'archivio-micologico'), function () {
+		add_settings_field('am_random_widget_interval', __('Intervallo (secondi)', 'archivio-micologico'), function () {
 			$val = (int) get_option('am_random_widget_interval', 4);
 			echo '<input type="number" min="2" max="20" name="am_random_widget_interval" value="' . esc_attr((string) $val) . '" />';
 			echo '<p class="description">' . esc_html__('Intervallo tra uno scorrimento e il successivo. Valori bassi = carosello più veloce.', 'archivio-micologico') . '</p>';
 		}, 'am_settings', 'am_widget_random');
 
 		// Debug toggle (sempre visibile in Generali)
-		add_settings_field('am_enable_debug_panel', __('Mostra pannello debug', 'archivio-micologico'), function () {
+		add_settings_field('am_enable_debug_panel', __('Pannello debug', 'archivio-micologico'), function () {
 	$val = (int) get_option('am_enable_debug_panel', 0);
-	echo '<label><input type="checkbox" name="am_enable_debug_panel" value="1" ' . checked(1, $val, false) . ' /> ' . esc_html__('Mostra i pannelli di debug nella pagina Impostazioni', 'archivio-micologico') . '</label>';
+	echo '<label><input type="checkbox" name="am_enable_debug_panel" value="1" ' . checked(1, $val, false) . ' /> ' . esc_html__('Mostra il log degli ultimi eventi in questa pagina', 'archivio-micologico') . '</label>';
 	echo '<p class="description">' . esc_html__('Il log viene sempre salvato nel database. Attiva questa opzione per visualizzarlo in pagina (consigliato solo in caso di problemi).', 'archivio-micologico') . '</p>';
-}, 'am_settings', 'am_main');
+}, 'am_settings', 'am_tools');
 
 
-		add_settings_field('am_require_login', __('Richiedi login', 'archivio-micologico'), function () {
+		add_settings_field('am_require_login', __('Accesso al modulo', 'archivio-micologico'), function () {
 			$val = (int) get_option('am_require_login', 1);
 			echo '<label><input type="checkbox" name="am_require_login" value="1" ' . checked(1, $val, false) . ' /> ' . esc_html__('Richiedi il login prima di mostrare il modulo; l’invio resta riservato ad Amministratore ed Editore', 'archivio-micologico') . '</label>';
-		}, 'am_settings', 'am_main');
+		}, 'am_settings', 'am_entry');
 
-		add_settings_field('am_default_status', __('Stato predefinito nuove schede', 'archivio-micologico'), function () {
+		add_settings_field('am_default_status', __('Stato delle nuove schede', 'archivio-micologico'), function () {
 			$val = (string) get_option('am_default_status', 'pending');
 			$options = [
 				'pending' => __('In revisione (pending)', 'archivio-micologico'),
@@ -948,9 +742,9 @@ add_settings_section('am_main', __('Generali', 'archivio-micologico'), function 
 				echo '<option value="' . esc_attr($k) . '" ' . selected($k, $val, false) . '>' . esc_html($label) . '</option>';
 			}
 			echo '</select>';
-		}, 'am_settings', 'am_main');
+		}, 'am_settings', 'am_entry');
 
-		add_settings_field('am_articles_order', __('Ordinamento Articoli (Archivio)', 'archivio-micologico'), function () {
+		add_settings_field('am_articles_order', __('Ordine degli articoli', 'archivio-micologico'), function () {
 			$val = (string) get_option('am_articles_order', 'date');
 			$opts = [
 				'date' => __('Data (più recenti prima)', 'archivio-micologico'),
@@ -962,24 +756,24 @@ add_settings_section('am_main', __('Generali', 'archivio-micologico'), function 
 			}
 			echo '</select>';
 			echo '<p class="description">' . esc_html__('Controlla l’ordine di visualizzazione della sezione Articoli in [am_archive].', 'archivio-micologico') . '</p>';
-		}, 'am_settings', 'am_main');
+		}, 'am_settings', 'am_display');
 
 
-		add_settings_field('am_max_upload_mb', __('Limite upload immagini (MB)', 'archivio-micologico'), function () {
+		add_settings_field('am_max_upload_mb', __('Peso massimo immagini (MB)', 'archivio-micologico'), function () {
 			$val = (int) get_option('am_max_upload_mb', 5);
 			echo '<input type="number" min="1" max="50" name="am_max_upload_mb" value="' . esc_attr($val) . '" />';
 			echo '<p class="description">' . esc_html__('Limite per le nuove immagini caricate dai moduli AM. Restano validi i limiti del server; i file già presenti non vengono modificati.', 'archivio-micologico') . '</p>';
-		}, 'am_settings', 'am_main');
+		}, 'am_settings', 'am_entry');
 
-		add_settings_field('am_single_show_title', __('Titolo interno della scheda fungo', 'archivio-micologico'), function () {
+		add_settings_field('am_single_show_title', __('Titolo dentro la scheda', 'archivio-micologico'), function () {
 			$show = (int) get_option('am_single_show_title', 1);
 			echo '<input type="hidden" name="am_single_show_title" value="0">';
 			echo '<label><input type="checkbox" name="am_single_show_title" value="1" ' . checked(1, $show, false) . '> ';
 			echo esc_html__('Mostra il titolo all’interno della scheda', 'archivio-micologico') . '</label>';
 			echo '<p class="description">' . esc_html__('Togli la spunta se il tema mostra già il titolo sopra il contenuto.', 'archivio-micologico') . '</p>';
-		}, 'am_settings', 'am_main');
+		}, 'am_settings', 'am_display');
 
-		add_settings_field('am_edit_page_id', __('Pagina modifica schede (front-end)', 'archivio-micologico'), function () {
+		add_settings_field('am_edit_page_id', __('Pagina di modifica', 'archivio-micologico'), function () {
 			$val = (int) get_option('am_edit_page_id', 0);
 			$pages = get_pages(['sort_column' => 'post_title', 'sort_order' => 'ASC']);
 			echo '<select name="am_edit_page_id">';
@@ -989,259 +783,41 @@ add_settings_section('am_main', __('Generali', 'archivio-micologico'), function 
 			}
 			echo '</select>';
 			echo '<p class="description">' . esc_html__('Seleziona la pagina che contiene lo shortcode [am_edit_form]. Serve per generare il pulsante “Modifica” nella scheda fungo.', 'archivio-micologico') . '</p>';
-		}, 'am_settings', 'am_main');
+		}, 'am_settings', 'am_entry');
 	
 
-		add_settings_field('am_show_submit_result_admin', __('Mostra esito invio (gestori AM)', 'archivio-micologico'), function () {
+		add_settings_field('am_show_submit_result_admin', __('Riepilogo dopo l’invio', 'archivio-micologico'), function () {
 			$val = (int) get_option('am_show_submit_result_admin', 1);
 			echo '<label><input type="checkbox" name="am_show_submit_result_admin" value="1" ' . checked(1, $val, false) . ' /> ' . esc_html__('Mostra il box “Esito invio” ad Amministratore ed Editore nel form front-end', 'archivio-micologico') . '</label>';
-		}, 'am_settings', 'am_main');
+		}, 'am_settings', 'am_entry');
 
-		add_settings_field('am_submit_result_ttl', __('Durata esito invio (secondi)', 'archivio-micologico'), function () {
+		add_settings_field('am_submit_result_ttl', __('Durata del riepilogo (secondi)', 'archivio-micologico'), function () {
 			$val = (int) get_option('am_submit_result_ttl', 20);
 			
 		
 echo '<input type="number" min="0" max="600" name="am_submit_result_ttl" value="' . esc_attr($val) . '" />';
 			echo '<p class="description">' . esc_html__('0 = non nascondere automaticamente. Valore consigliato: 20.', 'archivio-micologico') . '</p>';
-		}, 'am_settings', 'am_main');
+		}, 'am_settings', 'am_entry');
+
+		add_settings_field('am_seo_mode', __('Meta SEO delle schede', 'archivio-micologico'), function () {
+			$mode = (string) get_option('am_seo_mode', 'auto');
+			echo '<select id="am_seo_mode" name="am_seo_mode">';
+			foreach ([
+				'auto' => __('Automatico (consigliato): li genera solo se non c’è un plugin SEO', 'archivio-micologico'),
+				'force' => __('Sempre: li genera anche con un plugin SEO attivo', 'archivio-micologico'),
+				'off' => __('Mai: li gestisce un altro plugin', 'archivio-micologico'),
+			] as $value => $label) {
+				echo '<option value="' . esc_attr($value) . '" ' . selected($mode, $value, false) . '>' . esc_html($label) . '</option>';
+			}
+			echo '</select>';
+			echo '<p class="description">' . esc_html__('Con Yoast, Rank Math, SEOPress o All in One SEO attivi, Automatico evita meta description, canonical e JSON-LD doppi.', 'archivio-micologico') . '</p>';
+		}, 'am_settings', 'am_seo', ['label_for' => 'am_seo_mode']);
 
 
 }
 
 	public static function render_dashboard_page(): void {
-		if (!current_user_can(AM_CAP_EDIT_POSTS)) {
-			wp_die(esc_html__('Non hai il permesso di accedere a questa pagina.', 'archivio-micologico'));
-		}
-
-		$fungi_counts = wp_count_posts(AM_CPT);
-		$article_counts = wp_count_posts(AM_ARTICLE_CPT);
-		$total_fungi = $fungi_counts ? (int) ($fungi_counts->publish ?? 0) : 0;
-		$total_articles = $article_counts ? (int) ($article_counts->publish ?? 0) : 0;
-		$basidio = term_exists('Basidiomycota', AM_TAX_CLASSIFICAZIONE);
-		$ascomy = term_exists('Ascomycota', AM_TAX_CLASSIFICAZIONE);
-		$basidio_count = 0;
-		$ascomy_count = 0;
-		if (is_array($basidio) && !empty($basidio['term_id'])) {
-			$basidio_count = self::count_posts_in_taxonomy_branch((int) $basidio['term_id']);
-		}
-		if (is_array($ascomy) && !empty($ascomy['term_id'])) {
-			$ascomy_count = self::count_posts_in_taxonomy_branch((int) $ascomy['term_id']);
-		}
-		$recent_fungi = get_posts([
-			'post_type' => AM_CPT,
-			'post_status' => ['publish','draft','pending','private'],
-			'numberposts' => 5,
-			'orderby' => 'date',
-			'order' => 'DESC',
-		]);
-		$fungi_author_counts = self::get_fungi_author_counts();
-
-		echo '<div class="wrap">';
-		echo '<style>
-		.am-dashboard{max-width:1240px;margin-top:18px;}
-		.am-dashboard-hero{display:grid;grid-template-columns:minmax(180px,240px) 1fr;align-items:center;gap:28px;background:linear-gradient(135deg,#ffffff 0%,#f5f7f4 100%);border:1px solid #d7ddd4;border-radius:18px;padding:24px 28px;box-shadow:0 2px 10px rgba(0,0,0,.03);}
-		.am-dashboard-hero__logo{display:flex;flex-direction:column;align-items:center;justify-content:center;background:#fff;border:1px solid #e3e7e1;border-radius:16px;padding:16px;min-height:170px;}
-		.am-dashboard-hero__logo img{display:block;max-width:100%;max-height:170px;width:auto;height:auto;}
-		.am-dashboard-hero__body{min-width:280px;}
-		.am-dashboard-hero__meta{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:12px;}
-		.am-dashboard-hero__eyebrow{display:inline-block;padding:6px 11px;border-radius:999px;background:#edf7ed;color:#166534;font-size:12px;font-weight:700;letter-spacing:.03em;text-transform:uppercase;margin:0;}
-		.am-dashboard-hero__version{display:inline-block;font-size:16px;line-height:1.2;color:#50575e;font-weight:600;}.am-dashboard-hero__version--under-logo{display:block;margin-top:10px;font-size:13px;color:#64748b;text-align:center;}
-		.am-dashboard-hero h1{margin:0 0 10px;font-size:34px;line-height:1.12;color:#1d2327;}
-		.am-dashboard-hero p{margin:0;color:#50575e;font-size:15px;max-width:760px;line-height:1.55;}
-		.am-dashboard-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px;margin:18px 0 22px;}
-		.am-dashboard-card{display:block;text-decoration:none;color:inherit;background:#fff;border:1px solid #dcdcde;border-radius:16px;padding:18px 18px 16px;box-shadow:0 1px 2px rgba(0,0,0,.02);transition:transform .12s ease,box-shadow .12s ease,border-color .12s ease;}
-		.am-dashboard-card:hover{transform:translateY(-1px);box-shadow:0 6px 16px rgba(0,0,0,.06);border-color:#c3c4c7;}
-		.am-dashboard-card__label{font-size:13px;color:#50575e;margin-bottom:10px;font-weight:600;}
-		.am-dashboard-card__value{font-size:40px;line-height:1;font-weight:700;color:#1d2327;}
-		.am-dashboard-panels{display:grid;grid-template-columns:minmax(340px,1.45fr) minmax(280px,1fr);gap:18px;align-items:start;}
-		.am-dashboard-main{display:grid;gap:18px;align-self:start;}
-		.am-dashboard-side{display:grid;gap:18px;align-self:start;}
-		.am-dashboard-panel{background:#fff;border:1px solid #dcdcde;border-radius:16px;padding:22px;box-shadow:0 1px 2px rgba(0,0,0,.02);}
-		.am-dashboard-panel h2{margin:0 0 14px;font-size:20px;line-height:1.2;color:#1d2327;}
-		.am-dashboard-recent{margin:0;padding:0;list-style:none;}
-		.am-dashboard-recent li{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;padding:11px 0;border-top:1px solid #f0f0f1;}
-		.am-dashboard-recent li:first-child{border-top:0;padding-top:0;}
-		.am-dashboard-recent a{text-decoration:none;font-weight:600;line-height:1.4;}
-		.am-dashboard-recent a:hover{text-decoration:underline;}
-		.am-dashboard-recent__status{flex:0 0 auto;color:#646970;white-space:nowrap;font-size:12px;background:#f6f7f7;border:1px solid #e2e4e7;border-radius:999px;padding:4px 8px;}
-
-		.am-dashboard-authors{margin:0;padding:0;list-style:none;display:grid;gap:10px;}
-		.am-dashboard-authors li{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:10px 12px;border:1px solid #eef0f1;border-radius:12px;background:#fafbfb;}
-		.am-dashboard-authors__name{font-weight:600;color:#1d2327;line-height:1.35;}
-		.am-dashboard-authors__count{flex:0 0 auto;min-width:34px;text-align:center;font-size:13px;font-weight:700;color:#166534;background:#edf7ed;border:1px solid #cfe7d1;border-radius:999px;padding:4px 10px;}
-		.am-dashboard-authors-note{margin:10px 0 0;color:#646970;font-size:12px;line-height:1.45;}
-		.am-dashboard-actions{display:grid;grid-template-columns:1fr;gap:10px;}
-		.am-dashboard-actions .button{justify-content:center;min-height:42px;padding:0 14px;display:inline-flex;align-items:center;border-radius:10px;}
-		.am-dashboard-note{margin-top:10px;color:#646970;font-size:12px;line-height:1.45;}
-		.am-dashboard-panel--credits{padding-top:20px;}
-		.am-dashboard-credits{margin-top:0;padding-top:0;border-top:0;}
-		.am-dashboard-credits__item{margin:0 0 12px;}
-		.am-dashboard-credits__label{display:flex;align-items:center;gap:8px;margin:0 0 4px;font-size:12px;font-weight:700;letter-spacing:.03em;text-transform:uppercase;color:#646970;}
-		.am-dashboard-credits__label .dashicons{font-size:16px;width:16px;height:16px;color:#50575e;}
-		.am-dashboard-credits__value{margin:0 0 0 24px;font-size:14px;line-height:1.45;color:#1d2327;font-weight:600;}
-		.am-dashboard-credits__value a{text-decoration:none;}
-		.am-dashboard-credits__value a:hover{text-decoration:underline;}
-		@media (max-width: 1100px){.am-dashboard-grid{grid-template-columns:repeat(2,minmax(0,1fr));}}
-		@media (max-width: 960px){.am-dashboard-hero{grid-template-columns:1fr;padding:22px;}.am-dashboard-hero__logo{max-width:240px;justify-self:center;}.am-dashboard-panels{grid-template-columns:1fr;}.am-dashboard-side{grid-template-columns:1fr;}}
-		@media (max-width: 640px){.am-dashboard-grid{grid-template-columns:1fr;}.am-dashboard-panel{padding:18px;}.am-dashboard-card__value{font-size:34px;}}
-		.am-vocab-actions{display:flex;align-items:center;gap:8px;flex-wrap:nowrap;white-space:nowrap;}.am-vocab-actions form{display:inline-block;margin:0;}.am-vocab-actions .button,.am-vocab-actions .button-link-delete{margin:0 !important;}.am-vocab-table th:last-child,.am-vocab-table td:last-child{white-space:nowrap;width:240px;}.am-vocab-table .button-small{min-width:auto;}</style>';
-		$dashboard_logo = AM_URL . 'assets/img/mycolibrary-logo.png';
-		echo '<div class="am-dashboard">';
-		echo '<section class="am-dashboard-hero">';
-		echo '<div class="am-dashboard-hero__logo">';
-		echo '<img src="' . esc_url($dashboard_logo) . '" alt="' . esc_attr__('MycoLibrary', 'archivio-micologico') . '">';
-		echo '<div class="am-dashboard-hero__version am-dashboard-hero__version--under-logo">v' . esc_html(AM_VERSION) . '</div>';
-		echo '</div>';
-		echo '<div class="am-dashboard-hero__body">';
-		echo '<div class="am-dashboard-hero__meta">';
-		echo '<span class="am-dashboard-hero__eyebrow">' . esc_html__('Pannello di controllo', 'archivio-micologico') . '</span>';
-		echo '</div>';
-		echo '<h1>' . esc_html__('Archivio Micologico · Dashboard', 'archivio-micologico') . '</h1>';
-		echo '<p>' . esc_html__('Vista rapida dello stato dell’archivio, con conteggi delle schede pubblicate e collegamenti diretti alle funzioni più usate.', 'archivio-micologico') . '</p>';
-		echo '</div>';
-		echo '</section>';
-		echo '<div class="am-dashboard-grid">';
-		self::render_dashboard_card(__('Schede totali', 'archivio-micologico'), (string) $total_fungi, admin_url('edit.php?post_type=' . AM_CPT));
-		self::render_dashboard_card(__('Basidiomycota', 'archivio-micologico'), (string) $basidio_count, admin_url('edit-tags.php?taxonomy=' . AM_TAX_CLASSIFICAZIONE . '&post_type=' . AM_CPT));
-		self::render_dashboard_card(__('Ascomycota', 'archivio-micologico'), (string) $ascomy_count, admin_url('edit-tags.php?taxonomy=' . AM_TAX_CLASSIFICAZIONE . '&post_type=' . AM_CPT));
-		self::render_dashboard_card(__('Articoli totali', 'archivio-micologico'), (string) $total_articles, admin_url('edit.php?post_type=' . AM_ARTICLE_CPT));
-		echo '</div>';
-		echo '<div class="am-dashboard-panels">';
-		echo '<div class="am-dashboard-main">';
-		echo '<div class="am-dashboard-panel">';
-		echo '<h2>' . esc_html__('Ultime schede', 'archivio-micologico') . '</h2>';
-		if ($recent_fungi) {
-			echo '<ul class="am-dashboard-recent">';
-			foreach ($recent_fungi as $post) {
-				$status_obj = get_post_status_object($post->post_status);
-				echo '<li>';
-				echo '<a href="' . esc_url(get_permalink($post->ID)) . '" target="_blank" rel="noopener noreferrer">' . esc_html(get_the_title($post)) . '</a>';
-				echo '<span class="am-dashboard-recent__status">' . esc_html($status_obj ? $status_obj->label : $post->post_status) . '</span>';
-				echo '</li>';
-			}
-			echo '</ul>';
-		} else {
-			echo '<p>' . esc_html__('Nessuna scheda trovata.', 'archivio-micologico') . '</p>';
-		}
-		echo '</div>';
-		echo '<div class="am-dashboard-panel">';
-		echo '<h2>' . esc_html__('Autori schede funghi', 'archivio-micologico') . '</h2>';
-		if ($fungi_author_counts) {
-			echo '<ul class="am-dashboard-authors">';
-			foreach ($fungi_author_counts as $author_item) {
-				echo '<li>';
-				echo '<span class="am-dashboard-authors__name">' . esc_html($author_item['name']) . '</span>';
-				echo '<span class="am-dashboard-authors__count">' . esc_html((string) $author_item['count']) . '</span>';
-				echo '</li>';
-			}
-			echo '</ul>';
-			echo '<p class="am-dashboard-authors-note">' . esc_html__('Conteggio calcolato sulle schede fungo pubblicate.', 'archivio-micologico') . '</p>';
-		} else {
-			echo '<p>' . esc_html__('Nessun autore trovato.', 'archivio-micologico') . '</p>';
-		}
-		echo '</div>';
-		echo '</div>';
-		echo '<div class="am-dashboard-side">';
-		echo '<div class="am-dashboard-panel">';
-		echo '<h2>' . esc_html__('Accesso rapido', 'archivio-micologico') . '</h2>';
-		echo '<div class="am-dashboard-actions">';
-		echo '<a class="button button-primary" href="' . esc_url(self::get_front_submit_page_url()) . '">' . esc_html__('Nuova Scheda', 'archivio-micologico') . '</a>';
-		echo '<a class="button" href="' . esc_url(admin_url('edit.php?post_type=' . AM_CPT)) . '">' . esc_html__('Apri Schede', 'archivio-micologico') . '</a>';
-		echo '<a class="button" href="' . esc_url(admin_url('edit-tags.php?taxonomy=' . AM_TAX_CLASSIFICAZIONE . '&post_type=' . AM_CPT)) . '">' . esc_html__('Apri Tassonomia', 'archivio-micologico') . '</a>';
-		echo '<a class="button" href="' . esc_url(admin_url('admin.php?page=am_settings')) . '">' . esc_html__('Apri Impostazioni', 'archivio-micologico') . '</a>';
-		echo '</div>';
-		echo '<p class="am-dashboard-note">' . esc_html__('I conteggi mostrano le schede pubblicate, in coerenza con l’archivio visibile nel frontend.', 'archivio-micologico') . '</p>';
-		echo '</div>';
-		echo '<div class="am-dashboard-panel am-dashboard-panel--credits">';
-		echo '<h2>' . esc_html__('Crediti', 'archivio-micologico') . '</h2>';
-		echo '<div class="am-dashboard-credits">';
-		echo '<div class="am-dashboard-credits__item">';
-		echo '<div class="am-dashboard-credits__label"><span class="dashicons dashicons-admin-users" aria-hidden="true"></span>' . esc_html__('Autore', 'archivio-micologico') . '</div>';
-		echo '<div class="am-dashboard-credits__value">Pasqualino De Marco</div>';
-		echo '</div>';
-		echo '<div class="am-dashboard-credits__item">';
-		echo '<div class="am-dashboard-credits__label"><span class="dashicons dashicons-groups" aria-hidden="true"></span>' . esc_html__('Associazione', 'archivio-micologico') . '</div>';
-		echo '<div class="am-dashboard-credits__value">Associazione Micologica Bassa Friulana</div>';
-		echo '</div>';
-		echo '<div class="am-dashboard-credits__item">';
-		echo '<div class="am-dashboard-credits__label"><span class="dashicons dashicons-admin-site-alt3" aria-hidden="true"></span>' . esc_html__('Sito web', 'archivio-micologico') . '</div>';
-		echo '<div class="am-dashboard-credits__value"><a href="https://www.micologiabf.org" target="_blank" rel="noopener noreferrer">micologiabf.org</a></div>';
-		echo '</div>';
-		echo '</div>';
-		echo '</div>';
-		echo '</div>';
-		echo '</div>';
-		echo '</div>';
-		echo '</div>';
-	}
-
-
-	private static function get_fungi_author_counts(): array {
-		global $wpdb;
-
-		$results = $wpdb->get_results($wpdb->prepare(
-			"SELECT p.post_author AS author_id, COUNT(*) AS total
-			 FROM {$wpdb->posts} p
-			 WHERE p.post_type = %s
-			   AND p.post_status = 'publish'
-			 GROUP BY p.post_author
-			 ORDER BY total DESC, author_id ASC",
-			AM_CPT
-		), ARRAY_A);
-
-		if (empty($results)) {
-			return [];
-		}
-
-		$items = [];
-		foreach ($results as $row) {
-			$author_id = isset($row['author_id']) ? (int) $row['author_id'] : 0;
-			$count = isset($row['total']) ? (int) $row['total'] : 0;
-			$name = $author_id > 0 ? get_the_author_meta('display_name', $author_id) : '';
-			if (!$name) {
-				$name = __('Autore sconosciuto', 'archivio-micologico');
-			}
-			$items[] = [
-				'author_id' => $author_id,
-				'name' => $name,
-				'count' => $count,
-			];
-		}
-
-		return $items;
-	}
-
-
-	private static function count_posts_in_taxonomy_branch(int $term_id): int {
-		if ($term_id <= 0) {
-			return 0;
-		}
-
-		$q = new \WP_Query([
-			'post_type'              => AM_CPT,
-			'post_status'            => 'publish',
-			'posts_per_page'         => 1,
-			'fields'                 => 'ids',
-			'no_found_rows'          => false,
-			'ignore_sticky_posts'    => true,
-			'update_post_meta_cache' => false,
-			'update_post_term_cache' => false,
-			'tax_query'              => [[
-				'taxonomy'         => AM_TAX_CLASSIFICAZIONE,
-				'field'            => 'term_id',
-				'terms'            => [$term_id],
-				'include_children' => true,
-			]],
-		]);
-
-		return (int) $q->found_posts;
-	}
-
-	private static function render_dashboard_card(string $label, string $value, string $url): void {
-		echo '<a href="' . esc_url($url) . '" class="am-dashboard-card">';
-		echo '<div class="am-dashboard-card__label">' . esc_html($label) . '</div>';
-		echo '<div class="am-dashboard-card__value">' . esc_html($value) . '</div>';
-		echo '</a>';
+		AdminPages::dashboard();
 	}
 
 	/** Read the bundled changelog; a missing file must never break an admin page. */
@@ -1296,6 +872,7 @@ echo '<input type="number" min="0" max="600" name="am_submit_result_ttl" value="
 			echo '<p>' . esc_html__('Nessuna voce changelog registrata per questa versione.', 'archivio-micologico') . '</p>';
 		}
 		echo '</div>';
+		self::render_shortcode_widget_audit_1_5_5();
 		echo '</div>';
 	}
 
@@ -1313,8 +890,8 @@ echo '<input type="number" min="0" max="600" name="am_submit_result_ttl" value="
 			'am_vocabolari' => __('Gestione pubblica dei vocabolari', 'archivio-micologico'),
 		];
 
-		echo '<h2 style="margin-top:24px">' . esc_html__('Audit shortcode e widget', 'archivio-micologico') . '</h2>';
-		echo '<table class="widefat striped" style="max-width:980px">';
+		echo '<h2 style="margin-top:24px">' . esc_html__('Diagnostica: shortcode e widget', 'archivio-micologico') . '</h2>';
+		echo '<table class="widefat striped" style="max-width:900px">';
 		echo '<thead><tr>';
 		echo '<th>' . esc_html__('Elemento', 'archivio-micologico') . '</th>';
 		echo '<th>' . esc_html__('Descrizione', 'archivio-micologico') . '</th>';
@@ -1347,214 +924,14 @@ echo '<input type="number" min="0" max="600" name="am_submit_result_ttl" value="
 
 
 public static function render_settings_page(): void {
-		echo '<div class="wrap">';
-		self::am_debug_add('render_settings_page', ['am_saved' => isset($_GET['am_saved']) ? 1 : 0, 'am_err' => isset($_GET['am_err']) ? sanitize_key((string)$_GET['am_err']) : '']);
 		if (function_exists('am_cleanup_legacy_roles_and_permissions')) { am_cleanup_legacy_roles_and_permissions(); }
-		self::am_debug_add('AM_PERMS_SIMPLIFIED_1_5_3', ['allowed' => ['administrator', 'editor']]);
-		self::am_debug_add('AM_CAPS_RUNTIME_CHECK_1_5_4', ['enabled' => 1]);
-
-
-$show_debug = (current_user_can('manage_options') || current_user_can(AM_CAP_MANAGE_SETTINGS)) && ((defined('WP_DEBUG') && WP_DEBUG) || ((int) get_option('am_enable_debug_panel', 0) === 1));
-
-// Debug panels (optional). Log is always stored in DB.
-$am_log = get_option('am_debug_log', []);
-if ($show_debug && is_array($am_log) && !empty($am_log)) {
-	echo '<details style="margin:10px 0;padding:10px;border:1px solid #ccd0d4;background:#fff;">';
-	echo '<summary><strong>AM DEBUG (ultimi eventi)</strong></summary>';
-	echo '<div style="max-height:220px; overflow:auto; margin-top:8px;">';
-	foreach ($am_log as $row) {
-		$time = isset($row['time']) ? date_i18n('Y-m-d H:i:s', intval($row['time'])) : '';
-		$tag  = isset($row['tag']) ? (string) $row['tag'] : '';
-		$user = isset($row['user']) ? (string) $row['user'] : '';
-		$data = isset($row['data']) ? $row['data'] : [];
-		echo '<div style="margin:0 0 8px 0;padding:6px;border-bottom:1px dashed #ddd;">';
-		echo '<code>' . esc_html($time) . '</code> <strong>' . esc_html($tag) . '</strong> — ' . esc_html($user) . '<br>';
-		echo '<code>' . esc_html(wp_json_encode($data)) . '</code>';
-		echo '</div>';
-	}
-	echo '</div></details>';
-}
-
-if (isset($_GET['am_err'])) {
-			$err = sanitize_key((string) $_GET['am_err']);
-			echo '<div class="notice notice-error"><p><strong>Salvataggio non completato</strong> (errore: ' . esc_html($err) . ').</p></div>';
-		}
-		if (isset($_GET['am_saved'])) {
-			echo '<div class="notice notice-success"><p>' . esc_html__('Impostazioni salvate.', 'archivio-micologico') . '</p></div>';
-
-
-		}
-		echo '<h1>' . esc_html__('Archivio Micologico - Impostazioni', 'archivio-micologico') . '</h1>';
-
-		echo '<form method="post" action="' . esc_url(admin_url('admin-post.php')) . '">';
-		echo '<input type="hidden" name="action" value="am_save_settings">';
-		wp_nonce_field('am_save_settings');
-
-		// Render existing sections/fields (main settings)
-		do_settings_sections('am_settings');
-		echo '<p class="description" style="margin-top:8px;max-width:900px">' . esc_html__('Le impostazioni del widget valgono sia per il widget WordPress sia, come default, per lo shortcode [am_random_funghi]. Lo shortcode può comunque sovrascrivere numero, titolo, immagini per riga, righe, autoplay e intervallo.', 'archivio-micologico') . '</p>';
-
-
-		// 1.5.0: fixed permissions summary. No AM custom profiles and no role matrix.
-		echo '<h2 style="margin-top:24px">' . esc_html__('Permessi Archivio Micologico', 'archivio-micologico') . '</h2>';
-		echo '<div class="notice notice-info inline" style="max-width:980px;padding:12px 14px;">';
-		echo '<p><strong>' . esc_html__('Permessi semplificati attivi', 'archivio-micologico') . '</strong></p>';
-		echo '<p>' . esc_html__('Il plugin non usa più profili AM personalizzati né una matrice ruoli configurabile.', 'archivio-micologico') . '</p>';
-		echo '<ul style="list-style:disc;margin-left:20px">';
-		echo '<li>' . esc_html__('Amministratore: accesso completo a schede, articoli, tassonomie, media, impostazioni e strumenti.', 'archivio-micologico') . '</li>';
-		echo '<li>' . esc_html__('Editore: normali permessi WordPress + gestione completa Archivio Micologico.', 'archivio-micologico') . '</li>';
-		echo '<li>' . esc_html__('Altri ruoli: nessuna gestione AM dal front-end o dal back-end.', 'archivio-micologico') . '</li>';
-		echo '</ul>';
-		echo '<p class="description">' . esc_html__('Le vecchie opzioni ruoli vengono normalizzate automaticamente e gli eventuali ruoli AM legacy vengono rimossi. Il controllo runtime delle capability Admin/Editore è attivo.', 'archivio-micologico') . '</p>';
-		echo '</div>';
-
-
-		self::render_shortcode_widget_audit_1_5_5();
-
-
-		echo '<h2 style="margin-top:24px">' . esc_html__('SEO schede fungo', 'archivio-micologico') . '</h2>';
-		$am_seo_mode = (string) get_option('am_seo_mode', 'auto');
-		echo '<table class="form-table" role="presentation">';
-		echo '<tr>';
-		echo '<th scope="row">' . esc_html__('Meta SEO automatici AM', 'archivio-micologico') . '</th>';
-		echo '<td>';
-		echo '<select name="am_seo_mode">';
-		echo '<option value="auto" ' . selected($am_seo_mode, 'auto', false) . '>' . esc_html__('Automatico: disattiva AM se è attivo un plugin SEO', 'archivio-micologico') . '</option>';
-		echo '<option value="force" ' . selected($am_seo_mode, 'force', false) . '>' . esc_html__('Forza meta SEO AM', 'archivio-micologico') . '</option>';
-		echo '<option value="off" ' . selected($am_seo_mode, 'off', false) . '>' . esc_html__('Disattiva meta SEO AM', 'archivio-micologico') . '</option>';
-		echo '</select>';
-		echo '<p class="description">' . esc_html__('La modalità consigliata è Automatico. Se Yoast, Rank Math, SEOPress o All in One SEO sono attivi, Archivio Micologico evita duplicati di meta description, canonical e JSON-LD.', 'archivio-micologico') . '</p>';
-		echo '</td>';
-		echo '</tr>';
-		echo '</table>';
-
-
-		submit_button();
-		echo '</form>';
-
-		// Tools (separate forms - avoid nested forms issues)
-		echo '<hr style="margin:24px 0">';
-		echo '<h2>' . esc_html__('Strumenti', 'archivio-micologico') . '</h2>';
-		echo '<h3>' . esc_html__('Debug', 'archivio-micologico') . '</h3>';
-		self::render_clear_debug_log_tool();
-
-		echo '</div>';
+		AdminPages::settings();
 	}
 
-	
-	private static function render_admin_permissions_table_1_5_8(): void {
-		$rows = [
-			[
-				'role' => __('Amministratore', 'archivio-micologico'),
-				'admin_access' => __('Sì', 'archivio-micologico'),
-				'fungi' => __('Gestione completa', 'archivio-micologico'),
-				'articles' => __('Gestione completa', 'archivio-micologico'),
-				'taxonomies' => __('Può creare, modificare e assegnare classificazioni', 'archivio-micologico'),
-				'media' => __('Accesso completo alla Libreria Media, immagini, gallerie e PDF', 'archivio-micologico'),
-				'settings' => __('Sì', 'archivio-micologico'),
-			],
-			[
-				'role' => __('Editore', 'archivio-micologico'),
-				'admin_access' => __('Sì', 'archivio-micologico'),
-				'fungi' => __('Gestione completa AM', 'archivio-micologico'),
-				'articles' => __('Gestione completa AM', 'archivio-micologico'),
-				'taxonomies' => __('Può creare, modificare e assegnare classificazioni', 'archivio-micologico'),
-				'media' => __('Accesso completo alla Libreria Media, immagini, gallerie e PDF', 'archivio-micologico'),
-				'settings' => __('Sì, per le impostazioni AM', 'archivio-micologico'),
-			],
-			[
-				'role' => __('Altri ruoli WordPress', 'archivio-micologico'),
-				'admin_access' => __('No', 'archivio-micologico'),
-				'fungi' => __('Non autorizzati', 'archivio-micologico'),
-				'articles' => __('Non autorizzati', 'archivio-micologico'),
-				'taxonomies' => __('Non autorizzati', 'archivio-micologico'),
-				'media' => __('Solo eventuali permessi WordPress propri, non gestione AM', 'archivio-micologico'),
-				'settings' => __('No', 'archivio-micologico'),
-			],
-		];
-
-		echo '<h2>' . esc_html__('Permessi lato admin Archivio Micologico', 'archivio-micologico') . '</h2>';
-		echo '<p>' . esc_html__('Dalla linea 1.5.x il plugin usa solo i ruoli WordPress standard Amministratore ed Editore per la gestione AM. I vecchi profili AM personalizzati non sono più utilizzati.', 'archivio-micologico') . '</p>';
-		echo '<table class="widefat striped" style="max-width:1200px;margin:12px 0 24px;">';
-		echo '<thead><tr>';
-		echo '<th>' . esc_html__('Ruolo WordPress', 'archivio-micologico') . '</th>';
-		echo '<th>' . esc_html__('Accesso admin AM', 'archivio-micologico') . '</th>';
-		echo '<th>' . esc_html__('Schede fungo', 'archivio-micologico') . '</th>';
-		echo '<th>' . esc_html__('Articoli AM', 'archivio-micologico') . '</th>';
-		echo '<th>' . esc_html__('Classificazioni', 'archivio-micologico') . '</th>';
-		echo '<th>' . esc_html__('Media / PDF / Gallerie', 'archivio-micologico') . '</th>';
-		echo '<th>' . esc_html__('Impostazioni AM', 'archivio-micologico') . '</th>';
-		echo '</tr></thead><tbody>';
-
-		foreach ($rows as $row) {
-			echo '<tr>';
-			echo '<td><strong>' . esc_html($row['role']) . '</strong></td>';
-			echo '<td>' . esc_html($row['admin_access']) . '</td>';
-			echo '<td>' . esc_html($row['fungi']) . '</td>';
-			echo '<td>' . esc_html($row['articles']) . '</td>';
-			echo '<td>' . esc_html($row['taxonomies']) . '</td>';
-			echo '<td>' . esc_html($row['media']) . '</td>';
-			echo '<td>' . esc_html($row['settings']) . '</td>';
-			echo '</tr>';
-		}
-
-		echo '</tbody></table>';
-		echo '<p class="description">' . esc_html__('Nota: il controllo runtime delle capability mantiene allineati Amministratore ed Editore e rimuove eventuali vecchie capability AM dagli altri ruoli.', 'archivio-micologico') . '</p>';
+	public static function render_instructions_page(): void {
+		AdminPages::instructions();
 	}
 
-
-public static function render_instructions_page(): void {
-
-		// Access control
-		if (!current_user_can(AM_CAP_EDIT_POSTS)) {
-			wp_die(esc_html__('Non hai i permessi per visualizzare questa pagina.', 'archivio-micologico'));
-		}
-
-		echo '<div class="wrap">';
-		self::am_debug_add('render_instructions_page', []);
-		echo '<h1>' . esc_html__('Archivio Micologico – Istruzioni', 'archivio-micologico') . '</h1>';
-		self::render_admin_permissions_table_1_5_8();
-
-
-		echo '<p><strong>' . esc_html__('Versione plugin:', 'archivio-micologico') . '</strong> <code>' . esc_html(AM_VERSION) . '</code></p>';
-
-		echo '<h2>' . esc_html__('Configurazione delle pagine', 'archivio-micologico') . '</h2>';
-		echo '<p>' . esc_html__('Con Anna Weather, modifica la pagina nell’editor a blocchi di WordPress, aggiungi un blocco Shortcode e incolla lo shortcode della funzione desiderata.', 'archivio-micologico') . '</p>';
-		echo '<ul>';
-		echo '<li><code>[am_archive]</code> – ' . esc_html__('Albero delle classificazioni, ricerca live e ultime schede pubblicate.', 'archivio-micologico') . '</li>';
-		echo '<li><code>[am_archive_filters]</code> – ' . esc_html__('Filtri per divisione, famiglia, genere e specie.', 'archivio-micologico') . '</li>';
-		echo '<li><code>[am_search_page]</code> – ' . esc_html__('Pagina di ricerca con risultati paginati.', 'archivio-micologico') . '</li>';
-		echo '<li><code>[am_submit_form]</code> – ' . esc_html__('Modulo guidato per inserire una scheda fungo.', 'archivio-micologico') . '</li>';
-		echo '<li><code>[am_edit_form]</code> – ' . esc_html__('Modulo guidato per modificare una scheda fungo.', 'archivio-micologico') . '</li>';
-		echo '<li><code>[am_article_form]</code> – ' . esc_html__('Modulo per inserire articoli con immagini, galleria e PDF.', 'archivio-micologico') . '</li>';
-		echo '<li><code>[am_random_funghi]</code> – ' . esc_html__('Carosello di schede fungo casuali.', 'archivio-micologico') . '</li>';
-		echo '</ul>';
-
-		echo '<h2>' . esc_html__('Archivio e ricerca', 'archivio-micologico') . '</h2>';
-		echo '<p>' . esc_html__('L’archivio organizza le schede in un albero con quattro livelli: Divisione, Famiglia, Genere e Specie. Per mostrare anche i filtri, inserisci [am_archive_filters] sopra [am_archive] nella stessa pagina.', 'archivio-micologico') . '</p>';
-		echo '<p>' . esc_html__('La ricerca live, la pagina dedicata e il caricamento dei risultati successivi cercano in titoli, contenuti, autore, forma o varietà e tassonomie. I risultati includono contenuti pubblicati senza password.', 'archivio-micologico') . '</p>';
-		echo '<p>' . esc_html__('In Impostazioni → Ultime schede pubblicate scegli quante schede mostrare (5 per impostazione predefinita, fino a 20). Imposta 0 per nascondere il pannello. Per aprirlo dal menu di Anna Weather, aggiungi #ultime-schede all’indirizzo della pagina Archivio.', 'archivio-micologico') . '</p>';
-
-		echo '<h2>' . esc_html__('Inserimento, modifica e revisione', 'archivio-micologico') . '</h2>';
-		echo '<p>' . esc_html__('Usa [am_submit_form] nella pagina Nuovo inserimento e [am_edit_form] in una pagina dedicata alla modifica. In Archivio Micologico → Impostazioni seleziona quest’ultima in Pagina modifica schede (front-end). Il pulsante Modifica scheda compare per chi può modificare la scheda.', 'archivio-micologico') . '</p>';
-		echo '<p>' . esc_html__('Segui i passaggi Classificazione, Descrizioni, Media e allegati e Controllo finale. Per creare una scheda scegli Invia scheda. Per aggiornare una scheda esistente scegli Salva modifiche. Se l’invio restituisce un avviso, leggi il messaggio nel modulo.', 'archivio-micologico') . '</p>';
-		echo '<p>' . esc_html__('Amministratore ed Editore possono usare Salva revisione sulle schede che hanno il permesso di modificare. Il pulsante registra il revisore e la data e l’ora della revisione.', 'archivio-micologico') . '</p>';
-		echo '<p>' . esc_html__('Se Anna Weather mostra già il titolo nel template della scheda, disattiva Mostra il titolo all’interno della scheda nelle impostazioni del plugin.', 'archivio-micologico') . '</p>';
-
-		echo '<h2>' . esc_html__('Carosello delle schede casuali', 'archivio-micologico') . '</h2>';
-		echo '<p>' . esc_html__('Con Anna Weather inserisci [am_random_funghi] in un blocco Shortcode. Nei temi che dispongono di aree widget puoi anche usare Archivio Micologico – Schede casuali.', 'archivio-micologico') . '</p>';
-		echo '<p>' . esc_html__('Lo shortcode accetta numero (1–12), titolo, visibili (1–3 colonne su desktop), righe (1–4), autoplay (0 o 1) e intervallo (2–20 secondi). I parametri omessi ereditano le impostazioni del plugin.', 'archivio-micologico') . '</p>';
-		echo '<pre><code>[am_random_funghi numero="6" visibili="3" righe="2" autoplay="1" intervallo="4"]</code></pre>';
-
-		echo '<h2>' . esc_html__('Se il modulo non funziona', 'archivio-micologico') . '</h2>';
-		echo '<p>' . esc_html__('Verifica che la pagina usi il blocco Shortcode e che l’utente abbia il ruolo e i permessi necessari. Se il problema è comparso dopo un aggiornamento, svuota la cache e riprova.', 'archivio-micologico') . '</p>';
-		echo '<p>' . esc_html__('Se il problema persiste, attiva Mostra pannello debug nelle Impostazioni del plugin e consulta la sezione Debug. Per problemi con i controlli multimediali, verifica anche gli errori nella console del browser.', 'archivio-micologico') . '</p>';
-
-		echo '</div>';
-	}
-
-	
-	
 	private static function apply_role_caps(array $roles_create, array $roles_edit, int $allow_edit_others = 0): void {
 		am_ensure_admin_editor_caps_runtime();
 	}
@@ -1701,7 +1078,7 @@ public static function render_clear_debug_log_tool(): void {
 	echo '</form>';
 
 	if (!$enabled) {
-		echo '<p class="description" style="margin-top:6px"><em>' . esc_html__('Nota: il pannello “AM DEBUG” è nascosto. Per visualizzarlo, abilita “Mostra pannello debug” nella sezione Generali.', 'archivio-micologico') . '</em></p>';
+		echo '<p class="description" style="margin-top:6px"><em>' . esc_html__('Nota: il pannello “AM DEBUG” è nascosto. Per visualizzarlo, abilita “Pannello debug” nella sezione Manutenzione.', 'archivio-micologico') . '</em></p>';
 	}
 }
 
