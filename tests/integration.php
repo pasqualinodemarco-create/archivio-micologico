@@ -247,7 +247,7 @@ try {
             $checks['neighbours'] = $prev === $a && $next === $post_id && $pos === 2 && $total === 3;
             $checks['book_ends'] = ArchivioMicologico\BookNav::neighbours($a)[0] === 0 && ArchivioMicologico\BookNav::neighbours($post_id)[1] === 0;
             $html = ArchivioMicologico\BookNav::markup($b);
-            $checks['arrows'] = str_contains($html, 'rel="prev"') && str_contains($html, 'rel="next"') && str_contains($html, '2 di 3') && str_contains($html, 'am-backward');
+            $checks['arrows'] = str_contains($html, 'rel="prev"') && str_contains($html, 'rel="next"') && str_contains($html, '1 di 3') && str_contains($html, '3 di 3') && str_contains($html, 'am-backward');
             $c = $make('Aaa newest', $terms[1]);
             $checks['cache_refreshed'] = ArchivioMicologico\BookNav::order()[1] === $c;
             wp_update_post(['ID' => $c, 'post_status' => 'draft']);
