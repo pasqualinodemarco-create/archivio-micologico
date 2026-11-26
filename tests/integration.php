@@ -110,7 +110,7 @@ register_shutdown_function(function() use (&$checks, &$error, &$redirects, &$plu
                 $checks['archive_lists_article'] = str_contains($archive, 'id="articoli"') && str_contains($archive, 'Articolo di prova') && str_contains($archive, 'Sommario breve.') && str_contains($archive, 'am-archive-entry__pdf');
                 $GLOBALS['post'] = $article;
                 $single = (new ReflectionMethod('ArchivioMicologico\\Frontend', 'render_article_single'))->invoke(null, '<p>Testo.</p>');
-                $checks['single_article'] = str_contains($single, 'Articolo scientifico') && str_contains($single, 'Monografie') && str_contains($single, 'am-article-abstract') && str_contains($single, 'am-entry-section--pdf') && str_contains($single, 'am-entry-gallery');
+                $checks['single_article'] = str_contains($single, 'Articolo scientifico') && str_contains($single, 'Monografie') && str_contains($single, 'am-article-abstract') && str_contains($single, 'am-entry-section--pdf') && str_contains($single, 'am-entry-gallery') && str_contains($single, 'am-lightbox-item') && str_contains($single, 'am-article-figure');
             }
         }
     } elseif ($kind === 'duplicates') {

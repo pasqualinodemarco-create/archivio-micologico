@@ -5,7 +5,7 @@ Tags: fungi, mycology, taxonomy, scientific archive, biodiversity, search
 Requires at least: 6.0
 Tested up to: 7.1
 Requires PHP: 8.0
-Stable tag: 1.6.21
+Stable tag: 1.6.22
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -65,6 +65,11 @@ Sì. Il plugin è sviluppato e testato con PHP 8+.
 4. Tooltip informativo con logo e crediti
 
 == Changelog ==
+
+= 1.6.22 =
+* Galleria delle schede e degli articoli: ogni foto si apre di nuovo ingrandita a schermo intero, con frecce e tasti per scorrerle (il collegamento delle immagini al visualizzatore era andato perso).
+* Pagina dell’articolo: mostra l’immagine di anteprima sotto il sommario e non ripete la data già indicata dal tema.
+* SEO degli articoli: l’immagine di anteprima è usata per le condivisioni sui social e la meta description viene presa dal sommario (o dall’inizio del testo).
 
 = 1.6.21 =
 * Sfoglia le schede come un libro: due grandi frecce fisse ai lati della pagina portano alla scheda precedente e successiva, nell’ordine dell’archivio (divisione, famiglia, nome scientifico). Passandoci sopra mostrano il nome della scheda e la posizione (es. 12 di 199); funzionano anche i tasti ← e →.
