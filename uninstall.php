@@ -26,6 +26,22 @@ $options = [
 	'am_random_widget_visible',
 	'am_debug_log',
 	'am_caps_runtime_checked_1_5_4',
+	'am_single_show_title',
+	'am_random_widget_rows',
+	'am_article_status',
+	'am_archive_articles',
+	'am_sitemap_images',
+	'am_sitemap_images_version',
+	'am_book_nav',
+	'am_book_effect',
+	'am_book_speed',
+	'am_book_order',
+	'am_page_archive',
+	'am_page_submit',
+	'am_page_article',
+	'am_page_taxonomy',
+	'am_page_vocab',
+	'am_page_search',
 ];
 foreach ($options as $option) {
 	delete_option($option);
@@ -75,3 +91,4 @@ foreach ($legacy_roles as $role) {
 
 // --- Remove transients ---
 delete_transient('am_last_saved_perms');
+delete_transient('am_book_order');

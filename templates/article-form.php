@@ -43,8 +43,10 @@ if (isset($_GET['am_error'])) {
   ];
   $am_code = sanitize_key((string) $_GET['am_error']);
   $am_notice = '<div class="am-notice am-notice--error" role="alert">' . esc_html($am_errors[$am_code] ?? __('Si è verificato un errore durante l’invio. Riprova.', 'archivio-micologico')) . '</div>';
-} elseif (($_GET['am_submitted'] ?? '') === '1' && is_user_logged_in()) {
+} elseif (($_GET['am_submitted'] ?? '') === '1' && is_user_logged_in() && (int) get_option('am_show_submit_result_admin', 1) === 1) {
   $am_last = get_user_meta(get_current_user_id(), 'am_last_submit', true);
+  $am_ttl = (int) get_option('am_submit_result_ttl', 20);
+  if (is_array($am_last) && $am_ttl > 0 && time() - (int) ($am_last['ts'] ?? 0) > $am_ttl) { $am_last = null; }
   $am_id = absint($_GET['am_post_id'] ?? 0);
   if ($am_id && is_array($am_last) && !empty($am_last['ok']) && absint($am_last['post_id'] ?? 0) === $am_id && get_post_type($am_id) === AM_ARTICLE_CPT) {
     $am_published = get_post_status($am_id) === 'publish';

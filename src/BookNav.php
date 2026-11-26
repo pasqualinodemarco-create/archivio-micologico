@@ -6,12 +6,13 @@ if (!defined('ABSPATH')) { exit; }
 
 /**
  * Leaf through the schede like a book: two large arrows fixed on the sides of the page, in the
- * order of the archive (division, family, scientific name), with a page-turn transition between
+ * order chosen in the settings (by default the archive's: division, family, scientific name), with a page-turn transition between
  * schede (cross-document View Transitions; browsers without support simply change page).
  */
 final class BookNav {
 	private const CACHE = 'am_book_order';
 	public const EFFECTS = ['libro', 'scorrimento', 'dissolvenza', 'nessuno'];
+	public const ORDERS = ['archivio', 'alfabetico', 'recenti'];
 
 	public static function init(): void {
 		add_action('wp_head', [self::class, 'head'], 1);
@@ -34,6 +35,11 @@ final class BookNav {
 		return in_array($effect, self::EFFECTS, true) ? $effect : 'libro';
 	}
 
+	public static function order_mode(): string {
+		$mode = (string) get_option('am_book_order', 'archivio');
+		return in_array($mode, self::ORDERS, true) ? $mode : 'archivio';
+	}
+
 	public static function speed(): int {
 		return max(200, min(1500, (int) get_option('am_book_speed', 650)));
 	}
@@ -45,9 +51,19 @@ final class BookNav {
 
 		global $wpdb;
 		$rows = $wpdb->get_results($wpdb->prepare(
-			"SELECT ID, post_title FROM {$wpdb->posts} WHERE post_type = %s AND post_status = 'publish' AND post_password = ''",
+			"SELECT ID, post_title, post_date FROM {$wpdb->posts} WHERE post_type = %s AND post_status = 'publish' AND post_password = ''",
 			AM_CPT
 		), ARRAY_A) ?: [];
+		$mode = self::order_mode();
+		if ($mode !== 'archivio') {
+			usort($rows, static function ($a, $b) use ($mode) {
+				$c = $mode === 'recenti' ? strcmp($b['post_date'], $a['post_date']) : strnatcasecmp($a['post_title'], $b['post_title']);
+				return $c !== 0 ? $c : ((int) $a['ID'] <=> (int) $b['ID']);
+			});
+			$order = array_map(static fn($r) => (int) $r['ID'], $rows);
+			set_transient(self::CACHE, $order, 12 * HOUR_IN_SECONDS);
+			return $order;
+		}
 		$ids = array_map(static fn($r) => (int) $r['ID'], $rows);
 		update_meta_cache('post', $ids);
 		$term_ids = [];

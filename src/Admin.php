@@ -712,6 +712,7 @@ public static function apply_admin_post_filters($query) {
 		add_settings_field('am_random_widget_autoplay', __('Movimento automatico', 'archivio-micologico'), function () {
 			$val = (int) get_option('am_random_widget_autoplay', 1);
 			echo '<label><input type="checkbox" name="am_random_widget_autoplay" value="1" ' . checked(1, $val, false) . ' /> ' . esc_html__('Attiva lo scorrimento automatico del carosello', 'archivio-micologico') . '</label>';
+			echo '<p class="description">' . esc_html__('Si ferma quando il visitatore passa sopra con il mouse e per chi ha scelto di ridurre le animazioni. Nello shortcode: autoplay="0" o "1".', 'archivio-micologico') . '</p>';
 		}, 'am_settings', 'am_widget_random');
 
 		add_settings_field('am_random_widget_interval', __('Intervallo (secondi)', 'archivio-micologico'), function () {
@@ -730,22 +731,24 @@ public static function apply_admin_post_filters($query) {
 
 		add_settings_field('am_require_login', __('Accesso al modulo', 'archivio-micologico'), function () {
 			$val = (int) get_option('am_require_login', 1);
-			echo '<label><input type="checkbox" name="am_require_login" value="1" ' . checked(1, $val, false) . ' /> ' . esc_html__('Richiedi il login prima di mostrare il modulo; l’invio resta riservato ad Amministratore ed Editore', 'archivio-micologico') . '</label>';
+			echo '<label><input type="checkbox" name="am_require_login" value="1" ' . checked(1, $val, false) . ' /> ' . esc_html__('Ai visitatori non collegati i moduli mostrano il link per accedere', 'archivio-micologico') . '</label>';
+			echo '<p class="description">' . esc_html__('Vale per Nuovo inserimento, Modifica scheda e Nuovo articolo. In ogni caso solo Amministratori ed Editori possono inviare.', 'archivio-micologico') . '</p>';
 		}, 'am_settings', 'am_entry');
 
 		add_settings_field('am_default_status', __('Stato delle nuove schede', 'archivio-micologico'), function () {
 			$val = (string) get_option('am_default_status', 'pending');
 			$options = [
-				'pending' => __('In revisione (pending)', 'archivio-micologico'),
-				'draft' => __('Bozza (draft)', 'archivio-micologico'),
-				'publish' => __('Pubblicato (publish)', 'archivio-micologico'),
-				'private' => __('Privato (private)', 'archivio-micologico'),
+				'publish' => __('Pubblicata subito', 'archivio-micologico'),
+				'pending' => __('In attesa di revisione', 'archivio-micologico'),
+				'draft' => __('Bozza', 'archivio-micologico'),
+				'private' => __('Privata', 'archivio-micologico'),
 			];
-			echo '<select name="am_default_status">';
+			echo '<select id="am_default_status" name="am_default_status">';
 			foreach ($options as $k => $label) {
 				echo '<option value="' . esc_attr($k) . '" ' . selected($k, $val, false) . '>' . esc_html($label) . '</option>';
 			}
 			echo '</select>';
+			echo '<p class="description">' . esc_html__('Pubblicata: visibile subito nell’archivio. In attesa di revisione: compare nella Dashboard e va pubblicata da un Editore. Bozza e Privata: visibili solo a chi gestisce l’archivio.', 'archivio-micologico') . '</p>';
 		}, 'am_settings', 'am_entry');
 
 		add_settings_field('am_articles_order', __('Ordine nell’archivio', 'archivio-micologico'), function () {
@@ -809,8 +812,21 @@ public static function apply_admin_post_filters($query) {
 			echo '<input type="hidden" name="am_book_nav" value="0">';
 			echo '<label><input type="checkbox" name="am_book_nav" value="1" ' . checked(1, (int) get_option('am_book_nav', 1), false) . '> ';
 			echo esc_html__('Frecce grandi ai lati della scheda per passare alla precedente o alla successiva', 'archivio-micologico') . '</label>';
-			echo '<p class="description">' . esc_html__('Ordine dell’archivio: divisione, famiglia, nome scientifico. Funzionano anche con i tasti ← e → della tastiera.', 'archivio-micologico') . '</p>';
+			echo '<p class="description">' . esc_html__('Funzionano anche con i tasti ← e → della tastiera. Su telefono le frecce sono più piccole e senza etichetta.', 'archivio-micologico') . '</p>';
 		}, 'am_settings', 'am_book');
+
+		add_settings_field('am_book_order', __('Ordine delle pagine', 'archivio-micologico'), function () {
+			$order = \ArchivioMicologico\BookNav::order_mode();
+			echo '<select id="am_book_order" name="am_book_order">';
+			foreach ([
+				'archivio' => __('Come l’archivio: divisione, famiglia, nome scientifico', 'archivio-micologico'),
+				'alfabetico' => __('Alfabetico per nome scientifico', 'archivio-micologico'),
+				'recenti' => __('Dalla più recente alla più vecchia', 'archivio-micologico'),
+			] as $value => $label) {
+				echo '<option value="' . esc_attr($value) . '" ' . selected($order, $value, false) . '>' . esc_html($label) . '</option>';
+			}
+			echo '</select><p class="description">' . esc_html__('Decide quale scheda è la precedente e quale la successiva. Sono incluse solo le schede pubblicate.', 'archivio-micologico') . '</p>';
+		}, 'am_settings', 'am_book', ['label_for' => 'am_book_order']);
 
 		add_settings_field('am_book_effect', __('Effetto di transizione', 'archivio-micologico'), function () {
 			$effect = (string) get_option('am_book_effect', 'libro');
@@ -857,7 +873,8 @@ public static function apply_admin_post_filters($query) {
 
 		add_settings_field('am_show_submit_result_admin', __('Riepilogo dopo l’invio', 'archivio-micologico'), function () {
 			$val = (int) get_option('am_show_submit_result_admin', 1);
-			echo '<label><input type="checkbox" name="am_show_submit_result_admin" value="1" ' . checked(1, $val, false) . ' /> ' . esc_html__('Mostra il box “Esito invio” ad Amministratore ed Editore nel form front-end', 'archivio-micologico') . '</label>';
+			echo '<label><input type="checkbox" name="am_show_submit_result_admin" value="1" ' . checked(1, $val, false) . ' /> ' . esc_html__('Dopo l’invio mostra il riquadro di conferma con i pulsanti Apri e Modifica', 'archivio-micologico') . '</label>';
+			echo '<p class="description">' . esc_html__('Vale per Nuovo inserimento e Nuovo articolo. Gli errori vengono mostrati sempre.', 'archivio-micologico') . '</p>';
 		}, 'am_settings', 'am_entry');
 
 		add_settings_field('am_submit_result_ttl', __('Durata del riepilogo (secondi)', 'archivio-micologico'), function () {
@@ -1111,7 +1128,12 @@ wp_safe_redirect(add_query_arg(['page' => 'am_settings', 'am_err' => 'caps'], ad
 			if ($book_nav === '0' || $book_nav === '1') {
 				update_option('am_book_nav', (int) $book_nav);
 			}
-			$book_effect = isset($_POST['am_book_effect']) ? sanitize_key((string) $_POST['am_book_effect']) : '';
+			$book_order = isset($_POST['am_book_order']) ? sanitize_key((string) $_POST['am_book_order']) : '';
+			if (in_array($book_order, \ArchivioMicologico\BookNav::ORDERS, true)) {
+				update_option('am_book_order', $book_order);
+				\ArchivioMicologico\BookNav::flush();
+			}
+						$book_effect = isset($_POST['am_book_effect']) ? sanitize_key((string) $_POST['am_book_effect']) : '';
 			if (in_array($book_effect, \ArchivioMicologico\BookNav::EFFECTS, true)) {
 				update_option('am_book_effect', $book_effect);
 			}

@@ -607,7 +607,8 @@ function amShowNotice(type, message){
 			var next = carousel.querySelector('[data-am-carousel-next]');
 			var index = 0;
 			var timer = null;
-			var autoplayEnabled = carousel.getAttribute('data-am-autoplay') === '1';
+			var autoplayEnabled = carousel.getAttribute('data-am-autoplay') === '1'
+				&& !(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
 			var intervalSeconds = parseInt(carousel.getAttribute('data-am-interval') || '4', 10);
 			var configuredVisible = parseInt(carousel.getAttribute('data-am-visible') || '3', 10);
 
