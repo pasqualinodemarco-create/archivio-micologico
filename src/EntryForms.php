@@ -737,7 +737,6 @@ echo '</div>';
 		else { wp_set_object_terms($post_id, [], AM_TAX_AUTHOR, false); }
 
 		// Images.
-		if ($featured_id) { set_post_thumbnail($post_id, $featured_id); } else { delete_post_thumbnail($post_id); }
 		update_post_meta($post_id, 'am_gallery_ids', $gallery_ids);
 		if ($pdf_id) { update_post_meta($post_id, 'am_pdf_id', $pdf_id); } else { delete_post_meta($post_id, 'am_pdf_id'); }
 
@@ -817,6 +816,8 @@ echo '</div>';
 			'post_excerpt' => $excerpt,
 			'post_content' => wp_kses_post($content),
 			'post_author' => get_current_user_id(),
+			// Saved with the post, so SEO plugins indexing it on save already see the image.
+			'meta_input' => $featured_id && wp_attachment_is_image($featured_id) ? ['_thumbnail_id' => $featured_id] : [],
 		], true);
 
 		if (is_wp_error($post_id) || !$post_id) {

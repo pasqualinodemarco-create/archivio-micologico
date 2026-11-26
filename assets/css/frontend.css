@@ -1718,3 +1718,10 @@ html.am-lightbox-open .am-book { display: none; }
 @media print {
   .am-book { display: none; }
 }
+
+/* 1.6.22 - Galleria: ogni foto si apre ingrandita (lightbox) */
+a.am-entry-gallery__item { display: block; cursor: zoom-in; }
+a.am-entry-gallery__item:focus-visible { outline: 3px solid #225744; outline-offset: 3px; }
+.am-article-figure { margin: 0 0 26px; }
+.am-article-figure__img { display: block; width: 100%; height: auto; border-radius: 12px; box-shadow: 0 1px 10px rgba(0, 0, 0, .08); }
+.am-article-figure .am-entry-caption { margin-top: 6px; color: #3d4852; }

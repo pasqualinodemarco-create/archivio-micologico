@@ -77,6 +77,7 @@ class Frontend {
 		add_action('template_redirect', [__CLASS__, 'start_social_preview_head_buffer_1_5_40'], 0);
 		// Priority 6: canonical + meta description + keywords + JSON-LD for single schede.
 		add_action('wp_head', [__CLASS__, 'render_seo_base_meta'], 6);
+		add_filter('wpseo_metadesc', [__CLASS__, 'article_metadesc']);
 		// Priority 6: canonical + meta description + JSON-LD for pages with AM shortcodes.
 		add_action('wp_head', [__CLASS__, 'render_shortcode_pages_seo_meta'], 6);
 
@@ -596,7 +597,16 @@ $macro_html = '';
 			return $breadcrumb_html . $title_heading_html . $title_html . $edit_link_html . $featured_html . $pdf_html . $macro_html . $macro_micro_html . $notes_html . $gallery_html . $entry_nav_bottom;
 	}
 
-	/** Scientific article: categories, author and date, text, PDF and gallery, link back to the archive. */
+	/** Yoast has no description template for articles: use the summary, or the start of the text. */
+	public static function article_metadesc($desc) {
+		if (trim((string) $desc) !== '' || !is_singular(AM_ARTICLE_CPT)) { return $desc; }
+		$post = get_queried_object();
+		if (!$post instanceof WP_Post) { return $desc; }
+		$text = has_excerpt($post) ? (string) $post->post_excerpt : wp_strip_all_tags(strip_shortcodes((string) $post->post_content));
+		return wp_html_excerpt(trim((string) preg_replace('/\s+/', ' ', $text)), 155, '…');
+	}
+
+	/** Scientific article: categories, author, summary, image, text, PDF and gallery, link back to the archive. */
 	private static function render_article_single(string $content): string {
 		global $post;
 		if (!$post || $post->post_type !== AM_ARTICLE_CPT) {
@@ -617,7 +627,6 @@ $macro_html = '';
 			/* translators: %s: article author. */
 			$bits[] = '<span>' . esc_html(sprintf(__('Testo di %s', 'archivio-micologico'), $author)) . '</span>';
 		}
-		$bits[] = '<time datetime="' . esc_attr(get_the_date(DATE_W3C, $post)) . '">' . esc_html(get_the_date('', $post)) . '</time>';
 
 		$out = '<div class="am-article">';
 		$out .= '<p class="am-article-meta"><span class="am-article-meta__kind">' . esc_html__('Articolo scientifico', 'archivio-micologico') . '</span>' . implode('<span class="am-article-meta__sep" aria-hidden="true">·</span>', $bits) . '</p>';
@@ -626,6 +635,12 @@ $macro_html = '';
 		}
 		if (has_excerpt($post)) {
 			$out .= '<p class="am-article-abstract">' . esc_html(get_the_excerpt($post)) . '</p>';
+		}
+		$thumb_id = (int) get_post_thumbnail_id($post);
+		if ($thumb_id) {
+			$cap = trim((string) preg_replace('/[<>]/u', '', (string) wp_get_attachment_caption($thumb_id)));
+			$out .= '<figure class="am-article-figure">' . wp_get_attachment_image($thumb_id, 'large', false, ['class' => 'am-article-figure__img', 'loading' => 'eager'])
+				. ($cap !== '' ? '<figcaption class="am-entry-caption">' . esc_html($cap) . '</figcaption>' : '') . '</figure>';
 		}
 		$out .= '<div class="am-article-body">' . $content . '</div>';
 		$out .= $pdf_html;
@@ -673,7 +688,7 @@ $macro_html = '';
 				$cap = preg_replace('/[<>]/u', '', $cap);
 				$cap = trim($cap);
 				$items .= '<figure class="am-entry-gallery__figure" style="text-align:left !important;">'
-					. '<div class="am-entry-gallery__item">' . $img . '</div>'
+					. '<a class="am-entry-gallery__item am-lightbox-item" href="' . esc_url($url) . '" aria-label="' . esc_attr__('Ingrandisci l’immagine', 'archivio-micologico') . '">' . $img . '</a>'
 					. ($cap !== '' ? '<figcaption class="am-entry-caption" style="display:block !important;width:100% !important;text-align:left !important;direction:ltr !important;margin:6px 0 0 !important;">' . esc_html($cap) . '</figcaption>' : '')
 					. '</figure>';
 			}
