@@ -5,7 +5,7 @@ Tags: fungi, mycology, taxonomy, scientific archive, biodiversity, search
 Requires at least: 6.0
 Tested up to: 7.1
 Requires PHP: 8.0
-Stable tag: 1.6.25
+Stable tag: 1.6.26
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -65,6 +65,13 @@ Sì. Il plugin è sviluppato e testato con PHP 8+.
 4. Tooltip informativo con logo e crediti
 
 == Changelog ==
+
+= 1.6.26 =
+* Impostazioni: ogni controllo ha ora la sua descrizione; stati delle nuove schede con etichette in italiano (Pubblicata subito, In attesa di revisione, Bozza, Privata) e spiegazione di cosa comportano.
+* Sfoglia le schede: nuova scelta dell’ordine delle pagine (come l’archivio, alfabetico, dalla più recente).
+* Il riquadro di conferma dopo l’invio e la sua durata valgono ora anche per Nuovo articolo.
+* Carosello: il movimento automatico si ferma per chi ha scelto di ridurre le animazioni nel sistema.
+* Disinstallazione: vengono rimosse anche le impostazioni aggiunte nelle ultime versioni (le schede e gli articoli restano).
 
 = 1.6.25 =
 * Impostazioni → Pagine del plugin: accanto a ogni selettore lo shortcode della pagina con il pulsante Copia shortcode, da incollare in un blocco Shortcode.

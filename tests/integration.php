@@ -306,6 +306,10 @@ try {
             $checks['effects'] = str_contains(ArchivioMicologico\BookNav::effect_css('libro', 650), 'am-book-turn 650ms')
                 && str_contains(ArchivioMicologico\BookNav::effect_css('scorrimento', 400), '@view-transition')
                 && ArchivioMicologico\BookNav::effect_css('nessuno', 650) === '' && ArchivioMicologico\BookNav::effect_css('bogus', 650) === '';
+            update_option('am_book_order', 'alfabetico'); ArchivioMicologico\BookNav::flush();
+            $checks['alphabetical_order'] = ArchivioMicologico\BookNav::order() === [$b, $post_id, $a];
+            update_option('am_book_order', 'bogus');
+            $checks['invalid_order_falls_back'] = ArchivioMicologico\BookNav::order_mode() === 'archivio';
             update_option('am_book_speed', 99999);
             $checks['speed_clamped'] = ArchivioMicologico\BookNav::speed() === 1500;
             break;
@@ -451,7 +455,7 @@ try {
             $dash = $render([AM_Admin::class, 'render_dashboard_page']);
             $checks['dashboard_rendered'] = str_contains($dash, 'Copertura tassonomica') && str_contains($dash, 'Controllo qualità dei dati') && str_contains($dash, 'post_status=pending') && str_contains($dash, 'Orphan scheda');
             $settings = $render([AM_Admin::class, 'render_settings_page']);
-            foreach (['am_require_login','am_default_status','am_max_upload_mb','am_edit_page_id','am_show_submit_result_admin','am_submit_result_ttl','am_enable_debug_panel','am_seo_mode','am_articles_order','am_recent_entries_count','am_single_show_title','am_random_widget_title','am_random_widget_count','am_random_widget_visible','am_random_widget_rows','am_random_widget_autoplay','am_random_widget_interval','am_book_nav','am_book_effect','am_book_speed','am_article_status','am_archive_articles','am_sitemap_images','am_page_archive','am_page_submit','am_page_article','am_page_taxonomy','am_page_vocab','am_page_search'] as $field) {
+            foreach (['am_require_login','am_default_status','am_max_upload_mb','am_edit_page_id','am_show_submit_result_admin','am_submit_result_ttl','am_enable_debug_panel','am_seo_mode','am_articles_order','am_recent_entries_count','am_single_show_title','am_random_widget_title','am_random_widget_count','am_random_widget_visible','am_random_widget_rows','am_random_widget_autoplay','am_random_widget_interval','am_book_nav','am_book_effect','am_book_speed','am_article_status','am_archive_articles','am_sitemap_images','am_page_archive','am_page_submit','am_page_article','am_page_taxonomy','am_page_vocab','am_page_search','am_book_order'] as $field) {
                 $checks['settings_field_' . $field] = substr_count($settings, 'name="' . $field . '"') >= 1;
             }
             $checks['settings_single_form'] = substr_count($settings, 'value="am_save_settings"') === 1;
