@@ -902,7 +902,7 @@ function amShowNotice(type, message){
   }
 
   ready(function(){
-    if(!document.getElementById('am-main-form')){ return; }
+    if(!document.getElementById('am-main-form') && !document.getElementById('am-article-form')){ return; }
 
     ['am_featured_id','am_gallery_ids','am_pdf_id'].forEach(function(id){
       var el = document.getElementById(id);
@@ -1350,4 +1350,40 @@ function amShowNotice(type, message){
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', initWizard);
   else initWizard();
+})();
+
+
+/* 1.6.20 - Nuovo articolo: riepilogo dello stato nel pannello laterale */
+(function(){
+  function ready(fn){ if(document.readyState !== 'loading'){ fn(); } else { document.addEventListener('DOMContentLoaded', fn); } }
+  ready(function(){
+    var form = document.getElementById('am-article-form');
+    if(!form){ return; }
+    function value(id){ var el = document.getElementById(id); return el ? String(el.value || '').trim() : ''; }
+    function text(){
+      var ed = window.tinymce && window.tinymce.get ? window.tinymce.get('am_content') : null;
+      if(ed && !ed.isHidden()){ return String(ed.getContent({ format: 'text' }) || '').trim(); }
+      return value('am_content').replace(/<[^>]*>/g, '').trim();
+    }
+    function update(){
+      var checks = {
+        title: value('am_title') !== '',
+        content: text() !== '',
+        featured: Number(value('am_featured_id')) > 0,
+        gallery: value('am_gallery_ids').split(',').some(function(id){ return Number(id) > 0; }),
+        pdf: Number(value('am_pdf_id')) > 0
+      };
+      form.querySelectorAll('[data-am-check]').forEach(function(item){
+        var optional = item.hasAttribute('data-am-optional');
+        var done = !!checks[item.getAttribute('data-am-check')];
+        item.classList.toggle('is-ok', done);
+        item.classList.toggle('is-optional-ok', optional && !done);
+        item.querySelector('.am-submit-checklist__status').textContent = done ? '✓' : (optional ? '–' : '○');
+      });
+    }
+    form.addEventListener('input', update);
+    form.addEventListener('change', update);
+    window.setInterval(update, 1500);
+    update();
+  });
 })();

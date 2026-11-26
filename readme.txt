@@ -5,7 +5,7 @@ Tags: fungi, mycology, taxonomy, scientific archive, biodiversity, search
 Requires at least: 6.0
 Tested up to: 7.1
 Requires PHP: 8.0
-Stable tag: 1.6.19
+Stable tag: 1.6.20
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -65,6 +65,13 @@ Sì. Il plugin è sviluppato e testato con PHP 8+.
 4. Tooltip informativo con logo e crediti
 
 == Changelog ==
+
+= 1.6.20 =
+* Nuovo articolo con lo stesso stile del modulo Nuovo inserimento: intestazione, sezioni Testo e Immagini e allegati, riepilogo laterale, conferma con collegamenti all’articolo. Nuovo campo Sommario; il testo è obbligatorio; editor completo con titoli di sezione.
+* Archivio micologico: nuovo riquadro Articoli scientifici accanto alle Ultime schede, con anteprima, sommario, categorie, data e indicazione del PDF. Generato dal server, quindi leggibile dai motori di ricerca.
+* Pagina dell’articolo: categorie, autore e data, sommario in evidenza, allegato PDF, galleria con lightbox e ritorno all’archivio.
+* Sitemap: anche le foto della galleria degli articoli vengono comunicate a Google.
+* Nuovo inserimento: le note su anteprima e galleria indicano correttamente che sono facoltative.
 
 = 1.6.19 =
 * Sitemap XML (Yoast SEO): oltre all’immagine di anteprima, ogni scheda comunica a Google tutte le foto della galleria, comprese quelle microscopiche, con testo alternativo o didascalia. Doppioni e file non immagine esclusi.

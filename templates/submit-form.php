@@ -344,7 +344,7 @@ $am_can_add_terms = (is_user_logged_in() && (in_array('editor', $roles, true) ||
       </div>
       <div id="am_featured_preview" class="am-media-preview"></div>
       <p id="am-media-status-featured" class="am-media-status"><?php echo esc_html__('Nessuna immagine di anteprima selezionata.', 'archivio-micologico'); ?></p>
-      <p class="am-help"><?php echo esc_html__('Campo obbligatorio: seleziona un’immagine in evidenza.', 'archivio-micologico'); ?></p>
+      <p class="am-help"><?php echo esc_html__('Facoltativo: l’immagine mostrata in archivio e nelle anteprime. Puoi aggiungerla anche in seguito.', 'archivio-micologico'); ?></p>
     </div>
 
     <div class="am-field">
@@ -356,7 +356,7 @@ $am_can_add_terms = (is_user_logged_in() && (in_array('editor', $roles, true) ||
       </div>
       <div id="am_gallery_preview" class="am-media-preview am-media-preview--grid"></div>
       <p id="am-media-status-gallery" class="am-media-status"><?php echo esc_html__('Nessuna immagine in galleria selezionata.', 'archivio-micologico'); ?></p>
-      <p class="am-help"><?php echo esc_html__('Campo obbligatorio: seleziona almeno un’immagine per la galleria.', 'archivio-micologico'); ?></p>
+      <p class="am-help"><?php echo esc_html__('Facoltativo: foto macro e microscopiche della scheda. Puoi completarla anche in seguito.', 'archivio-micologico'); ?></p>
     </div>
 
     <div class="am-field">

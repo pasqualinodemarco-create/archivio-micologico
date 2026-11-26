@@ -132,7 +132,6 @@ public static function render_archive($atts = []): string {
 		echo '</div>';
 		// Search previews must appear directly under the search field.
 		echo '<div class="am-archive__results" hidden></div>';
-		echo '<div class="am-archive__articles" role="region" aria-label="' . esc_attr__('Articoli', 'archivio-micologico') . '"></div>';
 		echo '<div class="am-archive__index">';
 	echo '<section class="am-archive__classification" aria-label="' . esc_attr__('Classificazione tassonomica', 'archivio-micologico') . '">';
 	echo '<h2>' . esc_html__('Classificazione tassonomica', 'archivio-micologico') . '</h2>';
@@ -148,7 +147,10 @@ public static function render_archive($atts = []): string {
 	}
 	echo '<p class="am-archive__rank-guide">' . implode(' › ', $legend) . '</p>';
 	echo '<div class="am-archive__tree"></div></section>';
+	echo '<div class="am-archive__side">';
 	self::render_recent_archive_entries();
+	self::render_archive_articles();
+	echo '</div>';
 	echo '</div>';
 	echo '<div class="am-archive__sentinel" aria-hidden="true"></div>';
 		echo '</div>';
@@ -194,6 +196,51 @@ public static function render_archive($atts = []): string {
 		}
 
 		echo '</details>';
+	}
+
+	/** 1.6.20 - Published scientific articles, beside the latest schede (server-rendered for search engines). */
+	private static function render_archive_articles(): void {
+		$alpha = (string) get_option('am_articles_order', 'date') === 'alpha';
+		$q = new WP_Query([
+			'post_type' => AM_ARTICLE_CPT,
+			'post_status' => 'publish',
+			'has_password' => false,
+			'posts_per_page' => 50,
+			'orderby' => $alpha ? 'title' : ['date' => 'DESC', 'ID' => 'DESC'],
+			'order' => $alpha ? 'ASC' : 'DESC',
+			'ignore_sticky_posts' => true,
+			'no_found_rows' => true,
+		]);
+		if (!$q->posts) {
+			return;
+		}
+
+		echo '<details class="am-archive-branch am-archive__recent am-archive__articles-panel" id="articoli" open>';
+		echo '<summary class="am-archive-node am-archive-node--division">';
+		echo '<span class="am-archive-node__chev" aria-hidden="true">▸</span>';
+		echo '<span class="am-archive-node__label">' . esc_html__('Articoli scientifici', 'archivio-micologico') . '</span>';
+		echo '<span class="am-archive-node__count">' . esc_html(number_format_i18n(count($q->posts))) . '</span>';
+		echo '</summary><div class="am-archive-entries">';
+		foreach ($q->posts as $article) {
+			$cats = get_the_terms($article, AM_TAX_ARTICLE_CAT);
+			$meta = [];
+			if (is_array($cats) && $cats) { $meta[] = esc_html(implode(', ', wp_list_pluck($cats, 'name'))); }
+			$meta[] = '<time datetime="' . esc_attr(get_the_date(DATE_W3C, $article)) . '">' . esc_html(get_the_date('', $article)) . '</time>';
+			if ((int) get_post_meta($article->ID, 'am_pdf_id', true) > 0) { $meta[] = '<span class="am-archive-entry__pdf">PDF</span>'; }
+
+			echo '<a class="am-archive-entry am-archive-entry--article" href="' . esc_url(get_permalink($article)) . '">';
+			echo '<span class="am-archive-entry__row">';
+			$thumb = get_the_post_thumbnail($article, 'thumbnail', ['class' => 'am-archive-entry__thumb', 'alt' => '', 'loading' => 'lazy']);
+			echo $thumb !== '' ? $thumb : '<span class="am-archive-entry__thumb am-archive-entry__thumb--doc" aria-hidden="true"></span>';
+			echo '<span class="am-archive-entry__body">';
+			echo '<span class="am-archive-entry__title">' . esc_html(get_the_title($article)) . '</span>';
+			if (has_excerpt($article)) {
+				echo '<span class="am-archive-entry__excerpt">' . esc_html(wp_trim_words(get_the_excerpt($article), 22)) . '</span>';
+			}
+			echo '<span class="am-archive-entry__meta">' . implode(' · ', $meta) . '</span>';
+			echo '</span></span></a>';
+		}
+		echo '</div></details>';
 	}
 
 	/**

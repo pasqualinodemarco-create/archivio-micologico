@@ -7,7 +7,7 @@ if (!defined('ABSPATH')) { exit; }
 /**
  * Yoast SEO lists only the featured image of a scheda in its XML sitemap, because the gallery
  * (macro and microscopy photos) is stored in the am_gallery_ids meta, not in the content.
- * This adds every gallery photo, so search engines can index all the images of a scheda.
+ * This adds every gallery photo of schede and articles, so search engines can index them all.
  */
 final class SitemapImages {
 	public static function init(): void {
@@ -24,7 +24,7 @@ final class SitemapImages {
 
 	public static function add_gallery($images, $post_id) {
 		$post_id = (int) $post_id;
-		if (!is_array($images) || get_post_type($post_id) !== AM_CPT) { return $images; }
+		if (!is_array($images) || !in_array(get_post_type($post_id), [AM_CPT, AM_ARTICLE_CPT], true)) { return $images; }
 		$seen = [];
 		foreach ($images as $image) {
 			if (!empty($image['src'])) { $seen[self::key((string) $image['src'])] = true; }
@@ -49,7 +49,7 @@ final class SitemapImages {
 	/** Yoast caches sitemaps: rebuild the schede sitemap once after each plugin update. */
 	public static function refresh_cache_once(): void {
 		if (get_option('am_sitemap_images_version') === AM_VERSION) { return; }
-		if (class_exists('\WPSEO_Sitemaps_Cache')) { \WPSEO_Sitemaps_Cache::clear([AM_CPT]); }
+		if (class_exists('\WPSEO_Sitemaps_Cache')) { \WPSEO_Sitemaps_Cache::clear([AM_CPT, AM_ARTICLE_CPT]); }
 		update_option('am_sitemap_images_version', AM_VERSION, false);
 	}
 }

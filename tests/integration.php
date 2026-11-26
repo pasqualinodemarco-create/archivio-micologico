@@ -91,6 +91,28 @@ register_shutdown_function(function() use (&$checks, &$error, &$redirects, &$plu
         // Images are optional: a scheda may start with one photo, or none, and be completed later.
         $checks['submit_permission'] = ($new_id > 0) === !$denied;
         if (!$denied) { $checks['default_status'] = get_post_status($new_id) === $case['status']; }
+    } elseif ($kind === 'article') {
+        $found = get_posts(['post_type' => AM_ARTICLE_CPT, 'post_status' => 'any', 'numberposts' => 1, 'title' => 'Articolo di prova']);
+        $article = $found ? $found[0] : null;
+        $last = (string) end($redirects);
+        if (!empty($case['empty'])) {
+            $checks['empty_text_rejected'] = $article === null && str_contains($last, 'am_error=missing_content');
+        } else {
+            $checks['article_permission'] = ($article !== null) === !$denied;
+            if ($article && !$denied) {
+                $id = (int) $article->ID;
+                $checks['status_published'] = $article->post_status === 'publish';
+                $checks['excerpt_saved'] = $article->post_excerpt === 'Sommario breve.';
+                $checks['category_saved'] = wp_list_pluck((array) get_the_terms($id, AM_TAX_ARTICLE_CAT), 'name') === ['Monografie'];
+                $checks['media_saved'] = (int) get_post_thumbnail_id($id) > 0 && (int) get_post_meta($id, 'am_pdf_id', true) === $pdf && count((array) get_post_meta($id, 'am_gallery_ids', true)) === 1;
+                $checks['redirect_clean'] = str_contains($last, 'am_submitted=1') && !str_contains($last, 'am_error');
+                $archive = ArchivioMicologico\Archive::render_archive();
+                $checks['archive_lists_article'] = str_contains($archive, 'id="articoli"') && str_contains($archive, 'Articolo di prova') && str_contains($archive, 'Sommario breve.') && str_contains($archive, 'am-archive-entry__pdf');
+                $GLOBALS['post'] = $article;
+                $single = (new ReflectionMethod('ArchivioMicologico\\Frontend', 'render_article_single'))->invoke(null, '<p>Testo.</p>');
+                $checks['single_article'] = str_contains($single, 'Articolo scientifico') && str_contains($single, 'Monografie') && str_contains($single, 'am-article-abstract') && str_contains($single, 'am-entry-section--pdf') && str_contains($single, 'am-entry-gallery');
+            }
+        }
     } elseif ($kind === 'duplicates') {
         $raw = (string) ($GLOBALS['am_test_json'] ?? '');
         $json = json_decode(trim(substr($raw, (int) strpos($raw, '{'))), true);
@@ -155,7 +177,7 @@ register_shutdown_function(function() use (&$checks, &$error, &$redirects, &$plu
     // Expected permission/nonce rejections are ordinary test outcomes; undefined callbacks are never allowed.
     $checks['no_plugin_warnings'] = count($plugin_warnings) === 0;
     $checks['no_php_fatal'] = !($fatal && in_array($fatal['type'], [E_ERROR,E_PARSE,E_COMPILE_ERROR], true));
-    if (!$denied && in_array($kind,['update','settings','submit','info','info_missing','changelog_parser','admin_pages','sitemap_images'],true)) { $checks['completed_without_exception'] = $error === null; }
+    if (!$denied && in_array($kind,['update','settings','submit','info','info_missing','changelog_parser','admin_pages','sitemap_images','article'],true)) { $checks['completed_without_exception'] = $error === null; }
     echo "\nAMTEST:" . json_encode(['case'=>$case,'checks'=>$checks,'error'=>$error,'warnings'=>$plugin_warnings,'redirects'=>$redirects,'output'=>substr($output,0,600)]) . "\n";
 });
 try {
@@ -206,6 +228,15 @@ try {
                 $_POST['am_gallery_ids'] = $media === 'full' ? (string) wp_insert_attachment(['post_title'=>'Galleria','post_mime_type'=>'image/jpeg','post_status'=>'inherit'], 'test-gallery.jpg') : '';
             }
             AM_Frontend::handle_submit(); break;
+        case 'article':
+            update_option('am_default_status', 'publish');
+            $cat = wp_insert_term('Monografie', AM_TAX_ARTICLE_CAT);
+            $plate = (int) wp_insert_attachment(['post_title' => 'Tavola', 'post_mime_type' => 'image/jpeg', 'post_status' => 'inherit'], '2026/01/tavola.jpg');
+            $_POST = ['am_nonce' => wp_create_nonce('am_submit_fungo'), 'am_title' => 'Articolo di prova', 'am_excerpt' => 'Sommario breve.',
+                'am_content' => empty($case['empty']) ? '<h2>Metodi</h2><p>Testo dell’articolo.</p>' : '<p>&nbsp;</p>',
+                'am_article_cats' => [(string) $cat['term_id']], 'am_featured_id' => (string) $plate, 'am_gallery_ids' => (string) $plate, 'am_pdf_id' => (string) $pdf];
+            $_SERVER['HTTP_REFERER'] = home_url('/nuovo-articolo/?am_error=missing_title');
+            AM_Frontend::handle_submit_article(); break;
         case 'duplicates':
             // Behave as a real admin-ajax request: wp_send_json then ends through the (throwing) wp_die handler.
             add_filter('wp_doing_ajax', '__return_true');

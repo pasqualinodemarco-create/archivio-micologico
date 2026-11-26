@@ -120,8 +120,8 @@ class Frontend {
 		$should_load = $for_carousel || is_active_widget(false, false, 'am_widget_random_funghi');
 		$needs_editor_media = false;
 
-		// Load assets on single "Scheda Fungo" to support gallery lightbox.
-		if (is_singular(AM_CPT)) {
+		// Load assets on single schede and articles to support the gallery lightbox.
+		if (is_singular([AM_CPT, AM_ARTICLE_CPT])) {
 			$should_load = true;
 		}
 
@@ -487,6 +487,9 @@ private static function get_entry_navigation_bar_html_1_5_44(int $post_id, strin
 	}
 
 public static function filter_single_content(string $content): string {
+		if (!is_admin() && is_singular(AM_ARTICLE_CPT) && in_the_loop() && is_main_query()) {
+			return self::render_article_single($content);
+		}
 		if (is_admin() || !is_singular(AM_CPT) || !in_the_loop() || !is_main_query()) {
 			return $content;
 		}
@@ -560,7 +563,85 @@ public static function filter_single_content(string $content): string {
 			$featured_html .= '</figure>';
 		}
 
-		$gallery_ids = get_post_meta($post->ID, 'am_gallery_ids', true);
+		[$gallery_html, $pdf_html] = self::entry_media_html((int) $post->ID);
+
+		// Microscopia (meta am_macro_micro): se presente, mostra la sezione e consente il relativo badge/indicatore.
+		$macro_micro = (string) get_post_meta($post->ID, 'am_macro_micro', true);
+		$macro_micro_html = '';
+		if (trim($macro_micro) !== '') {
+			$macro_micro_html = '<section id="am-micro" class="am-entry-section am-entry-section--micro">'
+				. '<h2>' . esc_html__('Descrizione microscopica', 'archivio-micologico') . '</h2>'
+				. '<div class="am-entry-section__content">' . wpautop(EditorContent::sanitize($macro_micro)) . '</div>'
+				. '</section>';
+		}
+
+		$notes = (string) get_post_meta($post->ID, 'am_notes', true);
+		$notes_html = '';
+		if ($notes !== '') {
+			$notes_html = '<section class="am-entry-section am-entry-section--notes" style="margin-bottom:20px;">'
+				. '<h2>' . esc_html__('Commenti e note', 'archivio-micologico') . '</h2>'
+				. '<div class="am-entry-section__content">' . wpautop(EditorContent::sanitize($notes)) . '</div>'
+				. '</section>';
+		}
+$macro_html = '';
+		if (trim((string) $content) !== '') {
+			$macro_html = '<section class="am-entry-section am-entry-section--macro">'
+				. '<h2>' . esc_html__('Descrizione macroscopica', 'archivio-micologico') . '</h2>'
+				. '<div class="am-entry-section__content">' . $content . '</div>'
+				. '</section>';
+		}
+
+			// Layout: la galleria deve comparire in basso, dopo "Commenti e note".
+			$entry_nav_bottom = self::get_entry_navigation_bar_html_1_5_44((int) $post->ID, 'bottom');
+			return $breadcrumb_html . $title_heading_html . $title_html . $edit_link_html . $featured_html . $pdf_html . $macro_html . $macro_micro_html . $notes_html . $gallery_html . $entry_nav_bottom;
+	}
+
+	/** Scientific article: categories, author and date, text, PDF and gallery, link back to the archive. */
+	private static function render_article_single(string $content): string {
+		global $post;
+		if (!$post || $post->post_type !== AM_ARTICLE_CPT) {
+			return $content;
+		}
+		$id = (int) $post->ID;
+		[$gallery_html, $pdf_html] = self::entry_media_html($id);
+
+		$bits = [];
+		$cats = get_the_terms($id, AM_TAX_ARTICLE_CAT);
+		if (is_array($cats) && $cats) {
+			$bits[] = '<span class="am-article-meta__cats">' . implode('', array_map(static fn($t) => '<span class="am-badge">' . esc_html($t->name) . '</span>', $cats)) . '</span>';
+		}
+		$u = get_userdata((int) $post->post_author);
+		$author = $u ? trim($u->first_name . ' ' . $u->last_name) : '';
+		if ($u && $author === '') { $author = (string) $u->display_name; }
+		if ($author !== '') {
+			/* translators: %s: article author. */
+			$bits[] = '<span>' . esc_html(sprintf(__('Testo di %s', 'archivio-micologico'), $author)) . '</span>';
+		}
+		$bits[] = '<time datetime="' . esc_attr(get_the_date(DATE_W3C, $post)) . '">' . esc_html(get_the_date('', $post)) . '</time>';
+
+		$out = '<div class="am-article">';
+		$out .= '<p class="am-article-meta"><span class="am-article-meta__kind">' . esc_html__('Articolo scientifico', 'archivio-micologico') . '</span>' . implode('<span class="am-article-meta__sep" aria-hidden="true">·</span>', $bits) . '</p>';
+		if (current_user_can('edit_post', $id)) {
+			$out .= '<p class="am-article-edit"><a class="am-btn am-btn--small am-btn--secondary" href="' . esc_url((string) get_edit_post_link($id)) . '">' . esc_html__('Modifica articolo', 'archivio-micologico') . '</a></p>';
+		}
+		if (has_excerpt($post)) {
+			$out .= '<p class="am-article-abstract">' . esc_html(get_the_excerpt($post)) . '</p>';
+		}
+		$out .= '<div class="am-article-body">' . $content . '</div>';
+		$out .= $pdf_html;
+		if ($gallery_html !== '') {
+			$out .= '<section class="am-entry-section am-article-gallery"><h2>' . esc_html__('Immagini', 'archivio-micologico') . '</h2>' . $gallery_html . '</section>';
+		}
+		$archive = AdminPages::page_with('am_archive');
+		if ($archive !== '') {
+			$out .= '<p class="am-article-back"><a href="' . esc_url($archive . '#articoli') . '">' . esc_html__('← Torna agli articoli dell’Archivio micologico', 'archivio-micologico') . '</a></p>';
+		}
+		return $out . '</div>';
+	}
+
+	/** Gallery (am_gallery_ids) and PDF attachment (am_pdf_id) sections, shared by schede and articles. */
+	private static function entry_media_html(int $post_id): array {
+		$gallery_ids = get_post_meta($post_id, 'am_gallery_ids', true);
 		if (!is_array($gallery_ids)) {
 			$gallery_ids = array_filter(array_map('trim', explode(',', (string) $gallery_ids)));
 		}
@@ -603,7 +684,7 @@ public static function filter_single_content(string $content): string {
 
 		// Optional PDF attachment link (am_pdf_id).
 		$pdf_html = '';
-		$pdf_id = get_post_meta($post->ID, 'am_pdf_id', true);
+		$pdf_id = get_post_meta($post_id, 'am_pdf_id', true);
 		$pdf_id = is_numeric($pdf_id) ? absint($pdf_id) : 0;
 		if ($pdf_id) {
 			$att = get_post($pdf_id);
@@ -639,35 +720,7 @@ public static function filter_single_content(string $content): string {
 			}
 		}
 
-		// Microscopia (meta am_macro_micro): se presente, mostra la sezione e consente il relativo badge/indicatore.
-		$macro_micro = (string) get_post_meta($post->ID, 'am_macro_micro', true);
-		$macro_micro_html = '';
-		if (trim($macro_micro) !== '') {
-			$macro_micro_html = '<section id="am-micro" class="am-entry-section am-entry-section--micro">'
-				. '<h2>' . esc_html__('Descrizione microscopica', 'archivio-micologico') . '</h2>'
-				. '<div class="am-entry-section__content">' . wpautop(EditorContent::sanitize($macro_micro)) . '</div>'
-				. '</section>';
-		}
-
-		$notes = (string) get_post_meta($post->ID, 'am_notes', true);
-		$notes_html = '';
-		if ($notes !== '') {
-			$notes_html = '<section class="am-entry-section am-entry-section--notes" style="margin-bottom:20px;">'
-				. '<h2>' . esc_html__('Commenti e note', 'archivio-micologico') . '</h2>'
-				. '<div class="am-entry-section__content">' . wpautop(EditorContent::sanitize($notes)) . '</div>'
-				. '</section>';
-		}
-$macro_html = '';
-		if (trim((string) $content) !== '') {
-			$macro_html = '<section class="am-entry-section am-entry-section--macro">'
-				. '<h2>' . esc_html__('Descrizione macroscopica', 'archivio-micologico') . '</h2>'
-				. '<div class="am-entry-section__content">' . $content . '</div>'
-				. '</section>';
-		}
-
-			// Layout: la galleria deve comparire in basso, dopo "Commenti e note".
-			$entry_nav_bottom = self::get_entry_navigation_bar_html_1_5_44((int) $post->ID, 'bottom');
-			return $breadcrumb_html . $title_heading_html . $title_html . $edit_link_html . $featured_html . $pdf_html . $macro_html . $macro_micro_html . $notes_html . $gallery_html . $entry_nav_bottom;
+		return [$gallery_html, $pdf_html];
 	}
 
 	public static function render_search_page($atts = []): string {
