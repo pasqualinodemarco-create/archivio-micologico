@@ -117,7 +117,7 @@ register_shutdown_function(function() use (&$checks, &$error, &$redirects, &$plu
             }
         }
     } elseif ($kind === 'article_delete') {
-        $found = get_posts(['post_type' => AM_ARTICLE_CPT, 'post_status' => 'any', 'numberposts' => 1, 'title' => 'Da cestinare']);
+        $found = get_posts(['post_type' => AM_ARTICLE_CPT, 'post_status' => ['publish', 'trash'], 'numberposts' => 1, 'title' => 'Da cestinare']);
         $status = $found ? $found[0]->post_status : '';
         $checks['trashed_only_if_allowed'] = ($status === 'trash') === !$denied;
         if (!$denied) {
