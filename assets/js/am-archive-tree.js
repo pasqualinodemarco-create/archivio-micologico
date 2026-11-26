@@ -136,85 +136,6 @@ function amDispatchArchiveUpdated1546(target){
     var perPageEntries  = parseInt(root.getAttribute("data-per-page-entries") || "30", 10);
 
     
-    var artPage = 1;
-    var artHasMore = true;
-    var artLoading = false;
-
-    function renderArticles(items, append){
-      var box = qs(".am-archive__articles", root);
-      if(!box) return;
-      if(!append){
-        box.innerHTML = "";
-        box.hidden = true;
-        amDispatchArchiveUpdated1546(document);
-      }
-      if(!items || !items.length){
-        // AM 1.5.52: se non ci sono articoli collegati all'archivio,
-        // non mostrare il blocco "Articoli" né il messaggio "Nessun articolo".
-        // La pagina resta pulita e parte direttamente dall'albero tassonomico.
-        if(!append){
-          box.innerHTML = "";
-          box.hidden = true;
-        }
-        return;
-      }
-      box.hidden = false;
-      if(!append){
-        box.innerHTML = '<div class="am-archive__articles-title">Articoli</div>';
-      }
-      items.forEach(function(it){
-        var entry = { title: it.title, link: it.link, thumb: it.thumb || "" };
-        var row = makeEntryRow(entry, { withThumb: true });
-        row.classList.add("am-archive-entry--article");
-        box.appendChild(row);
-      });
-
-      if(artHasMore){
-        var moreBtn = qs(".am-archive__articles-more", box);
-        if(!moreBtn){
-          moreBtn = document.createElement("button");
-          moreBtn.type = "button";
-          moreBtn.className = "am-archive__articles-more";
-          moreBtn.textContent = "Altri articoli";
-          moreBtn.addEventListener("click", function(){
-            if(artLoading || !artHasMore) return;
-            artLoading = true;
-            moreBtn.disabled = true;
-            postAjax("am_archive_tree", { level:"articles", page: artPage+1, per_page: 20 }).then(function(res){
-              if(res && res.success){
-                artPage += 1;
-                artHasMore = !!res.data.has_more;
-                renderArticles(res.data.items||[], true);
-                if(!artHasMore){
-                  moreBtn.remove();
-                }else{
-                  moreBtn.disabled = false;
-                }
-              }else{
-                moreBtn.disabled = false;
-              }
-            }).finally(function(){ artLoading = false; });
-          });
-          box.appendChild(moreBtn);
-        }
-      }
-    }
-
-    function loadArticles(){
-      var box = qs(".am-archive__articles", root);
-      if(!box) return;
-      setStatus(status, "Carico articoli…");
-      postAjax("am_archive_tree", { level:"articles", page: 1, per_page: 20 }).then(function(res){
-        if(res && res.success){
-          artPage = 1;
-          artHasMore = !!res.data.has_more;
-          renderArticles(res.data.items||[], false);
-        }
-      }).finally(function(){
-        setStatus(status, "");
-      });
-    }
-
 var famPage = 1;
     var famHasMore = true;
     var famLoading = false;
@@ -330,8 +251,7 @@ var famPage = 1;
     if("IntersectionObserver" in window && sentinel){
       var famObs = new IntersectionObserver(function(entries){
         entries.forEach(function(en){
-          if(en.isIntersecting){ loadArticles();
-    loadFamilies(); }
+          if(en.isIntersecting){ loadFamilies(); }
         });
       }, {root: null, rootMargin: "400px", threshold: 0});
       famObs.observe(sentinel);
@@ -339,8 +259,7 @@ var famPage = 1;
       // fallback
       window.addEventListener("scroll", function(){
         if((window.innerHeight + window.scrollY) >= (document.body.offsetHeight - 800)){
-          loadArticles();
-    loadFamilies();
+          loadFamilies();
         }
       });
     }
@@ -413,8 +332,7 @@ var famPage = 1;
       } catch(e) {}
     })();
 
-    // Initial
-    loadArticles();
+    // Initial (articles are rendered by the server since 1.6.20)
     loadFamilies();
   }
 

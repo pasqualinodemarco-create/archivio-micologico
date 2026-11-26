@@ -66,6 +66,7 @@ class EntryForms {
 			'am_gallery_ids' => $gallery_ids,
 			'am_pdf_id'      => isset($post['am_pdf_id']) ? absint($post['am_pdf_id']) : 0,
 
+			'am_excerpt'     => isset($post['am_excerpt']) ? sanitize_textarea_field(wp_unslash((string) $post['am_excerpt'])) : '',
 			'am_article_cats' => isset($post['am_article_cats']) && is_array($post['am_article_cats']) ? array_values(array_filter(array_map('absint', $post['am_article_cats']))) : [],
 
 			'am_sequenced'   => (!empty($post['am_sequenced']) && (string)$post['am_sequenced'] === '1') ? '1' : '0',
@@ -747,7 +748,7 @@ echo '</div>';
 
 	public static function handle_submit_article(): void {
 
-		$redirect = wp_get_referer() ?: home_url('/');
+		$redirect = remove_query_arg(['am_error', 'am_token', 'am_submitted', 'am_post_id'], wp_get_referer() ?: home_url('/'));
 
 		$am_token = isset($_POST['am_token']) ? sanitize_text_field((string) $_POST['am_token']) : '';
 		if ($am_token === '') { $am_token = wp_generate_password(12, false, false); }
@@ -774,6 +775,7 @@ echo '</div>';
 
 		$title = isset($_POST['am_title']) ? sanitize_text_field((string) $_POST['am_title']) : '';
 		$content = isset($_POST['am_content']) ? (string) wp_unslash($_POST['am_content']) : '';
+		$excerpt = isset($_POST['am_excerpt']) ? sanitize_textarea_field(wp_unslash((string) $_POST['am_excerpt'])) : '';
 
 		$featured_id = isset($_POST['am_featured_id']) ? absint($_POST['am_featured_id']) : 0;
 		$gallery_raw = isset($_POST['am_gallery_ids']) ? (string) $_POST['am_gallery_ids'] : '';
@@ -796,6 +798,14 @@ echo '</div>';
 			exit;
 		}
 
+		// An empty editor still sends markup such as <p>&nbsp;</p>.
+		if (trim(str_replace("\xC2\xA0", ' ', html_entity_decode(wp_strip_all_tags($content), ENT_QUOTES, 'UTF-8'))) === '') {
+			self::set_submit_result(false, 'missing_content', __('Scrivi il testo dell’articolo.', 'archivio-micologico'));
+			self::am_save_sticky($am_token, self::am_collect_sticky_post());
+			wp_safe_redirect(add_query_arg(['am_error'=>'missing_content','am_token'=>$am_token], $redirect));
+			exit;
+		}
+
 		$default_status = (string) get_option('am_default_status', 'pending');
 		$allowed_status = ['draft','pending','publish','private'];
 		if (!in_array($default_status, $allowed_status, true)) { $default_status = 'pending'; }
@@ -804,6 +814,7 @@ echo '</div>';
 			'post_type' => AM_ARTICLE_CPT,
 			'post_status' => $default_status,
 			'post_title' => $title,
+			'post_excerpt' => $excerpt,
 			'post_content' => wp_kses_post($content),
 			'post_author' => get_current_user_id(),
 		], true);
