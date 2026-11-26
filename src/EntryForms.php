@@ -1296,6 +1296,68 @@ if (($_SERVER['REQUEST_METHOD'] ?? '') !== 'POST') { return; }
 		exit;
 	}
 
+	/** Articles using each article category, in any status (trash included): term_id => count. */
+	public static function article_cat_usage(): array {
+		global $wpdb;
+		$rows = $wpdb->get_results($wpdb->prepare(
+			"SELECT tt.term_id, COUNT(tr.object_id) AS n FROM {$wpdb->term_taxonomy} tt
+			 LEFT JOIN {$wpdb->term_relationships} tr ON tr.term_taxonomy_id = tt.term_taxonomy_id
+			 WHERE tt.taxonomy = %s GROUP BY tt.term_id",
+			AM_TAX_ARTICLE_CAT
+		), ARRAY_A) ?: [];
+		$out = [];
+		foreach ($rows as $r) { $out[(int) $r['term_id']] = (int) $r['n']; }
+		return $out;
+	}
+
+	/** Add, rename or delete (only when unused) article categories from the Nuovo articolo page. */
+	public static function ajax_article_cat(): void {
+		if (!check_ajax_referer('am_article_cat', 'nonce', false)) {
+			wp_send_json_error(['message' => __('Sessione scaduta. Ricarica la pagina.', 'archivio-micologico')], 403);
+		}
+		if (!self::am_current_user_is_admin_or_editor() || !current_user_can('manage_terms')) {
+			wp_send_json_error(['message' => __('Non autorizzato.', 'archivio-micologico')], 403);
+		}
+		$op = isset($_POST['op']) ? sanitize_key((string) $_POST['op']) : '';
+		$name = isset($_POST['name']) ? trim(sanitize_text_field(wp_unslash((string) $_POST['name']))) : '';
+		$term_id = isset($_POST['term_id']) ? absint($_POST['term_id']) : 0;
+
+		if ($op === 'add' || $op === 'rename') {
+			if ($name === '') {
+				wp_send_json_error(['message' => __('Scrivi il nome della categoria.', 'archivio-micologico')], 400);
+			}
+			$existing = term_exists($name, AM_TAX_ARTICLE_CAT);
+			if ($existing && (int) $existing['term_id'] !== $term_id) {
+				wp_send_json_error(['message' => __('Esiste già una categoria con questo nome.', 'archivio-micologico')], 409);
+			}
+		}
+		if ($op === 'add') {
+			$t = wp_insert_term($name, AM_TAX_ARTICLE_CAT);
+			if (is_wp_error($t)) { wp_send_json_error(['message' => $t->get_error_message()], 400); }
+			wp_send_json_success(['id' => (int) $t['term_id'], 'name' => $name, 'count' => 0]);
+		}
+
+		$term = $term_id ? get_term($term_id, AM_TAX_ARTICLE_CAT) : null;
+		if (!$term || is_wp_error($term)) {
+			wp_send_json_error(['message' => __('Categoria non trovata.', 'archivio-micologico')], 404);
+		}
+		if ($op === 'rename') {
+			$r = wp_update_term($term_id, AM_TAX_ARTICLE_CAT, ['name' => $name]);
+			if (is_wp_error($r)) { wp_send_json_error(['message' => $r->get_error_message()], 400); }
+			wp_send_json_success(['id' => $term_id, 'name' => $name]);
+		}
+		if ($op === 'delete') {
+			$used = self::article_cat_usage()[$term_id] ?? 0;
+			if ($used > 0 || get_term_children($term_id, AM_TAX_ARTICLE_CAT)) {
+				wp_send_json_error(['message' => __('La categoria è usata da articoli o ha sottocategorie: non si può eliminare.', 'archivio-micologico')], 409);
+			}
+			$r = wp_delete_term($term_id, AM_TAX_ARTICLE_CAT);
+			if (!$r || is_wp_error($r)) { wp_send_json_error(['message' => __('Impossibile eliminare la categoria.', 'archivio-micologico')], 400); }
+			wp_send_json_success(['id' => $term_id]);
+		}
+		wp_send_json_error(['message' => __('Operazione non valida.', 'archivio-micologico')], 400);
+	}
+
 	/** Status of new articles: their own setting, else the one of the schede. */
 	public static function article_status(): string {
 		$status = (string) get_option('am_article_status', (string) get_option('am_default_status', 'pending'));
@@ -1328,7 +1390,7 @@ if (($_SERVER['REQUEST_METHOD'] ?? '') !== 'POST') { return; }
 		if (!wp_trash_post($post_id)) {
 			wp_die(esc_html__('Impossibile spostare l’articolo nel cestino.', 'archivio-micologico'), '', ['response' => 400]);
 		}
-		$archive = AdminPages::page_with('am_archive');
+		$archive = AdminPages::page_url('archive');
 		$target = $archive !== '' ? $archive : admin_url('edit.php?post_type=' . AM_ARTICLE_CPT);
 		wp_safe_redirect(add_query_arg('am_deleted', 'article', $target) . ($archive !== '' ? '#articoli' : ''));
 		exit;

@@ -96,6 +96,7 @@ class Frontend {
 // Controlled creation of classification terms from front-end (Editor+).
 		add_action('wp_ajax_am_add_term', [__CLASS__, 'ajax_add_term']);
 		add_action('wp_ajax_am_find_duplicates', [EntryForms::class, 'ajax_find_duplicates']);
+		add_action('wp_ajax_am_article_cat', [EntryForms::class, 'ajax_article_cat']);
 		add_action('init', [__CLASS__, 'handle_add_term_post']);
 
 		add_action('admin_post_am_submit_fungo', [__CLASS__, 'handle_submit']);
@@ -306,6 +307,10 @@ private static function compute_single_display_title(int $post_id): string {
 	 */
 
 	private static function get_archive_page_url_1_5_43(): string {
+		$chosen = AdminPages::page_url('archive');
+		if ($chosen !== '') {
+			return $chosen;
+		}
 		$q = new WP_Query([
 			'post_type'              => 'page',
 			'post_status'            => 'publish',
@@ -664,7 +669,7 @@ $macro_html = '';
 		if ($gallery_html !== '') {
 			$out .= '<section class="am-entry-section am-article-gallery"><h2>' . esc_html__('Immagini', 'archivio-micologico') . '</h2>' . $gallery_html . '</section>';
 		}
-		$archive = AdminPages::page_with('am_archive');
+		$archive = AdminPages::page_url('archive');
 		if ($archive !== '') {
 			$out .= '<p class="am-article-back"><a href="' . esc_url($archive . '#articoli') . '">' . esc_html__('← Torna agli articoli dell’Archivio micologico', 'archivio-micologico') . '</a></p>';
 		}

@@ -29,7 +29,7 @@ for role in ['editor','author']:
   cases.append(dict(kind='manage',role=role,op=op))
 for op in ['rename_species','rename_genus','move_genus','move_bad','delete_used','delete_children','delete_unused','merge']:
  cases.append(dict(kind='manage',role='editor',op=op))
-cases += [dict(kind='sitemap_images',role='editor'),dict(kind='article',role='editor'),dict(kind='article',role='administrator'),dict(kind='article',role='author'),dict(kind='article',role='editor',empty=True),dict(kind='book',role='editor'),dict(kind='article_delete',role='editor'),dict(kind='article_delete',role='administrator'),dict(kind='article_delete',role='author'),dict(kind='article_delete',role='editor',bad_nonce=True)]
+cases += [dict(kind='sitemap_images',role='editor'),dict(kind='article',role='editor'),dict(kind='article',role='administrator'),dict(kind='article',role='author'),dict(kind='article',role='editor',empty=True),dict(kind='book',role='editor'),dict(kind='article_delete',role='editor'),dict(kind='article_delete',role='administrator'),dict(kind='article_delete',role='author'),dict(kind='article_delete',role='editor',bad_nonce=True),dict(kind='pages',role='editor'),dict(kind='article_cat',role='editor'),dict(kind='article_cat',role='administrator'),dict(kind='article_cat',role='author')]
 cases += [dict(kind='admin_pages',role='administrator'),dict(kind='admin_pages',role='editor')]
 cases += [dict(kind='info',role='administrator'),dict(kind='info',role='editor'),dict(kind='info',role='author'),dict(kind='info_missing',role='editor'),dict(kind='changelog_parser',role='editor')]
 results=[]

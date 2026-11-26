@@ -77,6 +77,10 @@ class Admin {
 
 
 	private static function get_front_submit_page_url(): string {
+		$chosen = AdminPages::page_url('submit');
+		if ($chosen !== '') {
+			return $chosen;
+		}
 		$pages = [];
 		add_filter('posts_where', [__CLASS__, 'filter_submit_form_shortcode_page_where']);
 		$pages = get_posts([
@@ -825,18 +829,30 @@ public static function apply_admin_post_filters($query) {
 			echo '<p class="description">' . esc_html__('Attivo su Chrome, Edge e Safari recenti; gli altri browser cambiano pagina senza animazione. Disattivato per chi ha scelto di ridurre le animazioni nel sistema.', 'archivio-micologico') . '</p>';
 		}, 'am_settings', 'am_book', ['label_for' => 'am_book_effect']);
 
-		add_settings_field('am_edit_page_id', __('Pagina di modifica', 'archivio-micologico'), function () {
-			$val = (int) get_option('am_edit_page_id', 0);
-			$pages = get_pages(['sort_column' => 'post_title', 'sort_order' => 'ASC']);
-			echo '<select name="am_edit_page_id">';
-			echo '<option value="0">' . esc_html__('(non impostata)', 'archivio-micologico') . '</option>';
-			foreach ($pages as $pg) {
-				echo '<option value="' . esc_attr($pg->ID) . '" ' . selected($pg->ID, $val, false) . '>' . esc_html($pg->post_title) . '</option>';
-			}
-			echo '</select>';
-			echo '<p class="description">' . esc_html__('Seleziona la pagina che contiene lo shortcode [am_edit_form]. Serve per generare il pulsante “Modifica” nella scheda fungo.', 'archivio-micologico') . '</p>';
-		}, 'am_settings', 'am_entry');
-	
+		// 1.6.24: one selector per plugin page, all in "Pagine del plugin".
+		foreach (AdminPages::plugin_pages() as $key => [$option, $tag, $label, $help]) {
+			add_settings_field($option, $label, static function () use ($key, $option, $tag, $help) {
+				$val = (int) get_option($option, 0);
+				$pages = get_pages(['sort_column' => 'post_title', 'sort_order' => 'ASC', 'post_status' => 'publish,private']);
+				echo '<select id="' . esc_attr($option) . '" name="' . esc_attr($option) . '">';
+				echo '<option value="0">' . esc_html($key === 'edit' ? __('— Nessuna —', 'archivio-micologico') : __('Automatica (pagina con lo shortcode)', 'archivio-micologico')) . '</option>';
+				foreach ($pages as $pg) {
+					$has = has_shortcode((string) $pg->post_content, $tag);
+					echo '<option value="' . esc_attr((string) $pg->ID) . '" ' . selected($pg->ID, $val, false) . '>' . esc_html($pg->post_title . ($has ? '  ✓ [' . $tag . ']' : '')) . '</option>';
+				}
+				echo '</select>';
+				echo '<p class="description">' . esc_html($help) . '</p>';
+				$chosen = $val ? get_post($val) : null;
+				$url = AdminPages::page_url($key);
+				if ($chosen && !has_shortcode((string) $chosen->post_content, $tag)) {
+					echo '<p class="am-page-status am-page-status--warn">' . esc_html(sprintf(__('La pagina scelta non contiene [%s]: aggiungilo con un blocco Shortcode.', 'archivio-micologico'), $tag)) . '</p>';
+				} elseif ($url !== '') {
+					echo '<p class="am-page-status">' . esc_html($val ? __('In uso:', 'archivio-micologico') : __('Rilevata:', 'archivio-micologico')) . ' <a href="' . esc_url($url) . '" target="_blank" rel="noopener">' . esc_html((string) wp_parse_url($url, PHP_URL_PATH)) . '</a></p>';
+				} elseif ($key !== 'edit') {
+					echo '<p class="am-page-status am-page-status--warn">' . esc_html(sprintf(__('Nessuna pagina contiene [%s].', 'archivio-micologico'), $tag)) . '</p>';
+				}
+			}, 'am_settings', 'am_pages', ['label_for' => $option]);
+		}
 
 		add_settings_field('am_show_submit_result_admin', __('Riepilogo dopo l’invio', 'archivio-micologico'), function () {
 			$val = (int) get_option('am_show_submit_result_admin', 1);
@@ -1071,6 +1087,12 @@ wp_safe_redirect(add_query_arg(['page' => 'am_settings', 'am_err' => 'caps'], ad
 			$show_title = $_POST['am_single_show_title'] ?? null;
 			if ($show_title === '0' || $show_title === '1') {
 				update_option('am_single_show_title', (int) $show_title);
+			}
+			// 1.6.24: plugin pages (am_edit_page_id is saved above).
+			foreach (AdminPages::plugin_pages() as $key => [$option]) {
+				if ($key === 'edit' || !isset($_POST[$option])) { continue; }
+				$page = absint($_POST[$option]);
+				update_option($option, ($page && get_post_type($page) === 'page') ? $page : 0);
 			}
 			// 1.6.23: articles and sitemap; saved only when their fields are part of the form.
 			$article_status = isset($_POST['am_article_status']) ? sanitize_key((string) $_POST['am_article_status']) : '';

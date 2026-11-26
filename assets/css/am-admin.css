@@ -247,3 +247,5 @@
   .am-admin .am-toc { position: static; }
 }
 .am-admin .am-manage__eyebrow { display: none; }
+.am-admin .am-page-status { margin: 6px 0 0; color: #225744; font-weight: 600; }
+.am-admin .am-page-status--warn { color: #8a5d0c; }

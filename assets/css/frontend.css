@@ -1738,3 +1738,22 @@ a.am-entry-gallery__item:focus-visible { outline: 3px solid #225744; outline-off
 .am-btn.am-btn--danger:hover,
 .am-btn.am-btn--danger:focus-visible { border-color: #9b3a24; background: #9b3a24; color: #fff; }
 a.am-badge:hover { border-color: #225744; color: #225744; }
+
+/* 1.6.24 - Gestione categorie nel modulo Nuovo articolo */
+.am-article-form .am-catman { margin-top: 12px; padding: 0; border: 1px solid var(--am-line); border-radius: 8px; background: #fbfdfb; }
+.am-article-form .am-catman > summary { padding: 10px 14px; color: var(--am-forest); font-weight: 650; cursor: pointer; }
+.am-article-form .am-catman[open] > summary { border-bottom: 1px solid var(--am-line); }
+.am-article-form .am-catman > :not(summary) { margin-inline: 14px; }
+.am-article-form .am-catman__add { display: flex; gap: 8px; margin-top: 12px; }
+.am-article-form .am-catman__add input { flex: 1 1 auto; }
+.am-article-form .am-catman__list { margin: 12px 14px 0; padding: 0; list-style: none; }
+.am-article-form .am-catman__list li { display: grid; grid-template-columns: minmax(0, 1fr) auto auto auto; align-items: center; gap: 8px; padding: 6px 0; border-top: 1px solid var(--am-line); }
+.am-article-form .am-catman__list li:first-child { border-top: 0; }
+.am-article-form .am-catman__count { color: var(--am-muted); font-size: .85rem; white-space: nowrap; }
+.am-article-form .am-catman input[type="text"] { min-height: 38px; }
+.am-article-form .am-catman .am-btn[disabled] { opacity: .45; cursor: not-allowed; }
+.am-article-form .am-catman__msg { min-height: 1.2em; margin: 8px 14px 12px; color: var(--am-forest); font-weight: 600; }
+.am-article-form .am-catman__msg.is-error { color: #9b3a24; }
+@media (max-width: 600px) {
+  .am-article-form .am-catman__list li { grid-template-columns: minmax(0, 1fr) auto; }
+}

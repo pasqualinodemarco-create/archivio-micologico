@@ -95,17 +95,36 @@ if (isset($_GET['am_error'])) {
 
         <fieldset class="am-field am-article-cats">
           <legend><?php echo esc_html__('Categorie', 'archivio-micologico'); ?></legend>
-          <?php if (!is_wp_error($cats) && $cats) : ?>
-            <div class="am-chipbox">
-              <?php foreach ($cats as $t) : ?>
-                <label class="am-chip">
-                  <input type="checkbox" name="am_article_cats[]" value="<?php echo esc_attr((string) (int) $t->term_id); ?>" <?php checked(in_array((int) $t->term_id, $selected_cats, true)); ?> />
-                  <span><?php echo esc_html((string) $t->name); ?></span>
-                </label>
-              <?php endforeach; ?>
+          <div class="am-chipbox" data-am-cat-chips>
+            <?php foreach ((!is_wp_error($cats) ? $cats : []) as $t) : ?>
+              <label class="am-chip" data-am-cat-chip="<?php echo esc_attr((string) (int) $t->term_id); ?>">
+                <input type="checkbox" name="am_article_cats[]" value="<?php echo esc_attr((string) (int) $t->term_id); ?>" <?php checked(in_array((int) $t->term_id, $selected_cats, true)); ?> />
+                <span><?php echo esc_html((string) $t->name); ?></span>
+              </label>
+            <?php endforeach; ?>
+          </div>
+          <p class="am-help" data-am-cat-empty<?php echo (!is_wp_error($cats) && $cats) ? ' hidden' : ''; ?>><?php echo esc_html__('Nessuna categoria: creane una qui sotto.', 'archivio-micologico'); ?></p>
+
+          <?php if (current_user_can('manage_terms')) : $am_cat_usage = \ArchivioMicologico\EntryForms::article_cat_usage(); ?>
+          <details class="am-catman" data-am-catman data-nonce="<?php echo esc_attr(wp_create_nonce('am_article_cat')); ?>" data-ajax="<?php echo esc_url(admin_url('admin-ajax.php')); ?>">
+            <summary><?php echo esc_html__('Gestisci categorie', 'archivio-micologico'); ?></summary>
+            <div class="am-catman__add">
+              <input type="text" data-am-cat-new maxlength="80" placeholder="<?php echo esc_attr__('Nuova categoria, es. Monografie', 'archivio-micologico'); ?>" aria-label="<?php echo esc_attr__('Nome della nuova categoria', 'archivio-micologico'); ?>" />
+              <button type="button" class="am-btn" data-am-cat-add><?php echo esc_html__('Aggiungi', 'archivio-micologico'); ?></button>
             </div>
-          <?php else : ?>
-            <p class="am-help"><?php echo esc_html__('Nessuna categoria: si creano in Bacheca → Archivio Micologico → Categorie Articoli.', 'archivio-micologico'); ?></p>
+            <ul class="am-catman__list" data-am-cat-list>
+              <?php foreach ((!is_wp_error($cats) ? $cats : []) as $t) : $am_n = (int) ($am_cat_usage[(int) $t->term_id] ?? 0); ?>
+                <li data-id="<?php echo esc_attr((string) (int) $t->term_id); ?>" data-count="<?php echo esc_attr((string) $am_n); ?>">
+                  <input type="text" value="<?php echo esc_attr((string) $t->name); ?>" maxlength="80" aria-label="<?php echo esc_attr__('Nome della categoria', 'archivio-micologico'); ?>" />
+                  <span class="am-catman__count"><?php echo esc_html(sprintf(_n('%d articolo', '%d articoli', $am_n, 'archivio-micologico'), $am_n)); ?></span>
+                  <button type="button" class="am-btn am-btn--small" data-am-cat-rename><?php echo esc_html__('Rinomina', 'archivio-micologico'); ?></button>
+                  <button type="button" class="am-btn am-btn--small am-btn--danger" data-am-cat-delete<?php echo $am_n > 0 ? ' disabled title="' . esc_attr__('Usata da articoli: non si può eliminare', 'archivio-micologico') . '"' : ''; ?>><?php echo esc_html__('Elimina', 'archivio-micologico'); ?></button>
+                </li>
+              <?php endforeach; ?>
+            </ul>
+            <p class="am-help"><?php echo esc_html__('Si elimina solo una categoria che nessun articolo usa (anche in bozza o nel cestino). Rinominarla aggiorna tutti gli articoli.', 'archivio-micologico'); ?></p>
+            <p class="am-catman__msg" data-am-cat-msg role="status" aria-live="polite"></p>
+          </details>
           <?php endif; ?>
         </fieldset>
 
