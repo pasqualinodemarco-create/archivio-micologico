@@ -3,7 +3,7 @@
  * Plugin Name: Archivio Micologico
  * Plugin URI: https://cervignanometeo.altervista.org
  * Description: Archivio Micologico: archivio micologico online con CPT dedicato, tassonomie gerarchiche e inserimento/gestione front-end.
- * Version: 1.6.23
+ * Version: 1.6.24
  * Author: Pasqualino De Marco
  * Author URI: https://cervignanometeo.altervista.org
  * Requires at least: 6.0
@@ -55,7 +55,7 @@ if ( ! function_exists('am_fatal_logger_register') ) {
 	am_fatal_logger_register();
 }
 
-define('AM_VERSION', '1.6.23');
+define('AM_VERSION', '1.6.24');
 define('AM_PATH', plugin_dir_path(__FILE__));
 define('AM_URL', plugin_dir_url(__FILE__));
 

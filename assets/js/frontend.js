@@ -1387,3 +1387,94 @@ function amShowNotice(type, message){
     update();
   });
 })();
+
+/* 1.6.24 - Nuovo articolo: gestione delle categorie senza lasciare la pagina */
+(function(){
+  function ready(fn){ if(document.readyState !== 'loading'){ fn(); } else { document.addEventListener('DOMContentLoaded', fn); } }
+  ready(function(){
+    var box = document.querySelector('[data-am-catman]');
+    if(!box){ return; }
+    var chips = document.querySelector('[data-am-cat-chips]');
+    var list = box.querySelector('[data-am-cat-list]');
+    var input = box.querySelector('[data-am-cat-new]');
+    var msg = box.querySelector('[data-am-cat-msg]');
+    var empty = document.querySelector('[data-am-cat-empty]');
+
+    function say(text, error){ msg.textContent = text; msg.classList.toggle('is-error', !!error); }
+    function call(data){
+      var body = new FormData();
+      body.append('action', 'am_article_cat');
+      body.append('nonce', box.getAttribute('data-nonce'));
+      Object.keys(data).forEach(function(k){ body.append(k, data[k]); });
+      return fetch(box.getAttribute('data-ajax'), { method: 'POST', body: body, credentials: 'same-origin' })
+        .then(function(r){ return r.json(); })
+        .then(function(res){
+          if(!res || !res.success){ throw new Error(res && res.data && res.data.message ? res.data.message : 'Operazione non riuscita.'); }
+          return res.data;
+        });
+    }
+    function chip(id, name){
+      var label = document.createElement('label');
+      label.className = 'am-chip';
+      label.setAttribute('data-am-cat-chip', id);
+      var cb = document.createElement('input');
+      cb.type = 'checkbox'; cb.name = 'am_article_cats[]'; cb.value = id; cb.checked = true;
+      var span = document.createElement('span'); span.textContent = name;
+      label.appendChild(cb); label.appendChild(document.createTextNode(' ')); label.appendChild(span);
+      return label;
+    }
+    function row(id, name){
+      var li = document.createElement('li');
+      li.setAttribute('data-id', id); li.setAttribute('data-count', '0');
+      li.innerHTML = '<input type="text" maxlength="80" aria-label="Nome della categoria"><span class="am-catman__count">0 articoli</span>'
+        + '<button type="button" class="am-btn am-btn--small" data-am-cat-rename>Rinomina</button>'
+        + '<button type="button" class="am-btn am-btn--small am-btn--danger" data-am-cat-delete>Elimina</button>';
+      li.querySelector('input').value = name;
+      return li;
+    }
+    function add(){
+      var name = input.value.trim();
+      if(!name){ say('Scrivi il nome della categoria.', true); input.focus(); return; }
+      call({ op: 'add', name: name }).then(function(d){
+        chips.appendChild(chip(d.id, d.name));
+        list.appendChild(row(d.id, d.name));
+        if(empty){ empty.hidden = true; }
+        input.value = '';
+        say('Categoria “' + d.name + '” aggiunta e selezionata.');
+      }).catch(function(e){ say(e.message, true); });
+    }
+
+    box.querySelector('[data-am-cat-add]').addEventListener('click', add);
+    // Inside the article form: Enter must add the category, not send the article.
+    box.addEventListener('keydown', function(e){
+      if(e.key !== 'Enter' || e.target.tagName !== 'INPUT'){ return; }
+      e.preventDefault();
+      if(e.target === input){ add(); return; }
+      var btn = e.target.closest('li') && e.target.closest('li').querySelector('[data-am-cat-rename]');
+      if(btn){ btn.click(); }
+    });
+    list.addEventListener('click', function(e){
+      var btn = e.target.closest('button');
+      var li = btn && btn.closest('li');
+      if(!li){ return; }
+      var id = li.getAttribute('data-id');
+      var current = document.querySelector('[data-am-cat-chip="' + id + '"]');
+      if(btn.hasAttribute('data-am-cat-rename')){
+        var name = li.querySelector('input').value.trim();
+        call({ op: 'rename', term_id: id, name: name }).then(function(d){
+          if(current){ current.querySelector('span').textContent = d.name; }
+          say('Categoria rinominata in “' + d.name + '”.');
+        }).catch(function(err){ say(err.message, true); });
+      }
+      if(btn.hasAttribute('data-am-cat-delete')){
+        if(!window.confirm('Eliminare la categoria “' + li.querySelector('input').value + '”?')){ return; }
+        call({ op: 'delete', term_id: id }).then(function(){
+          li.remove();
+          if(current){ current.remove(); }
+          if(empty && !chips.querySelector('.am-chip')){ empty.hidden = false; }
+          say('Categoria eliminata.');
+        }).catch(function(err){ say(err.message, true); });
+      }
+    });
+  });
+})();

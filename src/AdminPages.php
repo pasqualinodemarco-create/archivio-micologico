@@ -37,6 +37,35 @@ final class AdminPages {
 		return '<a class="button' . ($primary ? ' button-primary' : '') . '" href="' . esc_url($url) . '"' . ($external ? ' target="_blank" rel="noopener"' : '') . '>' . esc_html($label) . '</a>';
 	}
 
+	/**
+	 * Pages of the plugin: key => [option, shortcode, label, what it is used for].
+	 * Option 0 means automatic: the newest page holding the shortcode ("edit" has no automatic mode).
+	 */
+	public static function plugin_pages(): array {
+		return [
+			'archive' => ['am_page_archive', 'am_archive', __('Archivio micologico', 'archivio-micologico'), __('Pagina pubblica con l’albero delle classificazioni, la ricerca, le ultime schede e gli articoli. È la destinazione di “Torna all’archivio”, delle briciole di pane delle schede e del ritorno dopo l’eliminazione di un articolo.', 'archivio-micologico')],
+			'submit' => ['am_page_submit', 'am_submit_form', __('Nuovo inserimento', 'archivio-micologico'), __('Modulo per creare una nuova scheda fungo. Usata dal pulsante “+ Nuova scheda” della Dashboard.', 'archivio-micologico')],
+			'edit' => ['am_edit_page_id', 'am_edit_form', __('Modifica scheda', 'archivio-micologico'), __('Modulo per correggere una scheda esistente. Senza questa pagina non compare il pulsante “Modifica scheda” e la Dashboard apre l’editor di WordPress.', 'archivio-micologico')],
+			'article' => ['am_page_article', 'am_article_form', __('Nuovo articolo', 'archivio-micologico'), __('Modulo per pubblicare un articolo scientifico, con la gestione delle categorie. Collegato dalla Dashboard.', 'archivio-micologico')],
+			'taxonomy' => ['am_page_taxonomy', 'am_tassonomia', __('Tassonomia', 'archivio-micologico'), __('Gestione pubblica di divisioni, famiglie, generi e specie. Aperta dal pulsante “Pagina pubblica” in Archivio Micologico → Tassonomia.', 'archivio-micologico')],
+			'vocab' => ['am_page_vocab', 'am_vocabolari', __('Vocabolari', 'archivio-micologico'), __('Gestione pubblica di forme, varietà e autori. Aperta dal pulsante “Pagina pubblica” in Archivio Micologico → Vocabolari.', 'archivio-micologico')],
+			'search' => ['am_page_search', 'am_search_page', __('Ricerca', 'archivio-micologico'), __('Pagina facoltativa con i risultati di ricerca paginati; l’archivio ha già la sua casella di ricerca.', 'archivio-micologico')],
+		];
+	}
+
+	/** URL of a plugin page: the one chosen in the settings, else the automatic one. */
+	public static function page_url(string $key): string {
+		$map = self::plugin_pages();
+		if (!isset($map[$key])) { return ''; }
+		[$option, $tag] = $map[$key];
+		$id = (int) get_option($option, 0);
+		if ($id && get_post_type($id) === 'page' && in_array(get_post_status($id), ['publish', 'private'], true)) {
+			$url = get_permalink($id);
+			if (is_string($url) && $url !== '') { return $url; }
+		}
+		return $key === 'edit' ? '' : self::page_with($tag);
+	}
+
 	/** Permalink of the newest page that holds the shortcode, or '' when there is none. */
 	public static function page_with(string $tag): string {
 		global $wpdb;
@@ -161,11 +190,11 @@ final class AdminPages {
 		$labels = $coverage['labels'];
 		$quality = self::quality();
 		$pages = [
-			'submit' => self::page_with('am_submit_form'),
-			'article' => self::page_with('am_article_form'),
-			'archive' => self::page_with('am_archive'),
-			'taxonomy' => self::page_with('am_tassonomia'),
-			'vocab' => self::page_with('am_vocabolari'),
+			'submit' => self::page_url('submit'),
+			'article' => self::page_url('article'),
+			'archive' => self::page_url('archive'),
+			'taxonomy' => self::page_url('taxonomy'),
+			'vocab' => self::page_url('vocab'),
 		];
 		$tax_url = admin_url('admin.php?page=am_classificazione');
 		$vocab_url = admin_url('admin.php?page=am_vocabolari');
@@ -301,7 +330,7 @@ final class AdminPages {
 		self::open(
 			__('Tassonomia', 'archivio-micologico'),
 			'',
-			self::button(__('Pagina pubblica', 'archivio-micologico'), self::page_with('am_tassonomia'), false, true)
+			self::button(__('Pagina pubblica', 'archivio-micologico'), self::page_url('taxonomy'), false, true)
 			. self::button(__('Slug e descrizioni', 'archivio-micologico'), admin_url('edit-tags.php?taxonomy=' . AM_TAX_CLASSIFICAZIONE . '&post_type=' . AM_CPT))
 		);
 		echo TermManager::render_taxonomy(); // phpcs:ignore WordPress.Security.EscapeOutput -- escaped while built.
@@ -312,7 +341,7 @@ final class AdminPages {
 		if (!current_user_can('manage_terms') && !current_user_can('manage_options')) {
 			wp_die(esc_html__('Non autorizzato.', 'archivio-micologico'));
 		}
-		self::open(__('Vocabolari', 'archivio-micologico'), '', self::button(__('Pagina pubblica', 'archivio-micologico'), self::page_with('am_vocabolari'), false, true));
+		self::open(__('Vocabolari', 'archivio-micologico'), '', self::button(__('Pagina pubblica', 'archivio-micologico'), self::page_url('vocab'), false, true));
 		echo TermManager::render_vocabularies(); // phpcs:ignore WordPress.Security.EscapeOutput -- escaped while built.
 		self::close();
 	}
@@ -322,7 +351,8 @@ final class AdminPages {
 	/** Settings sections in display order: id => [title, what it controls]. */
 	public static function setting_sections(): array {
 		return [
-			'am_entry' => [__('Inserimento schede', 'archivio-micologico'), __('Come funzionano i moduli pubblici Nuovo inserimento e Modifica.', 'archivio-micologico')],
+			'am_pages' => [__('Pagine del plugin', 'archivio-micologico'), __('Quale pagina del sito ospita ogni funzione. Con “Automatica” il plugin usa la pagina più recente che contiene lo shortcode; ✓ indica le pagine che lo contengono.', 'archivio-micologico')],
+						'am_entry' => [__('Inserimento schede', 'archivio-micologico'), __('Come funzionano i moduli pubblici Nuovo inserimento e Modifica.', 'archivio-micologico')],
 			'am_articles' => [__('Articoli scientifici', 'archivio-micologico'), __('Modulo Nuovo articolo ([am_article_form]) e riquadro Articoli scientifici dell’archivio.', 'archivio-micologico')],
 			'am_display' => [__('Visualizzazione pubblica', 'archivio-micologico'), __('Cosa vedono i visitatori nelle schede e nell’archivio.', 'archivio-micologico')],
 			'am_book' => [__('Sfoglia le schede', 'archivio-micologico'), __('Frecce ai lati della scheda per passare alla precedente o alla successiva, come in un libro.', 'archivio-micologico')],

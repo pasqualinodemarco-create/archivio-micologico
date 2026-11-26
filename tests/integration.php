@@ -187,7 +187,7 @@ register_shutdown_function(function() use (&$checks, &$error, &$redirects, &$plu
     // Expected permission/nonce rejections are ordinary test outcomes; undefined callbacks are never allowed.
     $checks['no_plugin_warnings'] = count($plugin_warnings) === 0;
     $checks['no_php_fatal'] = !($fatal && in_array($fatal['type'], [E_ERROR,E_PARSE,E_COMPILE_ERROR], true));
-    if (!$denied && in_array($kind,['update','settings','submit','info','info_missing','changelog_parser','admin_pages','sitemap_images','article','book','article_delete'],true)) { $checks['completed_without_exception'] = $error === null; }
+    if (!$denied && in_array($kind,['update','settings','submit','info','info_missing','changelog_parser','admin_pages','sitemap_images','article','book','article_delete','pages'],true)) { $checks['completed_without_exception'] = $error === null; }
     echo "\nAMTEST:" . json_encode(['case'=>$case,'checks'=>$checks,'error'=>$error,'warnings'=>$plugin_warnings,'redirects'=>$redirects,'output'=>substr($output,0,600)]) . "\n";
 });
 try {
@@ -242,6 +242,43 @@ try {
             $aid = wp_insert_post(['post_type' => AM_ARTICLE_CPT, 'post_status' => 'publish', 'post_author' => $admin->ID, 'post_title' => 'Da cestinare', 'post_content' => 'Testo.']);
             $_POST = ['post_id' => (string) $aid, '_wpnonce' => !empty($case['bad_nonce']) ? 'bad' : wp_create_nonce('am_delete_article_' . $aid)];
             ArchivioMicologico\EntryForms::handle_delete_article(); break;
+        case 'pages':
+            $auto = wp_insert_post(['post_type' => 'page', 'post_status' => 'publish', 'post_title' => 'Archivio', 'post_content' => '[am_archive]']);
+            $other = wp_insert_post(['post_type' => 'page', 'post_status' => 'publish', 'post_title' => 'Altro archivio', 'post_content' => 'Testo']);
+            $P = 'ArchivioMicologico\\AdminPages';
+            $checks['automatic_page'] = $P::page_url('archive') === get_permalink($auto);
+            update_option('am_page_archive', $other);
+            $checks['chosen_page_wins'] = $P::page_url('archive') === get_permalink($other);
+            update_option('am_page_archive', $post_id);
+            $checks['non_page_ignored'] = $P::page_url('archive') === get_permalink($auto);
+            $checks['edit_has_no_automatic'] = $P::page_url('edit') === '';
+            $checks['every_page_has_help'] = count(array_filter($P::plugin_pages(), static fn($p) => count($p) === 4 && $p[3] !== '')) === 7;
+            break;
+        case 'article_cat':
+            add_filter('wp_doing_ajax', '__return_true');
+            $ajax = static function (array $data): array {
+                $_POST = $data + ['nonce' => wp_create_nonce('am_article_cat')]; $_REQUEST = $_POST;
+                ob_start();
+                try { ArchivioMicologico\EntryForms::ajax_article_cat(); } catch (Throwable $e) { /* wp_die after JSON */ }
+                $raw = (string) ob_get_clean();
+                return (array) json_decode(trim(substr($raw, (int) strpos($raw, '{'))), true);
+            };
+            $add = $ajax(['op' => 'add', 'name' => 'Monografie']);
+            $id = (int) ($add['data']['id'] ?? 0);
+            if (!$can_manage) {
+                $checks['denied'] = empty($add['success']) && !term_exists('Monografie', AM_TAX_ARTICLE_CAT);
+                break;
+            }
+            $checks['added'] = !empty($add['success']) && $id > 0;
+            $checks['duplicate_refused'] = empty($ajax(['op' => 'add', 'name' => 'Monografie'])['success']);
+            $checks['renamed'] = !empty($ajax(['op' => 'rename', 'term_id' => $id, 'name' => 'Chiavi'])['success']) && get_term($id)->name === 'Chiavi';
+            $used = wp_insert_post(['post_type' => AM_ARTICLE_CPT, 'post_status' => 'draft', 'post_title' => 'Bozza', 'post_content' => 'Testo.']);
+            wp_set_object_terms($used, [$id], AM_TAX_ARTICLE_CAT);
+            $checks['used_not_deleted'] = empty($ajax(['op' => 'delete', 'term_id' => $id])['success']) && get_term($id) !== null;
+            wp_set_object_terms($used, [], AM_TAX_ARTICLE_CAT);
+            $checks['unused_deleted'] = !empty($ajax(['op' => 'delete', 'term_id' => $id])['success']) && get_term($id, AM_TAX_ARTICLE_CAT) === null;
+            $checks['bad_nonce_refused'] = empty($ajax(['op' => 'add', 'name' => 'X', 'nonce' => 'bad'])['success']);
+            break;
         case 'book':
             $make = static function (string $title, int $family) use ($terms, $admin): int {
                 $id = wp_insert_post(['post_type' => AM_CPT, 'post_status' => 'publish', 'post_author' => $admin->ID, 'post_title' => $title, 'post_content' => 'Testo.']);
@@ -414,7 +451,7 @@ try {
             $dash = $render([AM_Admin::class, 'render_dashboard_page']);
             $checks['dashboard_rendered'] = str_contains($dash, 'Copertura tassonomica') && str_contains($dash, 'Controllo qualità dei dati') && str_contains($dash, 'post_status=pending') && str_contains($dash, 'Orphan scheda');
             $settings = $render([AM_Admin::class, 'render_settings_page']);
-            foreach (['am_require_login','am_default_status','am_max_upload_mb','am_edit_page_id','am_show_submit_result_admin','am_submit_result_ttl','am_enable_debug_panel','am_seo_mode','am_articles_order','am_recent_entries_count','am_single_show_title','am_random_widget_title','am_random_widget_count','am_random_widget_visible','am_random_widget_rows','am_random_widget_autoplay','am_random_widget_interval','am_book_nav','am_book_effect','am_book_speed','am_article_status','am_archive_articles','am_sitemap_images'] as $field) {
+            foreach (['am_require_login','am_default_status','am_max_upload_mb','am_edit_page_id','am_show_submit_result_admin','am_submit_result_ttl','am_enable_debug_panel','am_seo_mode','am_articles_order','am_recent_entries_count','am_single_show_title','am_random_widget_title','am_random_widget_count','am_random_widget_visible','am_random_widget_rows','am_random_widget_autoplay','am_random_widget_interval','am_book_nav','am_book_effect','am_book_speed','am_article_status','am_archive_articles','am_sitemap_images','am_page_archive','am_page_submit','am_page_article','am_page_taxonomy','am_page_vocab','am_page_search'] as $field) {
                 $checks['settings_field_' . $field] = substr_count($settings, 'name="' . $field . '"') >= 1;
             }
             $checks['settings_single_form'] = substr_count($settings, 'value="am_save_settings"') === 1;

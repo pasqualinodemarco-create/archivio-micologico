@@ -5,7 +5,7 @@ Tags: fungi, mycology, taxonomy, scientific archive, biodiversity, search
 Requires at least: 6.0
 Tested up to: 7.1
 Requires PHP: 8.0
-Stable tag: 1.6.23
+Stable tag: 1.6.24
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -65,6 +65,11 @@ Sì. Il plugin è sviluppato e testato con PHP 8+.
 4. Tooltip informativo con logo e crediti
 
 == Changelog ==
+
+= 1.6.24 =
+* Nuovo articolo: le categorie si gestiscono direttamente dal modulo (Gestisci categorie): aggiungi (la nuova categoria è subito selezionata), rinomina ed elimina, solo se nessun articolo la usa. Senza ricaricare la pagina e senza perdere il testo già scritto.
+* Impostazioni → Pagine del plugin: un selettore per ogni pagina (Archivio micologico, Nuovo inserimento, Modifica scheda, Nuovo articolo, Tassonomia, Vocabolari, Ricerca), ognuno con la spiegazione di cosa fa, l’indicazione ✓ delle pagine che contengono lo shortcode, la pagina in uso e un avviso se quella scelta non contiene lo shortcode. Con Automatica il plugin trova da solo la pagina giusta.
+* Il collegamento all’archivio (Torna all’archivio, briciole di pane, ritorno dopo l’eliminazione di un articolo) usa la pagina scelta nelle impostazioni.
 
 = 1.6.23 =
 * Archivio: i riquadri Ultime schede pubblicate e Articoli scientifici partono entrambi chiusi; il link Torna agli articoli apre direttamente il suo riquadro.
