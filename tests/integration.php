@@ -108,10 +108,20 @@ register_shutdown_function(function() use (&$checks, &$error, &$redirects, &$plu
                 $checks['redirect_clean'] = str_contains($last, 'am_submitted=1') && !str_contains($last, 'am_error');
                 $archive = ArchivioMicologico\Archive::render_archive();
                 $checks['archive_lists_article'] = str_contains($archive, 'id="articoli"') && str_contains($archive, 'Articolo di prova') && str_contains($archive, 'Sommario breve.') && str_contains($archive, 'am-archive-entry__pdf');
+                $checks['archive_panel_closed'] = !str_contains($archive, 'id="articoli" open');
+                update_option('am_archive_articles', 0);
+                $checks['archive_panel_can_be_hidden'] = !str_contains(ArchivioMicologico\Archive::render_archive(), 'id="articoli"');
                 $GLOBALS['post'] = $article;
                 $single = (new ReflectionMethod('ArchivioMicologico\\Frontend', 'render_article_single'))->invoke(null, '<p>Testo.</p>');
                 $checks['single_article'] = str_contains($single, 'Articolo scientifico') && str_contains($single, 'Monografie') && str_contains($single, 'am-article-abstract') && str_contains($single, 'am-entry-section--pdf') && str_contains($single, 'am-entry-gallery') && str_contains($single, 'am-lightbox-item') && str_contains($single, 'am-article-figure');
             }
+        }
+    } elseif ($kind === 'article_delete') {
+        $found = get_posts(['post_type' => AM_ARTICLE_CPT, 'post_status' => ['publish', 'trash'], 'numberposts' => 1, 'title' => 'Da cestinare']);
+        $status = $found ? $found[0]->post_status : '';
+        $checks['trashed_only_if_allowed'] = ($status === 'trash') === !$denied;
+        if (!$denied) {
+            $checks['back_to_articles'] = str_contains((string) end($redirects), 'am_deleted=article');
         }
     } elseif ($kind === 'duplicates') {
         $raw = (string) ($GLOBALS['am_test_json'] ?? '');
@@ -177,7 +187,7 @@ register_shutdown_function(function() use (&$checks, &$error, &$redirects, &$plu
     // Expected permission/nonce rejections are ordinary test outcomes; undefined callbacks are never allowed.
     $checks['no_plugin_warnings'] = count($plugin_warnings) === 0;
     $checks['no_php_fatal'] = !($fatal && in_array($fatal['type'], [E_ERROR,E_PARSE,E_COMPILE_ERROR], true));
-    if (!$denied && in_array($kind,['update','settings','submit','info','info_missing','changelog_parser','admin_pages','sitemap_images','article','book'],true)) { $checks['completed_without_exception'] = $error === null; }
+    if (!$denied && in_array($kind,['update','settings','submit','info','info_missing','changelog_parser','admin_pages','sitemap_images','article','book','article_delete'],true)) { $checks['completed_without_exception'] = $error === null; }
     echo "\nAMTEST:" . json_encode(['case'=>$case,'checks'=>$checks,'error'=>$error,'warnings'=>$plugin_warnings,'redirects'=>$redirects,'output'=>substr($output,0,600)]) . "\n";
 });
 try {
@@ -228,6 +238,10 @@ try {
                 $_POST['am_gallery_ids'] = $media === 'full' ? (string) wp_insert_attachment(['post_title'=>'Galleria','post_mime_type'=>'image/jpeg','post_status'=>'inherit'], 'test-gallery.jpg') : '';
             }
             AM_Frontend::handle_submit(); break;
+        case 'article_delete':
+            $aid = wp_insert_post(['post_type' => AM_ARTICLE_CPT, 'post_status' => 'publish', 'post_author' => $admin->ID, 'post_title' => 'Da cestinare', 'post_content' => 'Testo.']);
+            $_POST = ['post_id' => (string) $aid, '_wpnonce' => !empty($case['bad_nonce']) ? 'bad' : wp_create_nonce('am_delete_article_' . $aid)];
+            ArchivioMicologico\EntryForms::handle_delete_article(); break;
         case 'book':
             $make = static function (string $title, int $family) use ($terms, $admin): int {
                 $id = wp_insert_post(['post_type' => AM_CPT, 'post_status' => 'publish', 'post_author' => $admin->ID, 'post_title' => $title, 'post_content' => 'Testo.']);
@@ -400,7 +414,7 @@ try {
             $dash = $render([AM_Admin::class, 'render_dashboard_page']);
             $checks['dashboard_rendered'] = str_contains($dash, 'Copertura tassonomica') && str_contains($dash, 'Controllo qualità dei dati') && str_contains($dash, 'post_status=pending') && str_contains($dash, 'Orphan scheda');
             $settings = $render([AM_Admin::class, 'render_settings_page']);
-            foreach (['am_require_login','am_default_status','am_max_upload_mb','am_edit_page_id','am_show_submit_result_admin','am_submit_result_ttl','am_enable_debug_panel','am_seo_mode','am_articles_order','am_recent_entries_count','am_single_show_title','am_random_widget_title','am_random_widget_count','am_random_widget_visible','am_random_widget_rows','am_random_widget_autoplay','am_random_widget_interval','am_book_nav','am_book_effect','am_book_speed'] as $field) {
+            foreach (['am_require_login','am_default_status','am_max_upload_mb','am_edit_page_id','am_show_submit_result_admin','am_submit_result_ttl','am_enable_debug_panel','am_seo_mode','am_articles_order','am_recent_entries_count','am_single_show_title','am_random_widget_title','am_random_widget_count','am_random_widget_visible','am_random_widget_rows','am_random_widget_autoplay','am_random_widget_interval','am_book_nav','am_book_effect','am_book_speed','am_article_status','am_archive_articles','am_sitemap_images'] as $field) {
                 $checks['settings_field_' . $field] = substr_count($settings, 'name="' . $field . '"') >= 1;
             }
             $checks['settings_single_form'] = substr_count($settings, 'value="am_save_settings"') === 1;

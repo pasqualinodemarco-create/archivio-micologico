@@ -5,7 +5,7 @@ Tags: fungi, mycology, taxonomy, scientific archive, biodiversity, search
 Requires at least: 6.0
 Tested up to: 7.1
 Requires PHP: 8.0
-Stable tag: 1.6.22
+Stable tag: 1.6.23
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -65,6 +65,12 @@ Sì. Il plugin è sviluppato e testato con PHP 8+.
 4. Tooltip informativo con logo e crediti
 
 == Changelog ==
+
+= 1.6.23 =
+* Archivio: i riquadri Ultime schede pubblicate e Articoli scientifici partono entrambi chiusi; il link Torna agli articoli apre direttamente il suo riquadro.
+* Pagina dell’articolo: pulsante Elimina articolo per Amministratori ed Editori, con conferma; l’articolo va nel cestino e si può ripristinare. Le categorie sono collegate alla loro pagina con l’elenco degli articoli.
+* Impostazioni riorganizzate con due nuovi gruppi: Articoli scientifici (stato dei nuovi articoli, separato da quello delle schede; riquadro nell’archivio; ordine) e Sfoglia le schede (frecce, effetto, durata). In SEO si può escludere le foto della galleria dalla sitemap.
+* Dashboard e Istruzioni aggiornate: collegamento a Nuovo articolo, spiegazione di articoli, categorie e navigazione tra le schede.
 
 = 1.6.22 =
 * Galleria delle schede e degli articoli: ogni foto si apre di nuovo ingrandita a schermo intero, con frecce e tasti per scorrerle (il collegamento delle immagini al visualizzatore era andato perso).

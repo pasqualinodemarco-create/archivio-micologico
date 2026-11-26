@@ -334,12 +334,18 @@ var famPage = 1;
 
     // Initial (articles are rendered by the server since 1.6.20)
     loadFamilies();
-  }
 
-  // Desktop: the panel sits beside the index, so it starts open.
-  function openRecentOnDesktop(){
-    var panel = document.getElementById("ultime-schede");
-    if(panel && window.matchMedia && window.matchMedia("(min-width: 1100px)").matches){ panel.open = true; }
+    // 1.6.23: panels start closed; a link such as #articoli opens the one it points to.
+    function openFromHash(){
+      var id = decodeURIComponent((location.hash || "").slice(1));
+      var panel = id ? document.getElementById(id) : null;
+      if(panel && panel.tagName === "DETAILS" && root.contains(panel)){
+        panel.open = true;
+        panel.scrollIntoView({ block: "start" });
+      }
+    }
+    openFromHash();
+    window.addEventListener("hashchange", openFromHash);
   }
 
   function openRecentArchiveEntries(){
@@ -352,7 +358,6 @@ var famPage = 1;
   }
 
   document.addEventListener("DOMContentLoaded", initArchive);
-  document.addEventListener("DOMContentLoaded", openRecentOnDesktop);
   document.addEventListener("DOMContentLoaded", openRecentArchiveEntries);
   window.addEventListener("hashchange", openRecentArchiveEntries);
   // Selecting the same fragment again does not fire hashchange.

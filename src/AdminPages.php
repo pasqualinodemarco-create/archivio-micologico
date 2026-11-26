@@ -162,6 +162,7 @@ final class AdminPages {
 		$quality = self::quality();
 		$pages = [
 			'submit' => self::page_with('am_submit_form'),
+			'article' => self::page_with('am_article_form'),
 			'archive' => self::page_with('am_archive'),
 			'taxonomy' => self::page_with('am_tassonomia'),
 			'vocab' => self::page_with('am_vocabolari'),
@@ -264,6 +265,7 @@ final class AdminPages {
 		echo '<section class="am-card"><h2>' . esc_html__('Pagine di gestione', 'archivio-micologico') . '</h2><nav class="am-links">';
 		foreach ([
 			['submit', __('Nuovo inserimento', 'archivio-micologico'), '[am_submit_form]'],
+			['article', __('Nuovo articolo', 'archivio-micologico'), '[am_article_form]'],
 			['taxonomy', __('Tassonomia (pubblica)', 'archivio-micologico'), '[am_tassonomia]'],
 			['vocab', __('Vocabolari (pubblica)', 'archivio-micologico'), '[am_vocabolari]'],
 			['archive', __('Archivio', 'archivio-micologico'), '[am_archive]'],
@@ -321,9 +323,11 @@ final class AdminPages {
 	public static function setting_sections(): array {
 		return [
 			'am_entry' => [__('Inserimento schede', 'archivio-micologico'), __('Come funzionano i moduli pubblici Nuovo inserimento e Modifica.', 'archivio-micologico')],
+			'am_articles' => [__('Articoli scientifici', 'archivio-micologico'), __('Modulo Nuovo articolo ([am_article_form]) e riquadro Articoli scientifici dell’archivio.', 'archivio-micologico')],
 			'am_display' => [__('Visualizzazione pubblica', 'archivio-micologico'), __('Cosa vedono i visitatori nelle schede e nell’archivio.', 'archivio-micologico')],
+			'am_book' => [__('Sfoglia le schede', 'archivio-micologico'), __('Frecce ai lati della scheda per passare alla precedente o alla successiva, come in un libro.', 'archivio-micologico')],
 			'am_widget_random' => [__('Carosello schede casuali', 'archivio-micologico'), __('Valori predefiniti del widget e dello shortcode [am_random_funghi]; lo shortcode può sovrascriverli.', 'archivio-micologico')],
-			'am_seo' => [__('SEO', 'archivio-micologico'), __('Meta description, canonical e dati strutturati delle schede.', 'archivio-micologico')],
+			'am_seo' => [__('SEO', 'archivio-micologico'), __('Meta description, dati strutturati e immagini comunicate ai motori di ricerca.', 'archivio-micologico')],
 			'am_tools' => [__('Manutenzione', 'archivio-micologico'), __('Strumenti per diagnosticare un problema.', 'archivio-micologico')],
 		];
 	}
@@ -391,7 +395,8 @@ final class AdminPages {
 		$cards = [
 			[__('Inserire una scheda', 'archivio-micologico'), __('Apri la pagina Nuovo inserimento dal menu Gestione archivio del sito. Scegli la specie nell’albero, aggiungi forma o varietà e autore, scrivi le descrizioni e carica le foto. Il titolo si compone da solo.', 'archivio-micologico')],
 			[__('Correggere un nome', 'archivio-micologico'), __('Usa Tassonomia per divisioni, famiglie, generi e specie, Vocabolari per forme, varietà e autori. Rinomina o sposta la voce: tutte le schede collegate si aggiornano.', 'archivio-micologico')],
-			[__('Revisionare e pubblicare', 'archivio-micologico'), __('Le schede in revisione sono elencate nella Dashboard. Controllale e pubblicale dall’editor WordPress o con Modifica rapida. Nel modulo di modifica, Salva revisione registra chi ha controllato e quando.', 'archivio-micologico')],
+			[__('Pubblicare un articolo', 'archivio-micologico'), __('Da Gestione archivio → Nuovo articolo: titolo, sommario, categorie, testo, immagini e PDF. Compare nel riquadro Articoli scientifici dell’archivio. Amministratori ed Editori lo eliminano dal pulsante Elimina articolo nella sua pagina (va nel cestino).', 'archivio-micologico')],
+						[__('Revisionare e pubblicare', 'archivio-micologico'), __('Le schede in revisione sono elencate nella Dashboard. Controllale e pubblicale dall’editor WordPress o con Modifica rapida. Nel modulo di modifica, Salva revisione registra chi ha controllato e quando.', 'archivio-micologico')],
 		];
 		foreach ($cards as $i => [$title, $text]) {
 			echo '<section class="am-card am-howto__step"><span class="am-howto__num">' . esc_html((string) ($i + 1)) . '</span><h2>' . esc_html($title) . '</h2><p>' . esc_html($text) . '</p></section>';
@@ -407,7 +412,9 @@ final class AdminPages {
 			[__('Epiteto specifico', 'archivio-micologico'), __('Sempre minuscolo, anche se deriva da un nome proprio. Il Genere ha l’iniziale maiuscola.', 'archivio-micologico')],
 			[__('Forma e varietà', 'archivio-micologico'), __('Con l’abbreviazione del rango: var. per varietà, f. per forma.', 'archivio-micologico')],
 			[__('Autori', 'archivio-micologico'), __('Abbreviazioni standard di Index Fungorum (Authors of Fungal Names). Una sola voce per autore: i doppioni si correggono con Unisci.', 'archivio-micologico')],
-			[__('Eliminare', 'archivio-micologico'), __('Possibile solo per voci senza schede e senza livelli inferiori, così nessuna scheda perde la classificazione.', 'archivio-micologico')],
+			[__('Categorie degli articoli', 'archivio-micologico'), __('Raggruppano gli articoli per argomento (es. Monografie, Chiavi, Relazioni). Si creano in Archivio Micologico → Categorie Articoli, si scelgono nel modulo (anche più di una) e ognuna ha la sua pagina pubblica con l’elenco degli articoli.', 'archivio-micologico')],
+			[__('Sfogliare le schede', 'archivio-micologico'), __('Le frecce ai lati della scheda seguono l’ordine dell’archivio: divisione, famiglia, nome scientifico. Effetto e durata in Impostazioni → Sfoglia le schede.', 'archivio-micologico')],
+						[__('Eliminare', 'archivio-micologico'), __('Possibile solo per voci senza schede e senza livelli inferiori, così nessuna scheda perde la classificazione.', 'archivio-micologico')],
 		];
 		foreach ($rules as [$term, $def]) { echo '<dt>' . esc_html($term) . '</dt><dd>' . esc_html($def) . '</dd>'; }
 		echo '</dl></section>';
