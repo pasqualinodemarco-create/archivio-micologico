@@ -805,9 +805,7 @@ echo '</div>';
 			exit;
 		}
 
-		$default_status = (string) get_option('am_default_status', 'pending');
-		$allowed_status = ['draft','pending','publish','private'];
-		if (!in_array($default_status, $allowed_status, true)) { $default_status = 'pending'; }
+		$default_status = self::article_status();
 
 		$post_id = wp_insert_post([
 			'post_type' => AM_ARTICLE_CPT,
@@ -1295,6 +1293,44 @@ if (($_SERVER['REQUEST_METHOD'] ?? '') !== 'POST') { return; }
 		$redirect = isset($_POST['redirect_to']) ? esc_url_raw(wp_unslash($_POST['redirect_to'])) : '';
 		if (!$redirect) { $redirect = admin_url('edit.php?post_type=' . AM_CPT); }
 		wp_safe_redirect(add_query_arg('am_deleted', '1', $redirect));
+		exit;
+	}
+
+	/** Status of new articles: their own setting, else the one of the schede. */
+	public static function article_status(): string {
+		$status = (string) get_option('am_article_status', (string) get_option('am_default_status', 'pending'));
+		return in_array($status, ['draft', 'pending', 'publish', 'private'], true) ? $status : 'pending';
+	}
+
+	/** Articles go to the trash (never a permanent deletion), only for Administrators and Editors. */
+	public static function handle_delete_article(): void {
+		if (($_SERVER['REQUEST_METHOD'] ?? '') !== 'POST') {
+			wp_die(esc_html__('Metodo non consentito.', 'archivio-micologico'), '', ['response' => 405]);
+		}
+		if (!am_user_is_admin_or_editor()) {
+			wp_die(esc_html__('Non autorizzato.', 'archivio-micologico'), '', ['response' => 403]);
+		}
+		$post_id = isset($_POST['post_id']) ? absint($_POST['post_id']) : 0;
+		$post = $post_id ? get_post($post_id) : null;
+		if (!$post || $post->post_type !== AM_ARTICLE_CPT) {
+			wp_die(esc_html__('Articolo non valido.', 'archivio-micologico'), '', ['response' => 400]);
+		}
+		if (!current_user_can('delete_post', $post_id)) {
+			wp_die(esc_html__('Permessi insufficienti.', 'archivio-micologico'), '', ['response' => 403]);
+		}
+		$nonce = isset($_POST['_wpnonce']) ? sanitize_text_field(wp_unslash($_POST['_wpnonce'])) : '';
+		if (!$nonce || !wp_verify_nonce($nonce, 'am_delete_article_' . $post_id)) {
+			wp_die(esc_html__('Sessione scaduta. Ricarica la pagina e riprova.', 'archivio-micologico'), '', ['response' => 403]);
+		}
+		if (defined('EMPTY_TRASH_DAYS') && (int) EMPTY_TRASH_DAYS === 0) {
+			wp_die(esc_html__('Il cestino WordPress è disattivato. Nessun articolo è stato eliminato.', 'archivio-micologico'), '', ['response' => 409]);
+		}
+		if (!wp_trash_post($post_id)) {
+			wp_die(esc_html__('Impossibile spostare l’articolo nel cestino.', 'archivio-micologico'), '', ['response' => 400]);
+		}
+		$archive = AdminPages::page_with('am_archive');
+		$target = $archive !== '' ? $archive : admin_url('edit.php?post_type=' . AM_ARTICLE_CPT);
+		wp_safe_redirect(add_query_arg('am_deleted', 'article', $target) . ($archive !== '' ? '#articoli' : ''));
 		exit;
 	}
 

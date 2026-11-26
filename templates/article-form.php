@@ -27,7 +27,7 @@ $selected_cats = isset($am_sticky['am_article_cats']) && is_array($am_sticky['am
   ? array_values(array_filter(array_map('absint', $am_sticky['am_article_cats'])))
   : [];
 
-$am_status = (string) get_option('am_default_status', 'pending');
+$am_status = \ArchivioMicologico\EntryForms::article_status();
 $am_publishes = $am_status === 'publish';
 
 // Outcome of the last submission (same mechanism as the scheda form).

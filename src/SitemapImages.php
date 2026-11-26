@@ -24,7 +24,7 @@ final class SitemapImages {
 
 	public static function add_gallery($images, $post_id) {
 		$post_id = (int) $post_id;
-		if (!is_array($images) || !in_array(get_post_type($post_id), [AM_CPT, AM_ARTICLE_CPT], true)) { return $images; }
+		if (!is_array($images) || (int) get_option('am_sitemap_images', 1) !== 1 || !in_array(get_post_type($post_id), [AM_CPT, AM_ARTICLE_CPT], true)) { return $images; }
 		$seen = [];
 		foreach ($images as $image) {
 			if (!empty($image['src'])) { $seen[self::key((string) $image['src'])] = true; }

@@ -744,7 +744,7 @@ public static function apply_admin_post_filters($query) {
 			echo '</select>';
 		}, 'am_settings', 'am_entry');
 
-		add_settings_field('am_articles_order', __('Ordine degli articoli', 'archivio-micologico'), function () {
+		add_settings_field('am_articles_order', __('Ordine nell’archivio', 'archivio-micologico'), function () {
 			$val = (string) get_option('am_articles_order', 'date');
 			$opts = [
 				'date' => __('Data (più recenti prima)', 'archivio-micologico'),
@@ -756,7 +756,7 @@ public static function apply_admin_post_filters($query) {
 			}
 			echo '</select>';
 			echo '<p class="description">' . esc_html__('Controlla l’ordine di visualizzazione della sezione Articoli in [am_archive].', 'archivio-micologico') . '</p>';
-		}, 'am_settings', 'am_display');
+		}, 'am_settings', 'am_articles');
 
 
 		add_settings_field('am_max_upload_mb', __('Peso massimo immagini (MB)', 'archivio-micologico'), function () {
@@ -773,12 +773,40 @@ public static function apply_admin_post_filters($query) {
 			echo '<p class="description">' . esc_html__('Togli la spunta se il tema mostra già il titolo sopra il contenuto.', 'archivio-micologico') . '</p>';
 		}, 'am_settings', 'am_display');
 
+		add_settings_field('am_article_status', __('Stato dei nuovi articoli', 'archivio-micologico'), function () {
+			$val = EntryForms::article_status();
+			echo '<select id="am_article_status" name="am_article_status">';
+			foreach ([
+				'publish' => __('Pubblicato subito', 'archivio-micologico'),
+				'pending' => __('In attesa di revisione', 'archivio-micologico'),
+				'draft' => __('Bozza', 'archivio-micologico'),
+				'private' => __('Privato', 'archivio-micologico'),
+			] as $value => $label) {
+				echo '<option value="' . esc_attr($value) . '" ' . selected($val, $value, false) . '>' . esc_html($label) . '</option>';
+			}
+			echo '</select><p class="description">' . esc_html__('Vale per gli articoli inviati dal modulo pubblico, indipendentemente dallo stato delle schede.', 'archivio-micologico') . '</p>';
+		}, 'am_settings', 'am_articles', ['label_for' => 'am_article_status']);
+
+		add_settings_field('am_archive_articles', __('Riquadro nell’archivio', 'archivio-micologico'), function () {
+			echo '<input type="hidden" name="am_archive_articles" value="0">';
+			echo '<label><input type="checkbox" name="am_archive_articles" value="1" ' . checked(1, (int) get_option('am_archive_articles', 1), false) . '> ';
+			echo esc_html__('Mostra gli articoli pubblicati nell’Archivio micologico, accanto alle Ultime schede', 'archivio-micologico') . '</label>';
+			echo '<p class="description">' . esc_html__('Il riquadro parte chiuso; il link “Torna agli articoli” lo apre. Le categorie si gestiscono in Archivio Micologico → Categorie Articoli.', 'archivio-micologico') . '</p>';
+		}, 'am_settings', 'am_articles');
+
+		add_settings_field('am_sitemap_images', __('Immagini nella sitemap', 'archivio-micologico'), function () {
+			echo '<input type="hidden" name="am_sitemap_images" value="0">';
+			echo '<label><input type="checkbox" name="am_sitemap_images" value="1" ' . checked(1, (int) get_option('am_sitemap_images', 1), false) . '> ';
+			echo esc_html__('Comunica a Google anche tutte le foto della galleria di schede e articoli', 'archivio-micologico') . '</label>';
+			echo '<p class="description">' . esc_html__('Richiede Yoast SEO; senza, la sitemap la genera WordPress senza immagini.', 'archivio-micologico') . '</p>';
+		}, 'am_settings', 'am_seo');
+
 		add_settings_field('am_book_nav', __('Sfoglia le schede', 'archivio-micologico'), function () {
 			echo '<input type="hidden" name="am_book_nav" value="0">';
 			echo '<label><input type="checkbox" name="am_book_nav" value="1" ' . checked(1, (int) get_option('am_book_nav', 1), false) . '> ';
 			echo esc_html__('Frecce grandi ai lati della scheda per passare alla precedente o alla successiva', 'archivio-micologico') . '</label>';
 			echo '<p class="description">' . esc_html__('Ordine dell’archivio: divisione, famiglia, nome scientifico. Funzionano anche con i tasti ← e → della tastiera.', 'archivio-micologico') . '</p>';
-		}, 'am_settings', 'am_display');
+		}, 'am_settings', 'am_book');
 
 		add_settings_field('am_book_effect', __('Effetto di transizione', 'archivio-micologico'), function () {
 			$effect = (string) get_option('am_book_effect', 'libro');
@@ -795,7 +823,7 @@ public static function apply_admin_post_filters($query) {
 			echo ' <label for="am_book_speed" style="margin-left:12px">' . esc_html__('Durata', 'archivio-micologico') . '</label> ';
 			echo '<input type="number" id="am_book_speed" name="am_book_speed" min="200" max="1500" step="50" value="' . esc_attr((string) max(200, min(1500, (int) get_option('am_book_speed', 650)))) . '" class="small-text"> ms';
 			echo '<p class="description">' . esc_html__('Attivo su Chrome, Edge e Safari recenti; gli altri browser cambiano pagina senza animazione. Disattivato per chi ha scelto di ridurre le animazioni nel sistema.', 'archivio-micologico') . '</p>';
-		}, 'am_settings', 'am_display', ['label_for' => 'am_book_effect']);
+		}, 'am_settings', 'am_book', ['label_for' => 'am_book_effect']);
 
 		add_settings_field('am_edit_page_id', __('Pagina di modifica', 'archivio-micologico'), function () {
 			$val = (int) get_option('am_edit_page_id', 0);
@@ -1043,6 +1071,17 @@ wp_safe_redirect(add_query_arg(['page' => 'am_settings', 'am_err' => 'caps'], ad
 			$show_title = $_POST['am_single_show_title'] ?? null;
 			if ($show_title === '0' || $show_title === '1') {
 				update_option('am_single_show_title', (int) $show_title);
+			}
+			// 1.6.23: articles and sitemap; saved only when their fields are part of the form.
+			$article_status = isset($_POST['am_article_status']) ? sanitize_key((string) $_POST['am_article_status']) : '';
+			if (in_array($article_status, $allowed_status, true)) {
+				update_option('am_article_status', $article_status);
+			}
+			foreach (['am_archive_articles', 'am_sitemap_images'] as $flag) {
+				$value = $_POST[$flag] ?? null;
+				if ($value === '0' || $value === '1') {
+					update_option($flag, (int) $value);
+				}
 			}
 			// 1.6.21: page-turn navigation; saved only when its fields are part of the form.
 			$book_nav = $_POST['am_book_nav'] ?? null;

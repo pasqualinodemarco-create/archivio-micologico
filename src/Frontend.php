@@ -107,6 +107,7 @@ class Frontend {
 		add_action('admin_post_nopriv_am_update_fungo', [__CLASS__, 'handle_update']);
 
 		add_action('admin_post_am_delete_fungo', [__CLASS__, 'handle_delete']);
+		add_action('admin_post_am_delete_article', [EntryForms::class, 'handle_delete_article']);
 		add_action('admin_post_nopriv_am_delete_fungo', [__CLASS__, 'handle_delete']);
 	}
 
@@ -618,7 +619,10 @@ $macro_html = '';
 		$bits = [];
 		$cats = get_the_terms($id, AM_TAX_ARTICLE_CAT);
 		if (is_array($cats) && $cats) {
-			$bits[] = '<span class="am-article-meta__cats">' . implode('', array_map(static fn($t) => '<span class="am-badge">' . esc_html($t->name) . '</span>', $cats)) . '</span>';
+			$bits[] = '<span class="am-article-meta__cats">' . implode('', array_map(static function ($t) {
+				$link = get_term_link($t);
+				return is_wp_error($link) ? '<span class="am-badge">' . esc_html($t->name) . '</span>' : '<a class="am-badge" href="' . esc_url($link) . '">' . esc_html($t->name) . '</a>';
+			}, $cats)) . '</span>';
 		}
 		$u = get_userdata((int) $post->post_author);
 		$author = $u ? trim($u->first_name . ' ' . $u->last_name) : '';
@@ -630,8 +634,21 @@ $macro_html = '';
 
 		$out = '<div class="am-article">';
 		$out .= '<p class="am-article-meta"><span class="am-article-meta__kind">' . esc_html__('Articolo scientifico', 'archivio-micologico') . '</span>' . implode('<span class="am-article-meta__sep" aria-hidden="true">·</span>', $bits) . '</p>';
-		if (current_user_can('edit_post', $id)) {
-			$out .= '<p class="am-article-edit"><a class="am-btn am-btn--small am-btn--secondary" href="' . esc_url((string) get_edit_post_link($id)) . '">' . esc_html__('Modifica articolo', 'archivio-micologico') . '</a></p>';
+		$can_edit = current_user_can('edit_post', $id);
+		$can_delete = am_user_is_admin_or_editor() && current_user_can('delete_post', $id);
+		if ($can_edit || $can_delete) {
+			$out .= '<div class="am-article-edit">';
+			if ($can_edit) {
+				$out .= '<a class="am-btn am-btn--small am-btn--secondary" href="' . esc_url((string) get_edit_post_link($id)) . '">' . esc_html__('Modifica articolo', 'archivio-micologico') . '</a>';
+			}
+			if ($can_delete) {
+				$out .= '<form method="post" action="' . esc_url(admin_url('admin-post.php')) . '" class="am-article-delete" onsubmit="return window.confirm(this.dataset.confirm);" data-confirm="' . esc_attr__('Spostare questo articolo nel cestino? Si potrà ripristinare dalla Bacheca.', 'archivio-micologico') . '">'
+					. '<input type="hidden" name="action" value="am_delete_article">'
+					. '<input type="hidden" name="post_id" value="' . esc_attr((string) $id) . '">'
+					. wp_nonce_field('am_delete_article_' . $id, '_wpnonce', false, false)
+					. '<button type="submit" class="am-btn am-btn--small am-btn--danger">' . esc_html__('Elimina articolo', 'archivio-micologico') . '</button></form>';
+			}
+			$out .= '</div>';
 		}
 		if (has_excerpt($post)) {
 			$out .= '<p class="am-article-abstract">' . esc_html(get_the_excerpt($post)) . '</p>';

@@ -102,6 +102,9 @@ public static function render_archive($atts = []): string {
 			return (string) ob_get_clean();
 		}
 
+		if (($_GET['am_deleted'] ?? '') === 'article') {
+			echo '<div class="am-notice am-notice--success" role="status">' . esc_html__('Articolo spostato nel cestino. Si può ripristinare da Bacheca → Archivio Micologico → Articoli → Cestino.', 'archivio-micologico') . '</div>';
+		}
 		echo '<div class="am-archive am-archive--scientific" id="am-archive" data-per-page-families="' . esc_attr((string) (int) $atts['families_per_page']) . '" data-per-page-entries="' . esc_attr((string) (int) $atts['entries_per_page']) . '">';
 	$total = 0;
 		if (defined('AM_CPT')) {
@@ -200,6 +203,9 @@ public static function render_archive($atts = []): string {
 
 	/** 1.6.20 - Published scientific articles, beside the latest schede (server-rendered for search engines). */
 	private static function render_archive_articles(): void {
+		if ((int) get_option('am_archive_articles', 1) !== 1) {
+			return;
+		}
 		$alpha = (string) get_option('am_articles_order', 'date') === 'alpha';
 		$q = new WP_Query([
 			'post_type' => AM_ARTICLE_CPT,
@@ -215,7 +221,7 @@ public static function render_archive($atts = []): string {
 			return;
 		}
 
-		echo '<details class="am-archive-branch am-archive__recent am-archive__articles-panel" id="articoli" open>';
+		echo '<details class="am-archive-branch am-archive__recent am-archive__articles-panel" id="articoli">';
 		echo '<summary class="am-archive-node am-archive-node--division">';
 		echo '<span class="am-archive-node__chev" aria-hidden="true">▸</span>';
 		echo '<span class="am-archive-node__label">' . esc_html__('Articoli scientifici', 'archivio-micologico') . '</span>';

@@ -1725,3 +1725,16 @@ a.am-entry-gallery__item:focus-visible { outline: 3px solid #225744; outline-off
 .am-article-figure { margin: 0 0 26px; }
 .am-article-figure__img { display: block; width: 100%; height: auto; border-radius: 12px; box-shadow: 0 1px 10px rgba(0, 0, 0, .08); }
 .am-article-figure .am-entry-caption { margin-top: 6px; color: #3d4852; }
+
+/* 1.6.23 - Azioni dell'articolo per Amministratori ed Editori */
+.am-article-edit { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: 0 0 16px; }
+.am-article-delete { margin: 0; }
+.am-btn.am-btn--danger {
+  border: 1px solid #e3b7ad;
+  background: #fff;
+  color: #9b3a24;
+  cursor: pointer;
+}
+.am-btn.am-btn--danger:hover,
+.am-btn.am-btn--danger:focus-visible { border-color: #9b3a24; background: #9b3a24; color: #fff; }
+a.am-badge:hover { border-color: #225744; color: #225744; }
