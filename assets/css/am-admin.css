@@ -249,3 +249,9 @@
 .am-admin .am-manage__eyebrow { display: none; }
 .am-admin .am-page-status { margin: 6px 0 0; color: #225744; font-weight: 600; }
 .am-admin .am-page-status--warn { color: #8a5d0c; }
+.am-admin .am-copy { display: inline-flex; align-items: center; gap: 8px; margin: 8px 0 0; }
+.am-admin .am-copy code { padding: 3px 8px; border: 1px solid var(--am-line); border-radius: 6px; background: var(--am-sage); color: var(--am-forest); font-size: 13px; }
+.am-admin .am-copy__btn.is-copied { border-color: #225744; color: #225744; }
+.am-admin .form-table select + .am-copy { margin-left: 10px; }
+.am-admin .am-codes td:first-child { width: 290px; }
+.am-admin .am-codes .am-copy { margin: 0; }

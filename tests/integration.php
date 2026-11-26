@@ -455,6 +455,7 @@ try {
                 $checks['settings_field_' . $field] = substr_count($settings, 'name="' . $field . '"') >= 1;
             }
             $checks['settings_single_form'] = substr_count($settings, 'value="am_save_settings"') === 1;
+            $checks['shortcode_copy_buttons'] = substr_count($settings, 'data-am-copy="[am_') === 7 && str_contains($settings, 'data-am-copy="[am_edit_form]"');
             $checks['instructions_rendered'] = str_contains($render([AM_Admin::class, 'render_instructions_page']), 'Regole di nomenclatura');
             $checks['taxonomy_page_rendered'] = str_contains($render([ArchivioMicologico\AdminPages::class, 'taxonomy']), 'am-mtree');
             $checks['vocab_page_rendered'] = str_contains($render([AM_Admin::class, 'render_vocabolari_page']), 'am-mtable');

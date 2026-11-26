@@ -30,6 +30,17 @@ final class AdminPages {
 
 	private static function close(): void {
 		echo '</div>';
+		// Copy buttons ([data-am-copy]): clipboard API, with a selection fallback on plain http.
+		echo "<script>document.addEventListener('click',function(e){var b=e.target.closest('[data-am-copy]');if(!b){return;}e.preventDefault();var t=b.getAttribute('data-am-copy'),l=b.textContent;"
+			. "function ok(){b.textContent=b.getAttribute('data-am-done');b.classList.add('is-copied');setTimeout(function(){b.textContent=l;b.classList.remove('is-copied');},1800);}"
+			. "function old(){var a=document.createElement('textarea');a.value=t;a.setAttribute('readonly','');a.style.position='fixed';a.style.opacity='0';document.body.appendChild(a);a.select();try{document.execCommand('copy');ok();}catch(x){}a.remove();}"
+			. "if(navigator.clipboard&&window.isSecureContext){navigator.clipboard.writeText(t).then(ok,old);}else{old();}});</script>";
+	}
+
+	/** A shortcode with its "Copia shortcode" button. */
+	public static function copy_code(string $code): string {
+		return '<span class="am-copy"><code>' . esc_html($code) . '</code>'
+			. '<button type="button" class="button button-small am-copy__btn" data-am-copy="' . esc_attr($code) . '" data-am-done="' . esc_attr__('Copiato ✓', 'archivio-micologico') . '" aria-label="' . esc_attr(sprintf(__('Copia lo shortcode %s', 'archivio-micologico'), $code)) . '">' . esc_html__('Copia shortcode', 'archivio-micologico') . '</button></span>';
 	}
 
 	private static function button(string $label, string $url, bool $primary = false, bool $external = false): string {
@@ -463,7 +474,7 @@ final class AdminPages {
 			['[am_article_form]', __('Inserimento di un articolo con immagini, galleria e PDF.', 'archivio-micologico')],
 			['[am_random_funghi]', __('Carosello di schede casuali. Parametri: numero, titolo, visibili, righe, autoplay, intervallo.', 'archivio-micologico')],
 		] as [$code, $what]) {
-			echo '<tr><td><code>' . esc_html($code) . '</code></td><td>' . esc_html($what) . '</td></tr>';
+			echo '<tr><td>' . self::copy_code($code) . '</td><td>' . esc_html($what) . '</td></tr>';
 		}
 		echo '</tbody></table></section>';
 		echo '</div>';
