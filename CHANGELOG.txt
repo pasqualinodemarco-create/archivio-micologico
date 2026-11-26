@@ -1,3 +1,7 @@
+= 1.6.25 =
+- Impostazioni → Pagine del plugin: accanto a ogni selettore lo shortcode della pagina con il pulsante Copia shortcode, da incollare in un blocco Shortcode.
+- Istruzioni: pulsante Copia shortcode anche nella tabella degli shortcode.
+
 = 1.6.24 =
 - Nuovo articolo: le categorie si gestiscono direttamente dal modulo (Gestisci categorie): aggiungi (la nuova categoria è subito selezionata), rinomina ed elimina, solo se nessun articolo la usa. Senza ricaricare la pagina e senza perdere il testo già scritto.
 - Impostazioni → Pagine del plugin: un selettore per ogni pagina (Archivio micologico, Nuovo inserimento, Modifica scheda, Nuovo articolo, Tassonomia, Vocabolari, Ricerca), ognuno con la spiegazione di cosa fa, l’indicazione ✓ delle pagine che contengono lo shortcode, la pagina in uso e un avviso se quella scelta non contiene lo shortcode. Con Automatica il plugin trova da solo la pagina giusta.

@@ -841,6 +841,7 @@ public static function apply_admin_post_filters($query) {
 					echo '<option value="' . esc_attr((string) $pg->ID) . '" ' . selected($pg->ID, $val, false) . '>' . esc_html($pg->post_title . ($has ? '  ✓ [' . $tag . ']' : '')) . '</option>';
 				}
 				echo '</select>';
+				echo AdminPages::copy_code('[' . $tag . ']'); // phpcs:ignore WordPress.Security.EscapeOutput -- escaped while built.
 				echo '<p class="description">' . esc_html($help) . '</p>';
 				$chosen = $val ? get_post($val) : null;
 				$url = AdminPages::page_url($key);

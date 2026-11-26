@@ -5,7 +5,7 @@ Tags: fungi, mycology, taxonomy, scientific archive, biodiversity, search
 Requires at least: 6.0
 Tested up to: 7.1
 Requires PHP: 8.0
-Stable tag: 1.6.24
+Stable tag: 1.6.25
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -65,6 +65,10 @@ Sì. Il plugin è sviluppato e testato con PHP 8+.
 4. Tooltip informativo con logo e crediti
 
 == Changelog ==
+
+= 1.6.25 =
+* Impostazioni → Pagine del plugin: accanto a ogni selettore lo shortcode della pagina con il pulsante Copia shortcode, da incollare in un blocco Shortcode.
+* Istruzioni: pulsante Copia shortcode anche nella tabella degli shortcode.
 
 = 1.6.24 =
 * Nuovo articolo: le categorie si gestiscono direttamente dal modulo (Gestisci categorie): aggiungi (la nuova categoria è subito selezionata), rinomina ed elimina, solo se nessun articolo la usa. Senza ricaricare la pagina e senza perdere il testo già scritto.
