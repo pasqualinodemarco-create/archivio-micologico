@@ -798,7 +798,8 @@ echo '</div>';
 			exit;
 		}
 
-		if (trim(wp_strip_all_tags($content)) === '') {
+		// An empty editor still sends markup such as <p>&nbsp;</p>.
+		if (trim(str_replace("\xC2\xA0", ' ', html_entity_decode(wp_strip_all_tags($content), ENT_QUOTES, 'UTF-8'))) === '') {
 			self::set_submit_result(false, 'missing_content', __('Scrivi il testo dell’articolo.', 'archivio-micologico'));
 			self::am_save_sticky($am_token, self::am_collect_sticky_post());
 			wp_safe_redirect(add_query_arg(['am_error'=>'missing_content','am_token'=>$am_token], $redirect));
