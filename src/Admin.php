@@ -773,6 +773,30 @@ public static function apply_admin_post_filters($query) {
 			echo '<p class="description">' . esc_html__('Togli la spunta se il tema mostra già il titolo sopra il contenuto.', 'archivio-micologico') . '</p>';
 		}, 'am_settings', 'am_display');
 
+		add_settings_field('am_book_nav', __('Sfoglia le schede', 'archivio-micologico'), function () {
+			echo '<input type="hidden" name="am_book_nav" value="0">';
+			echo '<label><input type="checkbox" name="am_book_nav" value="1" ' . checked(1, (int) get_option('am_book_nav', 1), false) . '> ';
+			echo esc_html__('Frecce grandi ai lati della scheda per passare alla precedente o alla successiva', 'archivio-micologico') . '</label>';
+			echo '<p class="description">' . esc_html__('Ordine dell’archivio: divisione, famiglia, nome scientifico. Funzionano anche con i tasti ← e → della tastiera.', 'archivio-micologico') . '</p>';
+		}, 'am_settings', 'am_display');
+
+		add_settings_field('am_book_effect', __('Effetto di transizione', 'archivio-micologico'), function () {
+			$effect = (string) get_option('am_book_effect', 'libro');
+			echo '<select id="am_book_effect" name="am_book_effect">';
+			foreach ([
+				'libro' => __('Libro: la pagina gira (consigliato)', 'archivio-micologico'),
+				'scorrimento' => __('Scorrimento laterale', 'archivio-micologico'),
+				'dissolvenza' => __('Dissolvenza', 'archivio-micologico'),
+				'nessuno' => __('Nessuno', 'archivio-micologico'),
+			] as $value => $label) {
+				echo '<option value="' . esc_attr($value) . '" ' . selected($effect, $value, false) . '>' . esc_html($label) . '</option>';
+			}
+			echo '</select>';
+			echo ' <label for="am_book_speed" style="margin-left:12px">' . esc_html__('Durata', 'archivio-micologico') . '</label> ';
+			echo '<input type="number" id="am_book_speed" name="am_book_speed" min="200" max="1500" step="50" value="' . esc_attr((string) max(200, min(1500, (int) get_option('am_book_speed', 650)))) . '" class="small-text"> ms';
+			echo '<p class="description">' . esc_html__('Attivo su Chrome, Edge e Safari recenti; gli altri browser cambiano pagina senza animazione. Disattivato per chi ha scelto di ridurre le animazioni nel sistema.', 'archivio-micologico') . '</p>';
+		}, 'am_settings', 'am_display', ['label_for' => 'am_book_effect']);
+
 		add_settings_field('am_edit_page_id', __('Pagina di modifica', 'archivio-micologico'), function () {
 			$val = (int) get_option('am_edit_page_id', 0);
 			$pages = get_pages(['sort_column' => 'post_title', 'sort_order' => 'ASC']);
@@ -1019,6 +1043,18 @@ wp_safe_redirect(add_query_arg(['page' => 'am_settings', 'am_err' => 'caps'], ad
 			$show_title = $_POST['am_single_show_title'] ?? null;
 			if ($show_title === '0' || $show_title === '1') {
 				update_option('am_single_show_title', (int) $show_title);
+			}
+			// 1.6.21: page-turn navigation; saved only when its fields are part of the form.
+			$book_nav = $_POST['am_book_nav'] ?? null;
+			if ($book_nav === '0' || $book_nav === '1') {
+				update_option('am_book_nav', (int) $book_nav);
+			}
+			$book_effect = isset($_POST['am_book_effect']) ? sanitize_key((string) $_POST['am_book_effect']) : '';
+			if (in_array($book_effect, \ArchivioMicologico\BookNav::EFFECTS, true)) {
+				update_option('am_book_effect', $book_effect);
+			}
+			if (isset($_POST['am_book_speed']) && is_numeric($_POST['am_book_speed'])) {
+				update_option('am_book_speed', max(200, min(1500, (int) $_POST['am_book_speed'])));
 			}
 			update_option('am_show_submit_result_admin', $show_result_admin);
 			update_option('am_enable_debug_panel', $enable_debug_panel);
