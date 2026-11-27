@@ -190,7 +190,14 @@
 .am-nom-result em { font-style: italic; }
 .am-nom-diff { color: #7a2e1d; font-size: .82rem; }
 .am-nom-table .am-mrow__name a { color: inherit; }
+.am-nom-help { margin: 0 0 12px; padding: 10px 14px; border: 1px solid var(--am-line); border-radius: 10px; background: #fff; }
+.am-nom-help summary { cursor: pointer; font-weight: 650; color: var(--am-forest); }
+.am-nom-help dl { display: grid; grid-template-columns: max-content 1fr; gap: 8px 14px; margin: 12px 0 2px; }
+.am-nom-help dt { margin: 0; }
+.am-nom-help dd { margin: 0; color: var(--am-ink); }
 @media (max-width: 640px) {
+  .am-nom-help dl { grid-template-columns: 1fr; }
+  .am-nom-help dd { margin-bottom: 6px; }
   .am-nom-table tr { grid-template-columns: 1fr; }
   .am-nom-table .am-nom-syn:not(:empty)::before { content: "Sinonimi: "; color: var(--am-muted); }
 }
