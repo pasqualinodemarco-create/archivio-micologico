@@ -2,7 +2,7 @@
 
 Plugin WordPress per la gestione di schede micologiche, classificazioni gerarchiche, articoli, ricerca e moduli frontend.
 
-**Versione corrente: 1.6.29**. Richiede WordPress 6.0+ e PHP 8.0+.
+**Versione corrente: 1.6.30**. Richiede WordPress 6.0+ e PHP 8.0+.
 
 ## Installazione
 
@@ -43,7 +43,9 @@ Consulta [readme.txt](readme.txt) e [CHANGELOG.txt](CHANGELOG.txt). Licenza GPLv
 
 ## GitHub Actions
 
-Il workflow **Test e pacchetto installabile** parte sui push a `main`, sulle pull request verso `main` e manualmente da **Actions → Test e pacchetto installabile → Run workflow**. Esegue i controlli sintattici e tutti i 70 scenari WordPress in un database sacrificabile, poi genera lo ZIP installabile.
+Il workflow **Test e pacchetto installabile** parte sui push a `main`, sulle pull request verso `main` e manualmente da **Actions → Test e pacchetto installabile → Run workflow**. Esegue i controlli sintattici e tutti gli scenari WordPress (oltre 100) in un database sacrificabile, poi genera lo ZIP installabile.
+
+Il secondo job, **Analisi statica**, controlla la sintassi su PHP 8.0, 8.1, 8.2, 8.3 e 8.4 (blocca il workflow in caso di errore) e produce i rapporti di PHPCS (regole di sicurezza WordPress e compatibilità PHPCompatibility) e PHPStan livello 5 con gli stub di WordPress, nell’Artifact **rapporti-qualita**. Configurazione in `qa/`.
 
 Apri l’esecuzione completata e scarica **Artifacts → archivio-micologico-installabile**. Estrai l’archivio GitHub: al suo interno trovi lo ZIP del plugin da caricare in WordPress e il checksum SHA-256. I risultati JSON sono nell’Artifact **risultati-test-wordpress**. Gli artifact vengono conservati per 14 giorni.
 

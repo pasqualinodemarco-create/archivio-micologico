@@ -461,7 +461,7 @@ public static function render_archive($atts = []): string {
 					}
 					echo '<div class="am-archive-card__body">';
 					echo '<h3 class="am-archive-card__title"><a href="' . esc_url($perma) . '">' . wp_kses(SpeciesTitle::render_post((int)get_the_ID()), ['span'=>['class'=>true],'i'=>[]]) . '</a></h3>';$is_article = (get_post_type(get_the_ID()) === AM_ARTICLE_CPT);
-				if ($is_article) { echo '<div class=\"am-archive-card__type\">' . esc_html__('Articolo', 'archivio-micologico') . '</div>'; }
+				if ($is_article) { echo '<div class="am-archive-card__type">' . esc_html__('Articolo', 'archivio-micologico') . '</div>'; }
 					$excerpt = get_the_excerpt();
 					if ($excerpt) {
 						echo '<div class="am-archive-card__excerpt">' . esc_html(wp_trim_words($excerpt, 28)) . '</div>';
@@ -532,7 +532,7 @@ window.addEventListener("scroll", function(){if(nearBottom()){loadMore();}});})(
 
 		$term     = isset($_REQUEST['q']) ? sanitize_text_field(wp_unslash((string) $_REQUEST['q'])) : '';
 		$page     = isset($_REQUEST['page']) ? max(1, (int) $_REQUEST['page']) : 1;
-		$per_page = isset($_REQUEST['per_page']) ? max(1, (int) $_REQUEST['per_page']) : 50;
+		$per_page = isset($_REQUEST['per_page']) ? min(100, max(1, (int) $_REQUEST['per_page'])) : 50;
 
 		$q = self::search_entries($term, $page, $per_page);
 
@@ -596,7 +596,7 @@ window.addEventListener("scroll", function(){if(nearBottom()){loadMore();}});})(
 
 
 		if ($level === 'articles') {
-			$per_page = isset($_POST['per_page']) ? max(1, (int) $_POST['per_page']) : 20;
+			$per_page = isset($_POST['per_page']) ? min(100, max(1, (int) $_POST['per_page'])) : 20;
 			$q = new WP_Query([
 				'post_type'      => AM_ARTICLE_CPT,
 				'post_status'    => 'publish',
@@ -626,7 +626,7 @@ window.addEventListener("scroll", function(){if(nearBottom()){loadMore();}});})(
 		}
 
 		if ($level === 'divisions') {
-			$per_page = isset($_POST['per_page']) ? max(1, (int) $_POST['per_page']) : 30;
+			$per_page = isset($_POST['per_page']) ? min(100, max(1, (int) $_POST['per_page'])) : 30;
 			$offset   = ($page - 1) * $per_page;
 
 			$terms = get_terms([
@@ -767,7 +767,7 @@ window.addEventListener("scroll", function(){if(nearBottom()){loadMore();}});})(
 				wp_send_json_error(['message' => 'genus_id o species_id mancante'], 400);
 			}
 
-			$per_page = isset($_POST['per_page']) ? max(1, (int) $_POST['per_page']) : 30;
+			$per_page = isset($_POST['per_page']) ? min(100, max(1, (int) $_POST['per_page'])) : 30;
 
 			$q = new WP_Query([
 				'post_type'      => [AM_CPT, AM_ARTICLE_CPT],

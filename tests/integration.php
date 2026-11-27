@@ -484,6 +484,7 @@ try {
             $checks['quality_unused_vocab'] = $quality['unused_terms'] >= 1;
             $coverage = ArchivioMicologico\TermManager::coverage();
             $checks['coverage_species'] = $coverage['ranks']['species']['documented'] >= 1 && $coverage['ranks']['species']['terms'] >= $coverage['ranks']['species']['documented'];
+            wp_insert_post(['post_type' => 'page', 'post_status' => 'publish', 'post_title' => 'Pagina carosello', 'post_content' => '[am_random_funghi numero="9" visibili="6"]']);
             AM_Admin::register_settings();
             $render = static function (callable $fn): string { ob_start(); $fn(); return (string) ob_get_clean(); };
             $dash = $render([AM_Admin::class, 'render_dashboard_page']);
@@ -492,6 +493,7 @@ try {
             foreach (['am_require_login','am_default_status','am_max_upload_mb','am_edit_page_id','am_show_submit_result_admin','am_submit_result_ttl','am_enable_debug_panel','am_seo_mode','am_articles_order','am_recent_entries_count','am_single_show_title','am_random_widget_title','am_random_widget_count','am_random_widget_visible','am_random_widget_rows','am_random_widget_autoplay','am_random_widget_interval','am_book_nav','am_book_effect','am_book_speed','am_article_status','am_archive_articles','am_sitemap_images','am_page_archive','am_page_submit','am_page_article','am_page_taxonomy','am_page_vocab','am_page_search','am_book_order','am_book_panel','am_book_panel_lists','am_book_arrows','am_panel_division','am_panel_family','am_panel_genus','am_panel_recent','am_panel_articles'] as $field) {
                 $checks['settings_field_' . $field] = substr_count($settings, 'name="' . $field . '"') >= 1;
             }
+            $checks['carousel_overrides_listed'] = str_contains($settings, 'Pagina carosello') && str_contains($settings, 'per riga = 6 (fuori dai limiti 1–3)');
             $checks['settings_single_form'] = substr_count($settings, 'value="am_save_settings"') === 1;
             $checks['shortcode_copy_buttons'] = substr_count($settings, 'data-am-copy="[am_') === 7 && str_contains($settings, 'data-am-copy="[am_edit_form]"');
             $checks['instructions_rendered'] = str_contains($render([AM_Admin::class, 'render_instructions_page']), 'Regole di nomenclatura');

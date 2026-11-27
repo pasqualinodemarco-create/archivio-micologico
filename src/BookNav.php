@@ -120,9 +120,12 @@ final class BookNav {
 				return $c !== 0 ? $c : ((int) $a['ID'] <=> (int) $b['ID']);
 			});
 		}
-		$cache[$key] = array_map(static fn($r) => (int) $r['ID'], $rows);
+		$order = array_map(static fn($r) => (int) $r['ID'], $rows);
+		$cache[$key] = $order;
+		// Keep only the most recent combinations: visitors can ask for many order/chapter pairs.
+		$cache = array_slice($cache, -12, null, true);
 		set_transient(self::CACHE, $cache, 12 * HOUR_IN_SECONDS);
-		return $cache[$key];
+		return $order;
 	}
 
 	/**

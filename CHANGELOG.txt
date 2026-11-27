@@ -1,3 +1,11 @@
+= 1.6.30 =
+- Controllo qualità completo: sintassi verificata su PHP 8.0, 8.1, 8.2, 8.3 e 8.4; analisi di sicurezza WordPress (PHPCS) e analisi statica (PHPStan) eseguite a ogni modifica; JavaScript e CSS verificati per Chrome, Edge, Firefox e Safari degli ultimi anni.
+- Corretto: nell’elenco delle schede in Bacheca il filtro per Divisione non veniva applicato (e generava un avviso PHP).
+- Corretto: nei risultati di ricerca l’etichetta Articolo aveva un attributo HTML non valido.
+- Sicurezza: le richieste pubbliche dell’archivio accettano al massimo 100 risultati per pagina; controlli dei permessi dei Vocabolari semplificati.
+- Carosello: Impostazioni → Carosello schede casuali elenca le pagine il cui shortcode ha valori propri (che prevalgono sulle impostazioni) e segnala quelli fuori dai limiti.
+- Pulizia: codice JavaScript inutilizzato rimosso, proprietà CSS duplicata, cache della navigazione Sfoglia limitata.
+
 = 1.6.29 =
 - Impostazioni → Pannelli dell’archivio: per Divisioni, Famiglie, Generi e specie, Ultime schede pubblicate e Articoli scientifici si sceglie se all’apertura della pagina sono sempre chiusi o sempre aperti. Di default è tutto chiuso (prima si apriva da sola la divisione con più schede).
 - Riquadro Sfoglia l’archivio: menu più larghi, il testo non viene più tagliato.
