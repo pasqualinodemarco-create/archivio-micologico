@@ -829,7 +829,13 @@ public static function apply_admin_post_filters($query) {
 				echo '<p class="description">' . esc_html($help) . '</p>';
 			};
 		};
-		add_settings_field('am_nom_enabled', __('Riquadro Nomenclatura', 'archivio-micologico'), $flag('am_nom_enabled', __('Mostra nella scheda nome corrente, sinonimi e collegamenti a Index Fungorum e Catalogue of Life', 'archivio-micologico'), __('Compare solo nelle schede verificate il cui nome è quello oggi accettato; per le altre Amministratori ed Editori vedono una nota con cosa fare. I nomi delle schede non vengono mai cambiati in automatico.', 'archivio-micologico')), 'am_settings', 'am_nomenclature');
+		add_settings_field('am_nom_enabled', __('Riquadro Nomenclatura', 'archivio-micologico'), $flag('am_nom_enabled', __('Mostra nella scheda il nome attuale, i sinonimi e i collegamenti a Index Fungorum e Catalogue of Life', 'archivio-micologico'), __('Compare solo nelle schede verificate il cui nome è quello oggi accettato; per le altre Amministratori ed Editori vedono una nota con cosa fare. I nomi delle schede non vengono mai cambiati in automatico.', 'archivio-micologico')), 'am_settings', 'am_nomenclature');
+		add_settings_field('am_nom_visibility', __('Chi vede il riquadro Nomenclatura', 'archivio-micologico'), static function () {
+			$v = Nomenclature::visibility();
+			echo '<fieldset><label><input type="radio" name="am_nom_visibility" value="staff" ' . checked('staff', $v, false) . '> ' . esc_html__('Solo Amministratori ed Editori, quando hanno effettuato l’accesso', 'archivio-micologico') . '</label><br>';
+			echo '<label><input type="radio" name="am_nom_visibility" value="public" ' . checked('public', $v, false) . '> ' . esc_html__('Tutti i visitatori (modalità pubblica)', 'archivio-micologico') . '</label></fieldset>';
+			echo '<p class="description">' . esc_html__('In entrambi i casi il riquadro compare solo nelle schede verificate con nome accettato. Le note su sinonimi e nomi non trovati sono sempre riservate alla redazione.', 'archivio-micologico') . '</p>';
+		}, 'am_settings', 'am_nomenclature');
 		add_settings_field('am_nom_search', __('Ricerca per sinonimi', 'archivio-micologico'), $flag('am_nom_search', __('La ricerca dell’archivio trova le schede anche con i nomi vecchi e i sinonimi', 'archivio-micologico'), __('Esempio: cercando “Xerocomus chrysenteron” si trova la scheda Xerocomellus chrysenteron. Richiede il riquadro Nomenclatura attivo.', 'archivio-micologico')), 'am_settings', 'am_nomenclature');
 		add_settings_field('am_cite_enabled', __('Come citare questa scheda', 'archivio-micologico'), $flag('am_cite_enabled', __('Mostra in fondo alla scheda la citazione pronta (autore, anno, nome, opera, link permanente) con il pulsante Copia', 'archivio-micologico'), __('L’autore è chi ha pubblicato la scheda (cognome e iniziale del nome dal profilo utente).', 'archivio-micologico')), 'am_settings', 'am_nomenclature');
 		add_settings_field('am_cite_work', __('Titolo dell’opera', 'archivio-micologico'), static function () {
@@ -1202,6 +1208,9 @@ wp_safe_redirect(add_query_arg(['page' => 'am_settings', 'am_err' => 'caps'], ad
 				if ($value === '0' || $value === '1') {
 					update_option($flag, (int) $value);
 				}
+			}
+			if (isset($_POST['am_nom_visibility'])) {
+				update_option('am_nom_visibility', sanitize_key(wp_unslash((string) $_POST['am_nom_visibility'])) === 'public' ? 'public' : 'staff');
 			}
 			foreach (['am_cite_work', 'am_cite_publisher'] as $text) {
 				if (isset($_POST[$text])) {

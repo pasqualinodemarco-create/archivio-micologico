@@ -32,6 +32,8 @@ $options = [
 	'am_archive_articles',
 	'am_sitemap_images',
 	'am_nom_enabled',
+	'am_nom_visibility',
+	'am_caps_granted',
 	'am_nom_search',
 	'am_cite_enabled',
 	'am_cite_work',

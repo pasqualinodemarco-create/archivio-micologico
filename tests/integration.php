@@ -208,6 +208,17 @@ try {
                 }
             }
             $checks['editor_no_manage_options'] = !get_role('editor')->has_cap('manage_options');
+            if ($role === 'administrator') {
+                // 1.6.35: WordPress decides. A cap given to another role or removed from Editors stays as set.
+                get_role('author')->add_cap('am_manage_settings');
+                get_role('editor')->remove_cap('publish_am_funghi');
+                am_ensure_admin_editor_caps_runtime();
+                $checks['respects_granted_cap'] = get_role('author')->has_cap('am_manage_settings');
+                $checks['respects_removed_cap'] = !get_role('editor')->has_cap('publish_am_funghi');
+                get_role('author')->remove_cap('am_manage_settings');
+                get_role('editor')->add_cap('publish_am_funghi');
+                $checks['new_caps_granted_once'] = (static function (): bool { $g = get_option('am_caps_granted'); update_option('am_caps_granted', array_diff((array) $g, ['assign_terms'])); get_role('editor')->remove_cap('assign_terms'); am_ensure_admin_editor_caps_runtime(); return get_role('editor')->has_cap('assign_terms'); })();
+            }
             $checks['author_upload_files'] = get_role('author')->has_cap('upload_files');
             $checks['only_authorized_am_roles'] = get_role('editor')->has_cap(AM_CAP_CREATE_POSTS) && !get_role('author')->has_cap(AM_CAP_CREATE_POSTS);
             foreach (['draft','pending','publish','private'] as $status) {
@@ -491,7 +502,7 @@ try {
             $dash = $render([AM_Admin::class, 'render_dashboard_page']);
             $checks['dashboard_rendered'] = str_contains($dash, 'Copertura tassonomica') && str_contains($dash, 'Controllo qualità dei dati') && str_contains($dash, 'post_status=pending') && str_contains($dash, 'Orphan scheda');
             $settings = $render([AM_Admin::class, 'render_settings_page']);
-            foreach (['am_require_login','am_default_status','am_max_upload_mb','am_edit_page_id','am_show_submit_result_admin','am_submit_result_ttl','am_enable_debug_panel','am_seo_mode','am_articles_order','am_recent_entries_count','am_single_show_title','am_random_widget_title','am_random_widget_count','am_random_widget_visible','am_random_widget_rows','am_random_widget_autoplay','am_random_widget_interval','am_book_nav','am_book_effect','am_book_speed','am_article_status','am_archive_articles','am_sitemap_images','am_page_archive','am_page_submit','am_page_article','am_page_taxonomy','am_page_vocab','am_page_search','am_page_nomenclature','am_book_order','am_book_panel','am_book_panel_lists','am_book_arrows','am_panel_division','am_panel_family','am_panel_genus','am_panel_recent','am_panel_articles','am_nom_enabled','am_nom_search','am_cite_enabled','am_cite_work','am_cite_publisher'] as $field) {
+            foreach (['am_require_login','am_default_status','am_max_upload_mb','am_edit_page_id','am_show_submit_result_admin','am_submit_result_ttl','am_enable_debug_panel','am_seo_mode','am_articles_order','am_recent_entries_count','am_single_show_title','am_random_widget_title','am_random_widget_count','am_random_widget_visible','am_random_widget_rows','am_random_widget_autoplay','am_random_widget_interval','am_book_nav','am_book_effect','am_book_speed','am_article_status','am_archive_articles','am_sitemap_images','am_page_archive','am_page_submit','am_page_article','am_page_taxonomy','am_page_vocab','am_page_search','am_page_nomenclature','am_nom_visibility','am_book_order','am_book_panel','am_book_panel_lists','am_book_arrows','am_panel_division','am_panel_family','am_panel_genus','am_panel_recent','am_panel_articles','am_nom_enabled','am_nom_search','am_cite_enabled','am_cite_work','am_cite_publisher'] as $field) {
                 $checks['settings_field_' . $field] = substr_count($settings, 'name="' . $field . '"') >= 1;
             }
             $checks['carousel_overrides_listed'] = str_contains($settings, 'Pagina carosello') && str_contains($settings, 'per riga = 6 (fuori dai limiti 1–3)');
@@ -541,9 +552,16 @@ try {
             $checks['synonym_hidden_for_visitors'] = $N::section($post_id) === '';
             wp_set_current_user($user->ID);
             $N::store($post_id, ['status' => 'accepted', 'name' => 'Xerocomellus chrysenteron', 'authorship' => '(Bull.) Šutara', 'if_id' => '511893', 'col_id' => '5CCLF', 'synonyms' => [['Boletus chrysenteron', 'Bull.'], ['Xerocomus chrysenteron', '(Bull.) Quél.']]]);
+            // Default: staff only.
+            delete_option('am_nom_visibility');
+            $staff = $N::section($post_id);
+            $checks['staff_mode_staff'] = $can_manage ? (str_contains($staff, 'am-nom--staff-only') && str_contains($staff, 'Nome attuale')) : $staff === '';
             wp_set_current_user(0);
+            $checks['staff_mode_hidden_for_visitors'] = $N::section($post_id) === '';
+            update_option('am_nom_visibility', 'public');
             $sec = $N::section($post_id);
             wp_set_current_user($user->ID);
+            $checks['public_mode_no_staff_label'] = !str_contains($sec, 'am-nom--staff-only');
             $checks['section_current'] = str_contains($sec, 'Nome attuale') && str_contains($sec, 'oggi accettato da Species Fungorum') && str_contains($sec, '<i>Xerocomellus</i> <i>chrysenteron</i> <span class="am-nom__author">(Bull.) Šutara</span>') && str_contains($sec, 'RecordID=511893') && str_contains($sec, 'catalogueoflife.org/data/taxon/5CCLF') && !str_contains($sec, 'Stato del nome');
             $checks['section_synonyms'] = str_contains($sec, '<i>Boletus</i> <i>chrysenteron</i> <span class="am-nom__author">Bull.</span></span>; <span');
             $search = new ReflectionMethod(ArchivioMicologico\Archive::class, 'search_entries');

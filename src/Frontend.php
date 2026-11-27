@@ -201,7 +201,7 @@ wp_enqueue_script('am-frontend', AM_URL . 'assets/js/frontend.js', ['jquery'], A
 			'taxClass' => AM_TAX_CLASSIFICAZIONE,
 			'taxInfra' => AM_TAX_INFRASPEC,
 			'taxAuthor' => AM_TAX_AUTHOR,
-			'canAddTerms' => EntryForms::am_current_user_is_admin_or_editor(),
+			'canAddTerms' => EntryForms::am_current_user_is_admin_or_editor() && current_user_can('manage_terms'),
 		]);
 	}
 

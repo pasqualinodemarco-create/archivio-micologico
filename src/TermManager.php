@@ -40,7 +40,7 @@ final class TermManager {
 	}
 
 	private static function can_manage(): bool {
-		return EntryForms::am_current_user_is_admin_or_editor();
+		return EntryForms::am_current_user_is_admin_or_editor() && current_user_can('manage_terms');
 	}
 
 	private static function taxonomy_for(string $key): string {

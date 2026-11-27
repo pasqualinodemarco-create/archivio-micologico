@@ -3,7 +3,7 @@
  * Plugin Name: Archivio Micologico
  * Plugin URI: https://cervignanometeo.altervista.org
  * Description: Archivio Micologico: archivio micologico online con CPT dedicato, tassonomie gerarchiche e inserimento/gestione front-end.
- * Version: 1.6.34
+ * Version: 1.6.35
  * Author: Pasqualino De Marco
  * Author URI: https://cervignanometeo.altervista.org
  * Requires at least: 6.0
@@ -56,7 +56,7 @@ if ( ! function_exists('am_fatal_logger_register') ) {
 	am_fatal_logger_register();
 }
 
-define('AM_VERSION', '1.6.34');
+define('AM_VERSION', '1.6.35');
 define('AM_PATH', plugin_dir_path(__FILE__));
 define('AM_URL', plugin_dir_url(__FILE__));
 
@@ -116,57 +116,46 @@ function am_get_required_caps_for_admin_editor(): array {
 	];
 }
 
+/**
+ * Grants the plugin capabilities to Administrators and Editors (the editorial staff).
+ *
+ * Since 1.6.35 the plugin follows WordPress: it grants each capability once (on activation,
+ * or when a new version introduces a new one) and then leaves the roles alone. A capability
+ * removed with a role editor stays removed; one given to another role is respected.
+ * Before 1.6.35 the caps were forced on every request and stripped from every other role.
+ */
 function am_ensure_admin_editor_caps_runtime(): void {
-	if (!function_exists('wp_roles')) { return; }
-
-	$caps = am_get_required_caps_for_admin_editor();
-	$roles_obj = wp_roles();
-
-	if (!$roles_obj || !isset($roles_obj->roles) || !is_array($roles_obj->roles)) {
-		return;
-	}
-
-	foreach (array_keys($roles_obj->roles) as $role_key) {
-		$role = get_role((string) $role_key);
+	if (!function_exists('get_role')) { return; }
+	$required = am_get_required_caps_for_admin_editor();
+	$granted = get_option('am_caps_granted', []);
+	$granted = is_array($granted) ? $granted : [];
+	$missing = array_values(array_diff($required, $granted));
+	if (!$missing) { return; }
+	foreach (['administrator', 'editor'] as $role_key) {
+		$role = get_role($role_key);
 		if (!$role) { continue; }
-
-		if (in_array((string) $role_key, ['administrator', 'editor'], true)) {
-			foreach ($caps as $cap) {
-				$role->add_cap($cap);
-			}
-			continue;
-		}
-
-		foreach ($caps as $cap) {
-			if (strpos($cap, 'am_') !== 0 && strpos($cap, '_am_') === false) { continue; }
-			if ($role->has_cap($cap)) {
-				$role->remove_cap($cap);
-			}
+		foreach ($missing as $cap) {
+			if (!$role->has_cap($cap)) { $role->add_cap($cap); }
 		}
 	}
-
+	update_option('am_caps_granted', array_values(array_unique(array_merge($granted, $missing))), false);
 	if (function_exists('am_cleanup_legacy_roles_and_permissions')) {
 		am_cleanup_legacy_roles_and_permissions();
 	}
 }
 
+/** Kept for compatibility with older callers: cheap, it does nothing once the caps were granted. */
 function am_ensure_admin_editor_caps_runtime_once(): void {
-	$last = (int) get_option('am_caps_runtime_checked_1_5_4', 0);
-	if ($last > 0 && (time() - $last) < HOUR_IN_SECONDS) {
-		return;
-	}
-
 	am_ensure_admin_editor_caps_runtime();
-	update_option('am_caps_runtime_checked_1_5_4', time(), false);
 }
 
-add_action('admin_init', 'am_ensure_admin_editor_caps_runtime_once', 3);
-
+/**
+ * Editorial staff of the archive: whoever may edit other people's schede.
+ * By default Administrators and Editors; a role editor can change it (WordPress capabilities).
+ */
 function am_user_is_admin_or_editor(): bool {
 	if (!is_user_logged_in()) { return false; }
-	$user = wp_get_current_user();
-	$roles = is_array($user->roles) ? $user->roles : [];
-	return in_array('administrator', $roles, true) || in_array('editor', $roles, true) || current_user_can('manage_options');
+	return current_user_can(AM_CAP_EDIT_OTHERS_POSTS) || current_user_can('manage_options');
 }
 
 /** Review access uses the same object permissions as editing a fungus record. */

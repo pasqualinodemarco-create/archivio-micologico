@@ -5,7 +5,7 @@ Tags: fungi, mycology, taxonomy, scientific archive, biodiversity, search
 Requires at least: 6.0
 Tested up to: 7.1
 Requires PHP: 8.0
-Stable tag: 1.6.34
+Stable tag: 1.6.35
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -65,6 +65,13 @@ Sì. Il plugin è sviluppato e testato con PHP 8+.
 4. Tooltip informativo con logo e crediti
 
 == Changelog ==
+
+= 1.6.35 =
+* Impostazioni → Nomenclatura e citazione: nuova scelta “Chi vede il riquadro Nomenclatura”: solo Amministratori ed Editori collegati (predefinita, con l’etichetta “Visibile solo ad Amministratori ed Editori”) oppure tutti i visitatori.
+* Permessi allineati a WordPress: i permessi del plugin vengono assegnati ad Amministratori ed Editori una sola volta (all’attivazione o quando una versione ne introduce di nuovi) e poi rispettati. Prima venivano reimposti a ogni caricamento di pagina e tolti a qualsiasi altro ruolo, annullando le modifiche fatte con un gestore dei ruoli.
+* La redazione è riconosciuta dal permesso “modificare le schede degli altri” e non più dal nome del ruolo: con un gestore dei ruoli si può estendere o restringere l’accesso.
+* Aggiunta di voci di classificazione e vocabolari dai moduli: mostrata e consentita solo a chi ha anche il permesso di gestire i termini (prima i moduli la proponevano anche agli Autori, che poi venivano respinti).
+* WP-CLI può di nuovo creare, modificare ed eliminare voci delle tassonomie del plugin (prima veniva bloccato perché senza utente collegato).
 
 = 1.6.34 =
 * Scheda, riquadro Nomenclatura più chiaro: al posto di “Stato del nome: Nome accettato” mostra il Nome attuale con l’autore e la frase “Il nome usato in questa scheda è quello oggi accettato da Species Fungorum”; i sinonimi sono spiegati (“Altri nomi con cui questa specie è stata descritta o citata in passato”) e separati correttamente.
