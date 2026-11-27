@@ -267,7 +267,8 @@ final class Nomenclature {
 	}
 
 	private static function squash(string $s): string {
-		return mb_strtolower((string) preg_replace('/[\s.]/u', '', $s));
+		// The sanctioning author (": Fr.", ": Pers.") is optional in citations: not a difference.
+		return mb_strtolower((string) preg_replace(['/:\s*[^\s()]+/u', '/[\s.]/u'], '', $s));
 	}
 
 	/** Result cell, also rebuilt by the script after each check. */

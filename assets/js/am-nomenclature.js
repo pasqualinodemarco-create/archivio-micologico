@@ -29,7 +29,8 @@
 		return m ? m[1] : '';
 	}
 
-	function squash(s) { return String(s || '').replace(/[\s.]/g, '').toLowerCase(); }
+	// The sanctioning author (": Fr.") is optional in citations: not a difference.
+	function squash(s) { return String(s || '').replace(/:\s*[^\s()]+/g, '').replace(/[\s.]/g, '').toLowerCase(); }
 
 	/** Returns the data to store for one name. */
 	async function lookup(name, rank) {
