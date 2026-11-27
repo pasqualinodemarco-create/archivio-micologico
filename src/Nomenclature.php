@@ -22,6 +22,8 @@ final class Nomenclature {
 
 	public static function init(): void {
 		add_action('wp_ajax_am_nom_save', [self::class, 'ajax_save']);
+		add_shortcode('am_nomenclatura', [self::class, 'shortcode']);
+		add_action('wp_enqueue_scripts', [self::class, 'enqueue_public']);
 	}
 
 	public static function enabled(): bool {
@@ -200,6 +202,7 @@ final class Nomenclature {
 	/* --------------------------------------------------------------- admin page */
 
 	public static function enqueue(): void {
+		wp_enqueue_style('am-manage', AM_URL . 'assets/css/am-manage.css', [], AM_VERSION);
 		wp_enqueue_script('am-nomenclature', AM_URL . 'assets/js/am-nomenclature.js', [], AM_VERSION, true);
 		wp_localize_script('am-nomenclature', 'AM_NOM', [
 			'ajax' => admin_url('admin-ajax.php'),
@@ -219,51 +222,81 @@ final class Nomenclature {
 		]);
 	}
 
+	/** Archivio Micologico → Nomenclatura: same view as the public page [am_nomenclatura]. */
 	public static function admin_page(): void {
 		if (!EntryForms::am_current_user_is_admin_or_editor()) {
 			wp_die(esc_html__('Non autorizzato.', 'archivio-micologico'));
 		}
+		$public = AdminPages::page_url('nomenclature');
+		AdminPages::open(
+			__('Nomenclatura', 'archivio-micologico'),
+			'',
+			$public !== '' ? '<a class="button" href="' . esc_url($public) . '" target="_blank" rel="noopener">' . esc_html__('Pagina pubblica', 'archivio-micologico') . '</a>' : ''
+		);
+		echo self::board(); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- escaped while built.
+		AdminPages::close();
+	}
+
+	/** [am_nomenclatura]: public page for Administrators and Editors. */
+	public static function shortcode($atts = []): string {
+		if (!is_user_logged_in()) {
+			return '<div class="am-manage"><p class="am-manage__notice am-manage__notice--info">' . esc_html__('Questa pagina è riservata ad Amministratori ed Editori.', 'archivio-micologico') . ' <a href="' . esc_url(wp_login_url(get_permalink() ?: home_url('/'))) . '">' . esc_html__('Accedi', 'archivio-micologico') . '</a></p></div>';
+		}
+		if (!EntryForms::am_current_user_is_admin_or_editor()) {
+			return '<div class="am-manage"><p class="am-manage__notice am-manage__notice--error">' . esc_html__('Non hai i permessi per gestire l’archivio.', 'archivio-micologico') . '</p></div>';
+		}
+		return self::board();
+	}
+
+	public static function enqueue_public(): void {
+		$post = get_post();
+		if ($post && has_shortcode((string) $post->post_content, 'am_nomenclatura') && EntryForms::am_current_user_is_admin_or_editor()) {
+			self::enqueue();
+		}
+	}
+
+	/** The checking board, shared by the admin page and the public page. */
+	public static function board(): string {
 		$posts = get_posts(['post_type' => AM_CPT, 'post_status' => ['publish', 'pending', 'draft', 'private'], 'numberposts' => -1, 'orderby' => 'title', 'order' => 'ASC']);
-		$rows = [];
 		$counts = array_fill_keys(array_merge(self::STATUSES, ['unchecked']), 0);
+		$rows = '';
 		foreach ($posts as $p) {
 			[$name, $rank, $author] = self::query((int) $p->ID);
 			$d = self::get((int) $p->ID);
 			$status = $d['status'] ?? 'unchecked';
 			$counts[$status] = ($counts[$status] ?? 0) + 1;
-			$rows[] = ['id' => (int) $p->ID, 'name' => $name, 'rank' => $rank, 'author' => $author, 'title' => wp_strip_all_tags(get_the_title($p)), 'edit' => (string) get_permalink($p), 'saved' => $d];
+			$src_author = (string) ($d['authorship'] ?? '');
+			$diff = $src_author !== '' && $author !== '' && self::squash($src_author) !== self::squash($author);
+			$rows .= '<tr class="am-mrow" data-nom-row="' . esc_attr((string) $p->ID) . '" data-name="' . esc_attr($name) . '" data-rank="' . esc_attr($rank) . '" data-author="' . esc_attr($author) . '" data-status="' . esc_attr($status) . '">'
+				. '<td class="am-mrow__name"><a href="' . esc_url((string) get_permalink($p)) . '" target="_blank" rel="noopener">' . esc_html(wp_strip_all_tags(get_the_title($p))) . '</a></td>'
+				. '<td class="am-nom-result">' . self::result_cell($d) . '</td>'
+				. '<td class="am-nom-author">' . esc_html($src_author) . ($diff ? '<span class="am-nom-diff"> (' . esc_html__('autore diverso da quello della scheda', 'archivio-micologico') . ': ' . esc_html($author) . ')</span>' : '') . '</td>'
+				. '<td class="am-nom-syn am-mrow__count">' . esc_html(isset($d['synonyms']) ? (string) count($d['synonyms']) : '') . '</td>'
+				. '<td class="am-mrow__actions"><button type="button" class="am-manage__btn am-manage__btn--ghost am-manage__btn--small" data-nom-one>' . esc_html__('Verifica', 'archivio-micologico') . '</button></td></tr>';
 		}
-		AdminPages::open(
-			__('Nomenclatura', 'archivio-micologico'),
-			__('Confronta i nomi delle schede con Species Fungorum (tramite Catalogue of Life): nome accettato o sinonimo, nome corrente, sinonimi e record di Index Fungorum. I nomi delle schede non vengono cambiati.', 'archivio-micologico')
-		);
 		$labels = ['accepted' => __('Accettati', 'archivio-micologico'), 'synonym' => __('Sinonimi', 'archivio-micologico'), 'ambiguous' => __('Da controllare', 'archivio-micologico'), 'notfound' => __('Non trovati', 'archivio-micologico'), 'unchecked' => __('Mai verificati', 'archivio-micologico')];
-		echo '<div class="am-kpis am-nom-kpis">';
+
+		$html = '<div class="am-manage am-manage--nomenclature">';
+		$html .= '<header class="am-manage__header"><div><p class="am-manage__eyebrow">' . esc_html__('Gestione archivio', 'archivio-micologico') . '</p>';
+		$html .= '<p class="am-manage__intro">' . esc_html__('Confronta i nomi delle schede con Species Fungorum (tramite Catalogue of Life): nome accettato o sinonimo, nome corrente, sinonimi e record di Index Fungorum. I nomi delle schede non vengono cambiati: per adottare il nome corrente rinomina la voce in Tassonomia.', 'archivio-micologico') . '</p></div>';
+		$html .= '<div class="am-manage__stats am-nom-stats">';
 		foreach ($labels as $k => $l) {
-			echo '<button type="button" class="am-kpi am-nom-filter" data-filter="' . esc_attr($k) . '"><span class="am-kpi__label">' . esc_html($l) . '</span><span class="am-kpi__value" data-count="' . esc_attr($k) . '">' . esc_html(number_format_i18n($counts[$k] ?? 0)) . '</span></button>';
+			$html .= '<button type="button" class="am-manage__stat am-nom-filter am-nom-stat--' . esc_attr($k) . '" data-filter="' . esc_attr($k) . '" aria-pressed="false"><span class="am-nom-stat__label">' . esc_html($l) . '</span><span class="am-nom-stat__value" data-count="' . esc_attr($k) . '">' . esc_html(number_format_i18n($counts[$k] ?? 0)) . '</span></button>';
 		}
-		echo '</div>';
-		echo '<section class="am-card"><div class="am-nom-toolbar">';
-		echo '<button type="button" class="button button-primary" data-nom-run="unchecked">' . esc_html__('Verifica le schede mai verificate', 'archivio-micologico') . '</button> ';
-		echo '<button type="button" class="button" data-nom-run="all">' . esc_html__('Verifica di nuovo tutte', 'archivio-micologico') . '</button> ';
-		echo '<button type="button" class="button" data-nom-stop hidden>' . esc_html__('Interrompi', 'archivio-micologico') . '</button>';
-		echo '<span class="am-nom-progress" aria-live="polite"></span>';
-		echo '<button type="button" class="button-link am-nom-filter" data-filter="">' . esc_html__('Mostra tutte', 'archivio-micologico') . '</button>';
-		echo '</div>';
-		echo '<p class="am-card__intro">' . esc_html__('Le richieste partono dal tuo browser verso api.checklistbank.org, una scheda alla volta: per tutto l’archivio servono alcuni minuti. Puoi chiudere la pagina e riprendere: le schede già verificate restano salvate.', 'archivio-micologico') . '</p>';
-		echo '<table class="widefat striped am-nom-table"><thead><tr><th scope="col">' . esc_html__('Scheda', 'archivio-micologico') . '</th><th scope="col">' . esc_html__('Esito', 'archivio-micologico') . '</th><th scope="col">' . esc_html__('Autore secondo la fonte', 'archivio-micologico') . '</th><th scope="col">' . esc_html__('Sinonimi', 'archivio-micologico') . '</th><th scope="col"><span class="screen-reader-text">' . esc_html__('Azioni', 'archivio-micologico') . '</span></th></tr></thead><tbody>';
-		foreach ($rows as $r) {
-			echo '<tr data-nom-row="' . esc_attr((string) $r['id']) . '" data-name="' . esc_attr($r['name']) . '" data-rank="' . esc_attr($r['rank']) . '" data-author="' . esc_attr($r['author']) . '" data-status="' . esc_attr($r['saved']['status'] ?? 'unchecked') . '">';
-			echo '<td><a href="' . esc_url($r['edit']) . '" target="_blank" rel="noopener">' . esc_html($r['title']) . '</a></td>';
-			echo '<td class="am-nom-result">' . self::result_cell($r['saved']) . '</td>'; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- built with esc_html()/esc_url().
-			$src_author = (string) ($r['saved']['authorship'] ?? '');
-			$diff = $src_author !== '' && $r['author'] !== '' && self::squash($src_author) !== self::squash($r['author']);
-			echo '<td class="am-nom-author">' . esc_html($src_author) . ($diff ? '<span class="am-nom-diff"> (' . esc_html__('autore diverso da quello della scheda', 'archivio-micologico') . ': ' . esc_html($r['author']) . ')</span>' : '') . '</td>';
-			echo '<td class="am-nom-syn">' . esc_html(isset($r['saved']['synonyms']) ? (string) count($r['saved']['synonyms']) : '') . '</td>';
-			echo '<td><button type="button" class="button button-small" data-nom-one>' . esc_html__('Verifica', 'archivio-micologico') . '</button></td></tr>';
-		}
-		echo '</tbody></table></section>';
-		AdminPages::close();
+		$html .= '</div></header>';
+		$html .= '<div class="am-manage__toolbar">';
+		$html .= '<button type="button" class="am-manage__btn" data-nom-run="unchecked">' . esc_html__('Verifica le schede mai verificate', 'archivio-micologico') . '</button>';
+		$html .= '<button type="button" class="am-manage__btn am-manage__btn--ghost" data-nom-run="all">' . esc_html__('Verifica di nuovo tutte', 'archivio-micologico') . '</button>';
+		$html .= '<button type="button" class="am-manage__btn am-manage__btn--danger" data-nom-stop hidden>' . esc_html__('Interrompi', 'archivio-micologico') . '</button>';
+		$html .= '<button type="button" class="am-manage__btn am-manage__btn--ghost am-nom-filter" data-filter="">' . esc_html__('Mostra tutte', 'archivio-micologico') . '</button>';
+		$html .= '<span class="am-nom-progress" aria-live="polite"></span>';
+		$html .= '</div>';
+		$html .= '<p class="am-manage__legend">' . esc_html__('Le richieste partono dal tuo browser verso api.checklistbank.org, una scheda alla volta: per tutto l’archivio servono alcuni minuti. Puoi chiudere la pagina e riprendere: le schede già verificate restano salvate. Clic su un riquadro in alto per vedere solo quel gruppo.', 'archivio-micologico') . '</p>';
+		$html .= '<noscript><p class="am-manage__notice am-manage__notice--info">' . esc_html__('Per la verifica serve JavaScript attivo.', 'archivio-micologico') . '</p></noscript>';
+		$html .= '<div class="am-manage__panel"><table class="am-mtable am-nom-table"><caption class="screen-reader-text">' . esc_html__('Nomenclatura delle schede', 'archivio-micologico') . '</caption>';
+		$html .= '<thead><tr><th scope="col">' . esc_html__('Scheda', 'archivio-micologico') . '</th><th scope="col">' . esc_html__('Esito', 'archivio-micologico') . '</th><th scope="col">' . esc_html__('Autore secondo la fonte', 'archivio-micologico') . '</th><th scope="col">' . esc_html__('Sinonimi', 'archivio-micologico') . '</th><th scope="col"><span class="screen-reader-text">' . esc_html__('Azioni', 'archivio-micologico') . '</span></th></tr></thead>';
+		$html .= '<tbody>' . $rows . '</tbody></table></div></div>';
+		return $html;
 	}
 
 	private static function squash(string $s): string {

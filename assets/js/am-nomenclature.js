@@ -177,6 +177,9 @@
 			return;
 		}
 		var f = b.getAttribute('data-filter');
+		document.querySelectorAll('.am-nom-filter[aria-pressed]').forEach(function (x) {
+			x.setAttribute('aria-pressed', x === b && f ? 'true' : 'false');
+		});
 		table.querySelectorAll('[data-nom-row]').forEach(function (r) {
 			r.hidden = !!f && r.getAttribute('data-status') !== f;
 		});

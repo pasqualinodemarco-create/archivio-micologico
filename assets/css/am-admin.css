@@ -256,14 +256,3 @@
 .am-admin .am-codes td:first-child { width: 290px; }
 .am-admin .am-codes .am-copy { margin: 0; }
 .am-admin .am-carousel-overrides { margin: 0 0 12px; } .am-admin .am-carousel-overrides ul { margin: 4px 0 4px 18px; list-style: disc; }
-
-/* 1.6.32 — Nomenclatura. */
-.am-admin .am-status--nom-accepted { background: #e7f3ec; color: #17432f; }
-.am-admin .am-status--nom-synonym { background: var(--am-warn-bg); color: #6b4708; }
-.am-admin .am-status--nom-ambiguous,
-.am-admin .am-status--nom-notfound { background: #f6e8e5; color: #7a2e1d; }
-.am-admin .am-nom-kpis .am-kpi { cursor: pointer; text-align: left; font: inherit; }
-.am-admin .am-nom-toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-bottom: 8px; }
-.am-admin .am-nom-progress { color: #50575e; }
-.am-admin .am-nom-diff { color: #7a2e1d; font-size: 12px; }
-.am-admin .am-nom-table td { vertical-align: middle; }

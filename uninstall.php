@@ -56,6 +56,7 @@ $options = [
 	'am_page_taxonomy',
 	'am_page_vocab',
 	'am_page_search',
+	'am_page_nomenclature',
 ];
 foreach ($options as $option) {
 	delete_option($option);

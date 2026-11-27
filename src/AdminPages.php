@@ -60,6 +60,7 @@ final class AdminPages {
 			'article' => ['am_page_article', 'am_article_form', __('Nuovo articolo', 'archivio-micologico'), __('Modulo per pubblicare un articolo scientifico, con la gestione delle categorie. Collegato dalla Dashboard.', 'archivio-micologico')],
 			'taxonomy' => ['am_page_taxonomy', 'am_tassonomia', __('Tassonomia', 'archivio-micologico'), __('Gestione pubblica di divisioni, famiglie, generi e specie. Aperta dal pulsante “Pagina pubblica” in Archivio Micologico → Tassonomia.', 'archivio-micologico')],
 			'vocab' => ['am_page_vocab', 'am_vocabolari', __('Vocabolari', 'archivio-micologico'), __('Gestione pubblica di forme, varietà e autori. Aperta dal pulsante “Pagina pubblica” in Archivio Micologico → Vocabolari.', 'archivio-micologico')],
+			'nomenclature' => ['am_page_nomenclature', 'am_nomenclatura', __('Nomenclatura', 'archivio-micologico'), __('Verifica dei nomi delle schede con Species Fungorum, per Amministratori ed Editori: la stessa di Archivio Micologico → Nomenclatura. Aperta dal pulsante “Pagina pubblica” di quella pagina.', 'archivio-micologico')],
 			'search' => ['am_page_search', 'am_search_page', __('Ricerca', 'archivio-micologico'), __('Pagina facoltativa con i risultati di ricerca paginati; l’archivio ha già la sua casella di ricerca.', 'archivio-micologico')],
 		];
 	}
