@@ -1,525 +1,304 @@
-/* AM Archive Tree (Famiglia → Genere → Schede)
-   NOTE: must play nicely in narrow columns, so no fixed max-width. */
-.am-archive{max-width:100%;margin:0;width:100%}
-.am-archive *{box-sizing:border-box}
+/* ==========================================================================
+   Archivio Micologico — [am_archive]
+   One stylesheet, one design: a scientific catalogue. The theme's typeface,
+   white sheets with hairlines, one colour per rank (thin rules, labels and
+   counters), tabular figures, italic binomials.
 
-.am-archive__top{display:flex;flex-wrap:wrap;gap:12px;align-items:center;margin:10px 0 14px}
-.am-archive__search{flex:1 1 320px;min-width:0;width:100%;padding:10px 12px;border:1px solid #cfcfcf;border-radius:10px}
-.am-archive__search-btn{flex:0 0 auto}
-.am-archive__status{font-size:13px;opacity:.8;min-width:180px;text-align:right}
+   1. Tokens          5. Search
+   2. Base            6. Sheets and side panels
+   3. Headings        7. Classification tree
+   4. Figures         8. Schede and articles
+                      9. Sfoglia l'archivio
+                     10. Small screens
+   Colours on the tree and the buttons use !important on purpose: many themes
+   force white text on <button> and <a>.
+   ========================================================================== */
 
-/* Mobile: stack controls to avoid squeezing controls */
-@media (max-width: 767px){
-  .am-archive__top{gap:10px}
-  .am-archive__search{flex:1 1 100%}
-  .am-archive__search-btn{width:100%}
-  .am-archive__status{min-width:0;width:100%;text-align:left}
+/* 1. Tokens */
+.am-archive {
+  --am-ink: #1d2b25;
+  --am-muted: #5b6b63;
+  --am-line: #dde4df;
+  --am-soft: #f4f7f5;
+  --am-sheet: #fff;
+  --am-forest: #234a37;
+  --am-forest-dark: #17362a;
+  --am-focus: #e2b33c;
+  --am-field: #c3cfc8;
+  --am-r-division: #2e6b46; /* verde bosco */
+  --am-r-family: #8a5d0c;   /* ocra */
+  --am-r-genus: #a5462f;    /* ruggine */
+  --am-r-species: #6b4a8a;  /* ametista */
 }
 
-/* Search previews appear directly under the search field */
-.am-archive__results{margin:-6px 0 14px}
+/* 2. Base (also the filtered view, .am-archive--filtered) */
+.am-archive { max-width: 100%; width: 100%; margin: 0; }
+.am-archive * { box-sizing: border-box; }
+.am-archive__results { margin: -6px 0 14px; }
+.am-hl { padding: 0 2px; border-radius: 4px; }
+.am-archive-empty { padding: 12px; font-size: 14px; opacity: .85; }
 
-.am-hl{padding:0 2px;border-radius:4px}
+.am-archive--scientific { color: var(--am-ink); font-family: inherit; }
 
-.am-archive-branch{margin:6px 0}
-.am-archive-node{width:100%;text-align:left;padding:10px 12px;border:1px solid #e3e3e3;background:#fff;border-radius:12px;cursor:pointer;display:flex;gap:10px;align-items:center}
-.am-archive-node:hover{border-color:#cfcfcf}
-.am-archive-node__chev{display:inline-block;transition:transform .15s ease}
-.am-archive-node[aria-expanded="true"] .am-archive-node__chev{transform:rotate(90deg)}
-.am-archive-node__label{font-weight:600}
-
-.am-archive-branch--genus .am-archive-node{margin-left:18px}
-.am-archive-branch--genus .am-archive-node__label{font-weight:600}
-.am-archive-children{margin:6px 0 8px 0}
-.am-archive-branch--genus .am-archive-children{margin-left:18px}
-
-.am-archive-entries{display:flex;flex-direction:column;gap:8px;padding:6px 0}
-.am-archive-entry{display:block;padding:10px 12px;border:1px solid #ececec;border-radius:12px;text-decoration:none}
-.am-archive-entry:hover{border-color:#cfcfcf}
-.am-archive-entry__row{display:flex;gap:12px;align-items:flex-start}
-.am-archive-entry__thumb{width:44px;height:44px;border-radius:10px;object-fit:cover;border:1px solid #eee;flex:0 0 44px;background:#fff}
-.am-archive-entry__body{min-width:0;flex:1}
-.am-archive-entry__title{font-weight:700}
-.am-archive-entry__meta{margin-top:2px;font-size:13px;opacity:.8}
-
-.am-archive-more{font-size:13px;opacity:.8;padding:6px 0}
-.am-archive-empty{padding:12px;font-size:14px;opacity:.85}
-
-
-.am-archive__search-btn{padding:10px 14px;border:1px solid #cfcfcf;border-radius:10px;background:#fff;cursor:pointer}
-.am-archive__search-btn:hover{filter:brightness(0.98)}
-.am-archive__search-btn:disabled{opacity:.6;cursor:not-allowed}
-
-/* Ensure text is visible even if the theme forces white button text. */
-.am-archive .am-archive-node,
-.am-archive .am-archive__search-btn,
-.am-archive .am-archive-entry,
-.am-archive .am-archive-entry *{
-  color: #111 !important;
-}
-
-.am-archive .am-archive-node *{
-  color: inherit !important;
-}
-
-/* Make chevron and labels readable */
-.am-archive .am-archive-node__chev{color: inherit !important;}
-.am-archive .am-archive-node__label{color: inherit !important;}
-
-/* Keep search input colors readable */
-.am-archive .am-archive__search{
-  color: #111 !important;
-  background: #fff !important;
-}
-
-/* Fix: The theme may force white text on buttons/links. Keep archive tree labels visible. */
-.am-archive .am-archive-node,
-.am-archive .am-archive-node *,
-.am-archive .am-archive__search-btn,
-.am-archive .am-archive__search-btn *,
-.am-archive .am-archive-entry,
-.am-archive .am-archive-entry *{
-  color: #111 !important;
-}
-
-/* Ensure chevron/icon follows text color */
-.am-archive .am-archive-node__chev{color: currentColor !important;}
-
-/* Inputs sometimes inherit weird colors too */
-.am-archive .am-archive__search{
-  color: #111 !important;
-}
-
-.am-archive .am-archive-node__chev{color: currentColor !important;}
-
-/* Inputs too, just in case */
-.am-archive .am-archive__search{
-  color: #111 !important;
-}
-
-/* ==========================================================
-   AM Archive Tree - Modern skin
-   Scoped to .am-archive to avoid affecting other site elements.
-   ========================================================== */
-
-.am-archive .am-archive-node{
-  border: 1px solid #ddd;
-  border-radius: 16px;
-  padding: 14px 16px;
-  background: #fff;
-  transition: box-shadow .15s ease, border-color .15s ease, transform .15s ease;
-}
-
-.am-archive .am-archive-node:hover{
-  border-color: #cfcfcf;
-  box-shadow: 0 6px 18px rgba(0,0,0,.06);
-  transform: translateY(-1px);
-}
-
-.am-archive .am-archive-node__label{
+/* 3. Headings */
+.am-archive.am-archive--scientific h2 {
+  margin: 0;
+  font-family: inherit;
+  font-size: 1.15rem;
   font-weight: 700;
-  font-size: 16px;
+  letter-spacing: 0;
+  line-height: 1.3;
+  color: var(--am-ink);
 }
 
-.am-archive .am-archive-node__chev{
-  font-size: 14px;
-  opacity: .85;
+/* 4. Figures of the catalogue */
+.am-archive__stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(118px, 1fr));
+  margin: 0 0 22px;
+  padding: 0;
+  border: 1px solid var(--am-line);
+  border-radius: 8px;
+  background: var(--am-sheet);
+  overflow: hidden;
 }
-
-.am-archive .am-archive-branch--genus .am-archive-node{
-  margin-left: 14px;
+.am-archive__stat {
+  margin: 0;
+  padding: 12px 16px 13px;
+  border-left: 1px solid var(--am-line);
+  border-top: 3px solid transparent;
 }
-
-.am-archive .am-archive-entry{
-  border-radius: 14px;
-  border: 1px solid #eee;
-  background: #fff;
+.am-archive__stat:first-child { border-left: 0; border-top-color: var(--am-forest); }
+.am-archive__stat--species { border-top-color: var(--am-r-species); }
+.am-archive__stat--genus { border-top-color: var(--am-r-genus); }
+.am-archive__stat--family { border-top-color: var(--am-r-family); }
+.am-archive__stat--division { border-top-color: var(--am-r-division); }
+.am-archive__stat dt {
+  margin: 0;
+  color: var(--am-muted);
+  font-size: .75rem;
+  font-weight: 700;
+  letter-spacing: .08em;
+  text-transform: uppercase;
 }
-
-.am-archive .am-archive-entry:hover{
-  border-color: #d7d7d7;
-  box-shadow: 0 4px 14px rgba(0,0,0,.05);
-}
-
-/* ===== Modern Style v2 (override) ===== */
-.am-archive .am-archive-node{
-  background: #ffffff;
-  border: 1px solid #e2e2e2;
-  border-radius: 18px;
-  padding: 16px 18px;
-  margin: 12px 0;
-  font-size: 17px;
-  font-weight: 600;
-  color: #333;
-  transition: all .2s ease;
-}
-.am-archive .am-archive-node:hover{
-  border-color: #d0d0d0;
-  box-shadow: 0 8px 22px rgba(0,0,0,0.06);
-  transform: translateY(-2px);
-}
-.am-archive .am-archive-node.is-open{
-  border-color: #d5d5d5;
-  background: #fafafa;
-}
-.am-archive .am-archive-node__chev{
-  font-size: 13px;
-  opacity: 0.75;
-  transition: transform .2s ease;
-}
-.am-archive .am-archive-node.is-open .am-archive-node__chev{
-  transform: rotate(90deg);
-}
-.am-archive .am-archive-branch--genus .am-archive-node{
-  margin-left: 14px;
-  background: #fcfcfc;
-}
-.am-archive .am-archive-entry{
-  border-radius: 16px;
-  border: 1px solid #ededed;
-  background: #fff;
-  padding: 12px 16px;
-  transition: all .15s ease;
-}
-.am-archive .am-archive-entry:hover{
-  border-color: #d8d8d8;
-  box-shadow: 0 4px 16px rgba(0,0,0,0.05);
-}
-
-/* ==========================================================
-   AM Archive Tree - Color hierarchy skin v1.3.3
-   Colored left bars, icons, counters and gentler hover.
-   Scoped to .am-archive to avoid collateral damage.
-   ========================================================== */
-.am-archive{
-  --am-acc-division:#2e7d32;
-  --am-acc-family:#4caf50;
-  --am-acc-genus:#81c784;
-  --am-acc-entry:#e8f5e9;
-  --am-acc-text:#1f2937;
-  --am-acc-muted:#5f6b76;
-}
-
-.am-archive .am-archive-node{
-  position:relative;
-  border-left:6px solid #d7d7d7;
-  color:var(--am-acc-text) !important;
-}
-
-.am-archive .am-archive-node--division{
-  border-left-color:var(--am-acc-division);
-  background:linear-gradient(90deg, rgba(46,125,50,.10), rgba(255,255,255,1) 24%);
-}
-
-.am-archive__recent{scroll-margin-top:calc(var(--wp-admin--admin-bar--height, 0px) + 16px)}
-.am-archive__recent summary::-webkit-details-marker{display:none}
-.am-archive__recent[open] .am-archive-node__chev{transform:rotate(90deg)}
-.am-archive__recent .am-archive-entry__meta{display:block}
-
-.am-archive .am-archive-node--family{
-  border-left-color:var(--am-acc-family);
-  background:linear-gradient(90deg, rgba(76,175,80,.08), rgba(255,255,255,1) 24%);
-}
-
-.am-archive .am-archive-node--genus{
-  border-left-color:var(--am-acc-genus);
-  background:linear-gradient(90deg, rgba(129,199,132,.13), rgba(255,255,255,1) 24%);
-}
-
-.am-archive .am-archive-node:hover{
-  filter:none;
-  box-shadow:0 10px 24px rgba(0,0,0,.07);
-}
-
-.am-archive .am-archive-node__icon{
-  display:inline-flex;
-  align-items:center;
-  justify-content:center;
-  width:24px;
-  min-width:24px;
-  font-size:18px;
-  line-height:1;
-}
-
-.am-archive .am-archive-node__label{
-  flex:1 1 auto;
-  min-width:0;
-}
-
-.am-archive .am-archive-node__count{
-  margin-left:auto;
-  display:inline-flex;
-  align-items:center;
-  justify-content:center;
-  min-width:32px;
-  padding:2px 10px;
-  border-radius:999px;
-  font-size:12px;
-  font-weight:700;
-  line-height:1.6;
-  color:var(--am-acc-muted) !important;
-  background:#f3f4f6;
-  border:1px solid #e5e7eb;
-}
-
-.am-archive .am-archive-node--division .am-archive-node__count{
-  background:rgba(46,125,50,.10);
-  border-color:rgba(46,125,50,.20);
-  color:var(--am-acc-division) !important;
-}
-
-.am-archive .am-archive-node--family .am-archive-node__count{
-  background:rgba(76,175,80,.10);
-  border-color:rgba(76,175,80,.20);
-  color:#2f7d32 !important;
-}
-
-.am-archive .am-archive-node--genus .am-archive-node__count{
-  background:rgba(129,199,132,.18);
-  border-color:rgba(129,199,132,.32);
-  color:#2f6d33 !important;
-}
-
-.am-archive .am-archive-children{
-  margin-top:8px;
-}
-
-.am-archive .am-archive-entry{
-  background:var(--am-acc-entry);
-  border-color:rgba(76,175,80,.15);
-}
-
-.am-archive .am-archive-entry:hover{
-  background:#f3fbf4;
-  border-color:rgba(76,175,80,.28);
-}
-
-.am-archive .am-archive-entry__title{
-  color:#183522 !important;
-}
-
-.am-archive .am-archive-entry__meta{
-  color:var(--am-acc-muted) !important;
-}
-
-.am-archive .am-archive-branch--family .am-archive-node{ margin-left:10px; }
-.am-archive .am-archive-branch--genus .am-archive-node{ margin-left:20px; }
-.am-archive .am-archive-branch--genus .am-archive-children{ margin-left:20px; }
-
-@media (max-width: 767px){
-  .am-archive .am-archive-node{
-    padding:14px 14px;
-    font-size:16px;
-  }
-  .am-archive .am-archive-node__count{
-    min-width:28px;
-    padding:2px 8px;
-  }
-}
-
-/* AM 1.5.53 - Species count summary moved outside search placeholder */
-.am-archive .am-archive__species-summary{
-  display:flex;
-  align-items:center;
-  gap:10px;
-  width:100%;
-  margin:12px 0 4px;
-  padding:16px 18px;
-  border:1px solid #e2e2e2;
-  border-left:5px solid var(--am-acc-division, #2e7d32);
-  border-radius:18px;
-  background:linear-gradient(90deg, rgba(46,125,50,.10), #ffffff 42%);
-  color:#333 !important;
-  box-shadow:none;
-}
-.am-archive .am-archive__species-summary-icon{
-  display:inline-flex;
-  align-items:center;
-  justify-content:center;
-  min-width:24px;
-  font-size:18px;
-  line-height:1;
-}
-.am-archive .am-archive__species-summary-label{
-  flex:1 1 auto;
-  min-width:0;
-  font-size:16px;
-  font-weight:700;
-  color:#333 !important;
-}
-.am-archive .am-archive__species-summary-count{
-  margin-left:auto;
-  display:inline-flex;
-  align-items:center;
-  justify-content:center;
-  min-width:32px;
-  padding:2px 10px;
-  border-radius:999px;
-  font-size:12px;
-  font-weight:700;
-  line-height:1.6;
-  color:var(--am-acc-division, #2e7d32) !important;
-  background:rgba(46,125,50,.10);
-  border:1px solid rgba(46,125,50,.20);
-}
-@media (max-width: 767px){
-  .am-archive .am-archive__species-summary{
-    padding:14px 14px;
-  }
-  .am-archive .am-archive__species-summary-label{
-    font-size:15px;
-  }
-  .am-archive .am-archive__species-summary-count{
-    min-width:28px;
-    padding:2px 8px;
-  }
-}
-
-/* Catalogo tassonomico */
-.am-archive--scientific {
-  --am-catalog-paper: #fbfaf4;
-  --am-catalog-ink: #233a30;
-  --am-catalog-line: #d7ded2;
-  --am-catalog-muted: #52675a;
-  color: var(--am-catalog-ink);
-}
-.am-archive--scientific .am-archive__catalog-count {
-  margin: 0 0 14px;
-  color: var(--am-catalog-muted);
-}
-.am-archive__catalog-count strong {
-  color: var(--am-catalog-ink);
-  font-size: 1.35em;
+.am-archive__stat dd {
+  margin: 2px 0 0;
+  color: var(--am-ink);
+  font-size: 1.6rem;
+  font-weight: 700;
+  line-height: 1.15;
   font-variant-numeric: tabular-nums;
 }
-.am-archive--scientific .am-archive__top { margin-bottom: 20px; }
-.am-archive--scientific .am-archive__search-btn {
-  background: #234a37;
-  color: #fff !important;
-  min-height: 44px;
+.am-archive__stat--date dd { padding-top: 6px; font-size: 1.05rem; font-weight: 600; }
+
+/* 5. Search */
+.am-archive__top { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; margin: 0 0 18px; }
+.am-archive__search-label {
+  flex: 1 1 100%;
+  color: var(--am-muted);
+  font-size: .75rem;
+  font-weight: 700;
+  letter-spacing: .08em;
+  text-transform: uppercase;
 }
-.am-archive__index {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr);
-  gap: 16px;
+.am-archive .am-archive__search {
+  flex: 1 1 320px;
+  width: 100%;
+  min-width: 0;
+  min-height: 48px;
+  padding: 10px 14px;
+  border: 1px solid var(--am-field);
+  border-radius: 8px;
+  background: #fff !important;
+  color: #111 !important;
+  font: inherit;
+  font-size: 1rem;
 }
-@media (min-width: 1100px) {
-  .am-archive__index {
-    grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr);
-    align-items: start;
-  }
+.am-archive__search:focus-visible { outline: 3px solid var(--am-focus); outline-offset: 1px; border-color: var(--am-forest); }
+.am-archive .am-archive__search-btn {
+  flex: 0 0 auto;
+  min-height: 48px;
+  padding: 0 22px;
+  border: 0;
+  border-radius: 8px;
+  background: var(--am-forest);
+  font: inherit;
+  font-weight: 650;
+  cursor: pointer;
 }
-.am-archive__catalog-updated::before { content: " · "; }
+.am-archive .am-archive__search-btn,
+.am-archive .am-archive__search-btn * { color: #fff !important; }
+.am-archive .am-archive__search-btn:hover { background: var(--am-forest-dark); }
+.am-archive .am-archive__search-btn:disabled { opacity: .6; cursor: not-allowed; }
+.am-archive__status { min-width: 180px; color: var(--am-muted); font-size: .85rem; text-align: right; opacity: .8; }
+
+/* 6. Sheets and side panels */
+.am-archive__index { display: grid; grid-template-columns: minmax(0, 1fr); gap: 16px; }
+.am-archive__side { display: grid; gap: 16px; min-width: 0; align-content: start; }
 .am-archive__classification,
-.am-archive--scientific .am-archive__recent {
+.am-archive.am-archive--scientific .am-archive__recent {
   min-width: 0;
   margin: 0;
-  padding: 16px;
-  border: 1px solid var(--am-catalog-line);
-  border-radius: 7px;
-  background: var(--am-catalog-paper);
+  padding: 18px 20px;
+  border: 1px solid var(--am-line);
+  border-radius: 8px;
+  background: var(--am-sheet);
+  box-shadow: none;
   overflow-wrap: anywhere;
 }
-.am-archive__classification h2 {
-  font: 400 clamp(1.35rem, 3vw, 1.85rem)/1.15 Georgia, serif;
-  margin: 0;
-  color: var(--am-catalog-ink);
-}
-.am-archive__rank-guide { color: var(--am-catalog-muted); margin: 5px 0 12px; }
-.am-archive--scientific .am-archive-node {
-  background: transparent;
+.am-archive__classification[hidden] { display: none; }
+.am-archive.am-archive--scientific .am-archive__recent { padding: 0; scroll-margin-top: calc(var(--wp-admin--admin-bar--height, 0px) + 16px); }
+.am-archive__recent summary::-webkit-details-marker { display: none; }
+.am-archive.am-archive--scientific .am-archive__recent > summary.am-archive-node {
+  min-height: 56px;
+  padding: 12px 18px;
   border: 0;
-  border-top: 1px solid var(--am-catalog-line);
-  border-radius: 0;
-  padding: 8px 4px;
-  min-height: 44px;
-  box-shadow: none;
+  border-radius: 8px;
+  cursor: pointer;
 }
-.am-archive--scientific summary.am-archive-node { border-top: 0; }
-.am-archive--scientific .am-archive-node--genus .am-archive-node__label { font-style: italic; }
-.am-archive--scientific .am-archive-branch--genus .am-archive-node { margin-left: 0; }
-.am-archive--scientific .am-archive-children {
-  margin: 0 0 0 8px;
-  padding-left: 8px;
-  border-left: 1px solid var(--am-catalog-line);
-}
-.am-archive--scientific .am-archive-node__count { font-variant-numeric: tabular-nums; }
-.am-archive--scientific .am-archive__recent .am-archive-entry {
-  background: transparent;
-  border: 0;
-  border-top: 1px solid var(--am-catalog-line);
-  border-radius: 0;
-  padding: 8px 0;
-}
-.am-archive--scientific .am-archive__classification[hidden] { display: none; }
+.am-archive.am-archive--scientific .am-archive__recent[open] > summary.am-archive-node { border-bottom: 1px solid var(--am-line); border-radius: 8px 8px 0 0; }
+.am-archive__recent[open] .am-archive-node__chev { transform: rotate(90deg); }
+.am-archive.am-archive--scientific .am-archive__recent > .am-archive-entries { padding: 6px 18px 12px; }
 
-/* 1.6.13 - Un colore per rango tassonomico: barra laterale, contatore, linea dei figli e legenda. */
-.am-archive--scientific {
-  --am-rank-division: #2e6b46; /* verde bosco */
-  --am-rank-family: #8a5d0c;   /* ocra */
-  --am-rank-genus: #a5462f;    /* ruggine */
-  --am-rank-species: #6b4a8a;  /* ametista */
-}
-.am-archive--scientific .am-archive__tree .am-archive-node--division { --am-rank: var(--am-rank-division); }
-.am-archive--scientific .am-archive__tree .am-archive-node--family { --am-rank: var(--am-rank-family); }
-.am-archive--scientific .am-archive__tree .am-archive-node--genus { --am-rank: var(--am-rank-genus); }
-.am-archive--scientific .am-archive__tree .am-archive-node {
-  border-left: 4px solid var(--am-rank);
-  padding-left: 10px;
-  background: transparent;
-}
-.am-archive--scientific .am-archive__tree .am-archive-node[aria-expanded="true"] {
-  background: color-mix(in srgb, var(--am-rank) 9%, transparent);
-}
-.am-archive--scientific .am-archive__tree .am-archive-node__chev { color: var(--am-rank); }
-.am-archive--scientific .am-archive__tree .am-archive-node .am-archive-node__count {
-  color: var(--am-rank) !important;
-  background: color-mix(in srgb, var(--am-rank) 12%, #fff);
-  border-color: color-mix(in srgb, var(--am-rank) 30%, #fff);
-}
-.am-archive--scientific .am-archive__tree .am-archive-branch--division > .am-archive-children { border-left: 2px solid color-mix(in srgb, var(--am-rank-division) 40%, transparent); }
-.am-archive--scientific .am-archive__tree .am-archive-branch--family > .am-archive-children { border-left: 2px solid color-mix(in srgb, var(--am-rank-family) 40%, transparent); }
-.am-archive--scientific .am-archive__tree .am-archive-branch--genus > .am-archive-children { border-left: 2px solid color-mix(in srgb, var(--am-rank-genus) 40%, transparent); }
-.am-archive--scientific .am-archive__tree .am-archive-entry {
-  border: 1px solid color-mix(in srgb, var(--am-rank-species) 22%, #fff);
-  border-left: 4px solid var(--am-rank-species);
-  background: color-mix(in srgb, var(--am-rank-species) 6%, #fff);
-}
-.am-archive--scientific .am-archive__tree .am-archive-entry:hover {
-  background: color-mix(in srgb, var(--am-rank-species) 11%, #fff);
-}
-.am-archive__rank { font-weight: 600; }
+/* Rank legend */
+.am-archive__rank-guide { display: flex; flex-wrap: wrap; gap: 4px 14px; margin: 6px 0 14px; color: var(--am-muted); font-size: .85rem; }
+.am-archive__rank { display: inline-flex; align-items: center; gap: 6px; font-weight: 600; }
 .am-archive__rank::before {
   content: "";
   display: inline-block;
-  inline-size: 0.6em;
-  block-size: 0.6em;
-  margin-inline-end: 0.3em;
+  inline-size: .6em;
+  block-size: .6em;
+  margin-inline-end: .3em;
   border-radius: 2px;
   background: currentColor;
 }
-.am-archive__rank--division { color: var(--am-rank-division); }
-.am-archive__rank--family { color: var(--am-rank-family); }
-.am-archive__rank--genus { color: var(--am-rank-genus); }
-.am-archive__rank--species { color: var(--am-rank-species); }
+.am-archive__rank--division { color: var(--am-r-division); }
+.am-archive__rank--family { color: var(--am-r-family); }
+.am-archive__rank--genus { color: var(--am-r-genus); }
+.am-archive__rank--species { color: var(--am-r-species); }
 
-/* 1.6.20 - Colonna laterale: ultime schede e articoli scientifici */
-.am-archive__side { display: grid; gap: 16px; min-width: 0; align-content: start; }
-.am-archive__articles-panel { scroll-margin-top: calc(var(--wp-admin--admin-bar--height, 0px) + 16px); }
-.am-archive--scientific .am-archive__articles-panel summary { display: flex; align-items: center; gap: 8px; }
-.am-archive--scientific .am-archive__articles-panel .am-archive-node__count {
-  margin-left: auto;
-  padding: 1px 9px;
-  border: 1px solid #c9d8cf;
-  border-radius: 999px;
-  background: #eef4f0;
-  color: #225744;
-  font-size: .85rem;
-  font-weight: 700;
+/* 7. Classification tree (rows are <button>, the side panels' headers <summary>) */
+.am-archive.am-archive--scientific .am-archive-branch { margin: 0; }
+.am-archive.am-archive--scientific .am-archive-node--division { --am-rank: var(--am-r-division); }
+.am-archive.am-archive--scientific .am-archive-node--family { --am-rank: var(--am-r-family); }
+.am-archive.am-archive--scientific .am-archive-node--genus { --am-rank: var(--am-r-genus); }
+.am-archive.am-archive--scientific .am-archive-node {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  min-height: 46px;
+  margin: 0;
+  padding: 8px 12px 8px 10px;
+  border: 0;
+  border-bottom: 1px solid var(--am-line);
+  border-left: 3px solid var(--am-rank, var(--am-line));
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  font: inherit;
+  font-size: 1rem;
+  text-align: left;
+  cursor: pointer;
+  transition: background-color .15s ease;
 }
-.am-archive--scientific .am-archive-entry--article .am-archive-entry__title { font-weight: 650; font-style: normal; }
-.am-archive-entry__excerpt { display: block; margin-top: 2px; color: var(--am-catalog-muted, #4c6157); font-size: .9rem; line-height: 1.4; }
-.am-archive--scientific .am-archive-entry--article .am-archive-entry__meta { display: block; margin-top: 3px; font-size: .82rem; }
+.am-archive.am-archive--scientific .am-archive-node:hover,
+.am-archive.am-archive--scientific .am-archive-node[aria-expanded="true"] { background: var(--am-soft); }
+.am-archive.am-archive--scientific .am-archive-node:focus-visible { outline: 3px solid var(--am-focus); outline-offset: -3px; }
+.am-archive.am-archive--scientific .am-archive-node,
+.am-archive.am-archive--scientific .am-archive-node * { color: var(--am-ink) !important; }
+
+.am-archive-node__chev { display: inline-block; flex: 0 0 auto; width: 12px; font-size: .7rem; opacity: .6; transition: transform .2s ease; }
+.am-archive-node[aria-expanded="true"] .am-archive-node__chev { transform: rotate(90deg); }
+.am-archive-node__label { flex: 1 1 auto; min-width: 0; font-size: 1rem; font-weight: 700; }
+.am-archive-node--division .am-archive-node__label { letter-spacing: .01em; }
+.am-archive-node--family .am-archive-node__label { font-weight: 650; }
+.am-archive-node--genus .am-archive-node__label { font-weight: 600; font-style: italic; }
+.am-archive.am-archive--scientific .am-archive-node__rank {
+  flex: 0 0 auto;
+  color: var(--am-rank) !important;
+  font-size: .68rem;
+  font-weight: 700;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  opacity: .9;
+}
+.am-archive-node__count {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  min-width: 36px;
+  margin: 0;
+  padding: 1px 8px;
+  border: 1px solid var(--am-line);
+  border-radius: 4px;
+  background: #fff;
+  font-size: .82rem;
+  font-weight: 700;
+  line-height: 1.6;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+.am-archive.am-archive--scientific .am-archive__tree .am-archive-node__count {
+  border-color: color-mix(in srgb, var(--am-rank) 30%, #fff);
+  background: color-mix(in srgb, var(--am-rank) 12%, #fff);
+  color: var(--am-rank) !important;
+}
+.am-archive-children { margin: 0 0 0 14px; padding: 0; border-left: 1px solid var(--am-line); }
+.am-archive__tree .am-archive-branch--division > .am-archive-children { border-left: 2px solid color-mix(in srgb, var(--am-r-division) 40%, transparent); }
+.am-archive__tree .am-archive-branch--family > .am-archive-children { border-left: 2px solid color-mix(in srgb, var(--am-r-family) 40%, transparent); }
+.am-archive__tree .am-archive-branch--genus > .am-archive-children { margin-left: 0; border-left: 2px solid color-mix(in srgb, var(--am-r-genus) 40%, transparent); }
+
+/* 8. Schede and articles */
+.am-archive-entries { display: flex; flex-direction: column; gap: 0; padding: 0; }
+.am-archive.am-archive--scientific .am-archive-entry {
+  display: block;
+  margin: 0;
+  padding: 8px 12px 8px 14px;
+  border: 0;
+  border-bottom: 1px solid var(--am-line);
+  border-left: 3px solid var(--am-r-species);
+  border-radius: 0;
+  background: transparent;
+  text-decoration: none;
+  transition: background-color .15s ease;
+}
+.am-archive.am-archive--scientific .am-archive__recent .am-archive-entry { padding-left: 0; border-left: 0; }
+.am-archive.am-archive--scientific .am-archive-entry:hover { background: var(--am-soft); }
+.am-archive.am-archive--scientific .am-archive-entry:focus-visible { outline: 3px solid var(--am-focus); outline-offset: -3px; }
+.am-archive.am-archive--scientific .am-archive-entry,
+.am-archive.am-archive--scientific .am-archive-entry * { color: var(--am-ink) !important; }
+.am-archive-entry__row { display: flex; align-items: center; gap: 12px; }
+.am-archive-entry__thumb {
+  flex: 0 0 40px;
+  width: 40px;
+  height: 40px;
+  border: 1px solid var(--am-line);
+  border-radius: 4px;
+  background: #fff;
+  object-fit: cover;
+}
+.am-archive-entry__thumb--doc {
+  display: inline-block;
+  background: #eef4f0 url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23225744' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z'/%3E%3Cpath d='M14 3v5h5M9 13h6M9 17h6'/%3E%3C/svg%3E") center / 55% no-repeat;
+  border-color: #c9d8cf;
+}
+.am-archive-entry__body { flex: 1; min-width: 0; }
+.am-archive-entry__title { font-size: 1rem; font-weight: 500; line-height: 1.35; }
+.am-archive.am-archive--scientific .am-archive-entry__title i,
+.am-archive.am-archive--scientific .am-archive-entry__title .am-taxon-gs { font-weight: 600 !important; }
+.am-archive.am-archive--scientific .am-archive-entry__title .am-sciname-author,
+.am-archive.am-archive--scientific .am-archive-entry__title .am-sciname-infra,
+.am-archive.am-archive--scientific .am-archive-entry__meta,
+.am-archive.am-archive--scientific .am-archive-entry__meta *,
+.am-archive.am-archive--scientific .am-archive-entry__excerpt { color: var(--am-muted) !important; }
+.am-archive-entry__meta { margin-top: 2px; font-size: .82rem; }
+.am-archive__recent .am-archive-entry__meta { display: block; }
+.am-archive-entry__excerpt { display: block; margin-top: 2px; font-size: .82rem; line-height: 1.4; }
+.am-archive-entry--article .am-archive-entry__title { font-weight: 650; font-style: normal; }
+.am-archive-entry--article .am-archive-entry__meta { display: block; margin-top: 3px; }
 .am-archive-entry__pdf {
   display: inline-block;
   padding: 0 6px;
@@ -530,30 +309,22 @@
   font-weight: 700;
   letter-spacing: .04em;
 }
-.am-archive-entry__thumb--doc {
-  display: inline-block;
-  flex: 0 0 auto;
-  background: #eef4f0 url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23225744' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z'/%3E%3Cpath d='M14 3v5h5M9 13h6M9 17h6'/%3E%3C/svg%3E") center / 55% no-repeat;
-  border: 1px solid #c9d8cf;
-}
+.am-archive.am-archive--scientific .am-archive-entry .am-archive-entry__pdf { color: #a5462f !important; }
 
-/* 1.6.27 - Sfoglia l'archivio */
+/* 9. Sfoglia l'archivio */
 .am-bookpanel {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
   gap: 14px 24px;
   margin: 0 0 20px;
-  padding: 16px 18px;
-  border: 1px solid var(--am-catalog-line, #d7ded2);
-  border-left: 4px solid #234a37;
-  border-radius: 7px;
-  background: var(--am-catalog-paper, #fbfaf4);
-  color: var(--am-catalog-ink, #233a30);
+  padding: 18px 20px;
+  border: 1px solid var(--am-line, #dde4df);
+  border-left: 3px solid var(--am-forest, #234a37);
+  border-radius: 8px;
+  background: var(--am-sheet, #fff);
+  color: var(--am-ink, #1d2b25);
 }
-@media (min-width: 1100px) {
-  .am-bookpanel { grid-template-columns: minmax(0, .75fr) minmax(0, 1.6fr); align-items: center; }
-}
-.am-bookpanel__intro { display: flex; gap: 14px; align-items: flex-start; }
+.am-bookpanel__intro { display: flex; align-items: flex-start; gap: 14px; }
 .am-bookpanel__icon {
   flex: 0 0 auto;
   width: 44px;
@@ -561,19 +332,18 @@
   border-radius: 50%;
   background: #234a37 url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23fff' stroke-width='1.7' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 6.5C10 5 7 4.5 3.5 5v13c3.5-.5 6.5 0 8.5 1.5 2-1.5 5-2 8.5-1.5V5C17 4.5 14 5 12 6.5z'/%3E%3Cpath d='M12 6.5v13'/%3E%3C/svg%3E") center / 24px no-repeat;
 }
-.am-bookpanel h2 { margin: 0 0 4px; font: 400 clamp(1.25rem, 2.4vw, 1.5rem)/1.2 Georgia, serif; color: var(--am-catalog-ink, #233a30); }
-.am-bookpanel p { margin: 0; color: var(--am-catalog-muted, #52675a); font-size: .95rem; line-height: 1.45; }
+.am-bookpanel p { margin: 0; color: var(--am-muted, #5b6b63); font-size: .95rem; line-height: 1.45; }
 .am-bookpanel__fields { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 12px; }
-.am-bookpanel__field { display: grid; gap: 4px; flex: 1 1 190px; min-width: 0; margin: 0; }
-.am-bookpanel__field span { font-size: .82rem; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; color: var(--am-catalog-muted, #52675a); }
+.am-bookpanel__field { display: grid; flex: 1 1 190px; gap: 4px; min-width: 0; margin: 0; }
+.am-bookpanel__field span { color: var(--am-muted, #5b6b63); font-size: .82rem; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; }
 .am-bookpanel__field select {
   width: 100%;
   min-height: 44px;
   padding: 8px 10px;
-  border: 1px solid #aebfb4;
-  border-radius: 7px;
+  border: 1px solid var(--am-field, #c3cfc8);
+  border-radius: 8px;
   background: #fff;
-  color: var(--am-catalog-ink, #233a30);
+  color: var(--am-ink, #1d2b25);
   font: inherit;
   font-size: 1rem;
 }
@@ -582,258 +352,31 @@
   min-height: 44px;
   padding: 0 18px;
   border: 0;
-  border-radius: 7px;
+  border-radius: 8px;
   background: #234a37;
   color: #fff;
   font: inherit;
+  font-size: 1rem;
   font-weight: 650;
   cursor: pointer;
 }
-.am-bookpanel__go:hover, .am-bookpanel__go:focus-visible { background: #17362a; }
-.am-bookpanel__go:focus-visible, .am-bookpanel__field select:focus-visible { outline: 3px solid #e2b33c; outline-offset: 2px; }
+.am-bookpanel__go:hover,
+.am-bookpanel__go:focus-visible { background: #17362a; }
+.am-bookpanel__go:focus-visible,
+.am-bookpanel__field select:focus-visible { outline: 3px solid #e2b33c; outline-offset: 2px; }
 
-/* ==========================================================================
-   1.6.31 - Catalogo scientifico
-   One typeface (the theme's), white sheets with hairlines, rank colours as thin
-   rules, tabular figures, italic binomials. Layered over the older skins above,
-   with higher specificity (.am-archive.am-archive--scientific).
-   ========================================================================== */
-.am-archive.am-archive--scientific {
-  --am-ink: #1d2b25;
-  --am-muted: #5b6b63;
-  --am-line: #dde4df;
-  --am-soft: #f4f7f5;
-  --am-sheet: #fff;
-  --am-forest: #234a37;
-  --am-r-division: #2e6b46;
-  --am-r-family: #8a5d0c;
-  --am-r-genus: #a5462f;
-  --am-r-species: #6b4a8a;
-  color: var(--am-ink);
-  font-family: inherit;
+/* 10. Screen sizes */
+@media (min-width: 1100px) {
+  .am-archive__index { grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr); align-items: start; }
+  .am-bookpanel { grid-template-columns: minmax(0, .75fr) minmax(0, 1.6fr); align-items: center; }
 }
-.am-archive.am-archive--scientific h2,
-.am-archive.am-archive--scientific .am-archive__classification h2,
-.am-archive.am-archive--scientific .am-bookpanel h2 {
-  margin: 0;
-  font-family: inherit;
-  font-size: 1.15rem;
-  font-weight: 700;
-  letter-spacing: 0;
-  line-height: 1.3;
-  color: var(--am-ink);
+@media (max-width: 767px) {
+  .am-archive .am-archive__search { flex-basis: 100%; }
+  .am-archive .am-archive__search-btn { width: 100%; }
+  .am-archive__status { min-width: 0; width: 100%; text-align: left; }
 }
-
-/* Figures of the catalogue */
-.am-archive--scientific .am-archive__stats {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(118px, 1fr));
-  margin: 0 0 22px;
-  padding: 0;
-  border: 1px solid var(--am-line);
-  border-radius: 8px;
-  background: var(--am-sheet);
-  overflow: hidden;
-}
-.am-archive--scientific .am-archive__stat {
-  margin: 0;
-  padding: 12px 16px 13px;
-  border-left: 1px solid var(--am-line);
-  border-top: 3px solid transparent;
-}
-.am-archive--scientific .am-archive__stat:first-child { border-left: 0; border-top-color: var(--am-forest); }
-.am-archive--scientific .am-archive__stat--species { border-top-color: var(--am-r-species); }
-.am-archive--scientific .am-archive__stat--genus { border-top-color: var(--am-r-genus); }
-.am-archive--scientific .am-archive__stat--family { border-top-color: var(--am-r-family); }
-.am-archive--scientific .am-archive__stat--division { border-top-color: var(--am-r-division); }
-.am-archive--scientific .am-archive__stat dt {
-  margin: 0;
-  color: var(--am-muted);
-  font-size: .75rem;
-  font-weight: 700;
-  letter-spacing: .08em;
-  text-transform: uppercase;
-}
-.am-archive--scientific .am-archive__stat dd {
-  margin: 2px 0 0;
-  color: var(--am-ink);
-  font-size: 1.6rem;
-  font-weight: 700;
-  line-height: 1.15;
-  font-variant-numeric: tabular-nums;
-}
-.am-archive--scientific .am-archive__stat--date dd { font-size: 1.05rem; padding-top: 6px; font-weight: 600; }
-
-/* Search */
-.am-archive.am-archive--scientific .am-archive__top { gap: 6px 10px; margin: 0 0 18px; }
-.am-archive--scientific .am-archive__search-label {
-  flex: 1 1 100%;
-  color: var(--am-muted);
-  font-size: .75rem;
-  font-weight: 700;
-  letter-spacing: .08em;
-  text-transform: uppercase;
-}
-.am-archive.am-archive--scientific .am-archive__search {
-  min-height: 48px;
-  padding: 10px 14px;
-  border: 1px solid #c3cfc8;
-  border-radius: 8px;
-  font: inherit;
-  font-size: 1rem;
-}
-.am-archive.am-archive--scientific .am-archive__search:focus-visible { outline: 3px solid #e2b33c; outline-offset: 1px; border-color: var(--am-forest); }
-.am-archive.am-archive--scientific .am-archive__search-btn,
-.am-archive.am-archive--scientific .am-archive__search-btn * {
-  color: #fff !important;
-}
-.am-archive.am-archive--scientific .am-archive__search-btn {
-  min-height: 48px;
-  padding: 0 22px;
-  border: 0;
-  border-radius: 8px;
-  background: var(--am-forest);
-  font: inherit;
-  font-weight: 650;
-}
-.am-archive.am-archive--scientific .am-archive__search-btn:hover { background: #17362a; filter: none; }
-.am-archive.am-archive--scientific .am-archive__status { color: var(--am-muted); font-size: .85rem; }
-
-/* Sheets: classification, side panels, browse panel */
-.am-archive.am-archive--scientific .am-archive__classification,
-.am-archive.am-archive--scientific .am-archive__recent,
-.am-archive.am-archive--scientific .am-bookpanel {
-  padding: 18px 20px;
-  border: 1px solid var(--am-line);
-  border-radius: 8px;
-  background: var(--am-sheet);
-  box-shadow: none;
-}
-.am-archive.am-archive--scientific .am-bookpanel { border-left: 3px solid var(--am-forest); }
-.am-archive.am-archive--scientific .am-bookpanel p { color: var(--am-muted); }
-.am-archive.am-archive--scientific .am-archive__recent { padding: 0; }
-.am-archive.am-archive--scientific .am-archive__recent > summary {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  min-height: 56px;
-  margin: 0;
-  padding: 12px 18px;
-  border: 0;
-  border-radius: 8px;
-  background: transparent;
-  cursor: pointer;
-}
-.am-archive.am-archive--scientific .am-archive__recent > summary:hover { background: var(--am-soft); }
-.am-archive.am-archive--scientific .am-archive__recent[open] > summary { border-bottom: 1px solid var(--am-line); border-radius: 8px 8px 0 0; }
-.am-archive.am-archive--scientific .am-archive__recent > summary .am-archive-node__label { font-size: 1rem; font-weight: 700; }
-.am-archive.am-archive--scientific .am-archive__recent > .am-archive-entries { padding: 6px 18px 12px; }
-
-/* Rank legend */
-.am-archive.am-archive--scientific .am-archive__rank-guide { display: flex; flex-wrap: wrap; gap: 4px 14px; margin: 6px 0 14px; font-size: .85rem; }
-.am-archive.am-archive--scientific .am-archive__rank { display: inline-flex; align-items: center; gap: 6px; font-weight: 600; }
-
-/* Tree rows */
-.am-archive.am-archive--scientific .am-archive-branch { margin: 0; }
-.am-archive.am-archive--scientific .am-archive-node,
-.am-archive.am-archive--scientific .am-archive-node:hover {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  width: 100%;
-  min-height: 46px;
-  margin: 0;
-  padding: 8px 12px 8px 10px;
-  border: 0;
-  border-bottom: 1px solid var(--am-line);
-  border-left: 3px solid var(--am-line);
-  border-radius: 0;
-  background: transparent;
-  box-shadow: none;
-  transform: none;
-  font: inherit;
-  font-size: 1rem;
-  text-align: left;
-}
-.am-archive.am-archive--scientific .am-archive-node:hover { background: var(--am-soft); }
-.am-archive.am-archive--scientific .am-archive-node:focus-visible { outline: 3px solid #e2b33c; outline-offset: -3px; }
-.am-archive.am-archive--scientific .am-archive-node--division { border-left-color: var(--am-r-division); }
-.am-archive.am-archive--scientific .am-archive-node--family { border-left-color: var(--am-r-family); }
-.am-archive.am-archive--scientific .am-archive-node--genus { border-left-color: var(--am-r-genus); }
-.am-archive.am-archive--scientific .am-archive-node[aria-expanded="true"] { background: var(--am-soft); }
-.am-archive.am-archive--scientific .am-archive-node,
-.am-archive.am-archive--scientific .am-archive-node * { color: var(--am-ink) !important; }
-.am-archive.am-archive--scientific .am-archive-node__chev { flex: 0 0 auto; width: 12px; font-size: .7rem; opacity: .6; }
-.am-archive.am-archive--scientific .am-archive-node__label { flex: 1 1 auto; min-width: 0; font-size: 1rem; }
-.am-archive.am-archive--scientific .am-archive-node--division .am-archive-node__label { font-weight: 700; letter-spacing: .01em; }
-.am-archive.am-archive--scientific .am-archive-node--family .am-archive-node__label { font-weight: 650; }
-.am-archive.am-archive--scientific .am-archive-node--genus .am-archive-node__label { font-weight: 600; font-style: italic; }
-.am-archive.am-archive--scientific .am-archive-node__rank {
-  flex: 0 0 auto;
-  font-size: .68rem;
-  font-weight: 700;
-  letter-spacing: .08em;
-  text-transform: uppercase;
-  opacity: .9;
-}
-.am-archive.am-archive--scientific .am-archive-node--division .am-archive-node__rank { color: var(--am-r-division) !important; }
-.am-archive.am-archive--scientific .am-archive-node--family .am-archive-node__rank { color: var(--am-r-family) !important; }
-.am-archive.am-archive--scientific .am-archive-node--genus .am-archive-node__rank { color: var(--am-r-genus) !important; }
-.am-archive.am-archive--scientific .am-archive-node__count {
-  flex: 0 0 auto;
-  min-width: 36px;
-  margin: 0;
-  padding: 1px 8px;
-  border: 1px solid var(--am-line);
-  border-radius: 4px;
-  background: #fff;
-  font-size: .82rem;
-  font-weight: 700;
-  text-align: center;
-  font-variant-numeric: tabular-nums;
-}
-.am-archive.am-archive--scientific .am-archive-children { margin: 0 0 0 14px; padding: 0 0 0 0; border-left: 1px solid var(--am-line); }
-.am-archive.am-archive--scientific .am-archive-branch--genus .am-archive-node,
-.am-archive.am-archive--scientific .am-archive-branch--genus .am-archive-children { margin-left: 0; }
-
-/* Species (schede) */
-.am-archive.am-archive--scientific .am-archive-entries { gap: 0; padding: 0; }
-.am-archive.am-archive--scientific .am-archive-children > .am-archive-entry,
-.am-archive.am-archive--scientific .am-archive-entries > .am-archive-entry,
-.am-archive.am-archive--scientific .am-archive__results .am-archive-entry {
-  display: block;
-  margin: 0;
-  padding: 8px 12px 8px 14px;
-  border: 0;
-  border-bottom: 1px solid var(--am-line);
-  border-left: 3px solid var(--am-r-species);
-  border-radius: 0;
-  background: transparent;
-  box-shadow: none;
-  transform: none;
-  text-decoration: none;
-}
-.am-archive.am-archive--scientific .am-archive__recent .am-archive-entry { border-left: 0; padding-left: 0; }
-.am-archive.am-archive--scientific .am-archive-entry:hover { background: var(--am-soft); }
-.am-archive.am-archive--scientific .am-archive-entry:focus-visible { outline: 3px solid #e2b33c; outline-offset: -3px; }
-.am-archive.am-archive--scientific .am-archive-entry__row { align-items: center; gap: 12px; }
-.am-archive.am-archive--scientific .am-archive-entry__thumb { flex: 0 0 40px; width: 40px; height: 40px; border-radius: 4px; border: 1px solid var(--am-line); }
-.am-archive.am-archive--scientific .am-archive-entry,
-.am-archive.am-archive--scientific .am-archive-entry * { color: var(--am-ink) !important; }
-.am-archive.am-archive--scientific .am-archive-entry__title { font-size: 1rem; font-weight: 500; line-height: 1.35; }
-.am-archive.am-archive--scientific .am-archive-entry__title i,
-.am-archive.am-archive--scientific .am-archive-entry__title .am-taxon-gs { font-weight: 600 !important; }
-.am-archive.am-archive--scientific .am-archive-entry__title .am-sciname-author,
-.am-archive.am-archive--scientific .am-archive-entry__title .am-sciname-infra { color: var(--am-muted) !important; }
-.am-archive.am-archive--scientific .am-archive-entry__meta,
-.am-archive.am-archive--scientific .am-archive-entry__meta *,
-.am-archive.am-archive--scientific .am-archive-entry__excerpt { color: var(--am-muted) !important; font-size: .82rem; opacity: 1; }
-.am-archive.am-archive--scientific .am-archive-entry--article .am-archive-entry__title { font-weight: 650; }
-
 @media (max-width: 600px) {
   .am-archive.am-archive--scientific .am-archive-node__rank { display: none; }
-  .am-archive--scientific .am-archive__stat dd { font-size: 1.3rem; }
-  .am-archive.am-archive--scientific .am-archive-children { margin-left: 8px; }
+  .am-archive__stat dd { font-size: 1.3rem; }
+  .am-archive-children { margin-left: 8px; }
 }
-.am-archive.am-archive--scientific .am-bookpanel__go { font-size: 1rem; font-weight: 650; }
-.am-archive.am-archive--scientific .am-bookpanel__field select { border-color: #c3cfc8; border-radius: 8px; }

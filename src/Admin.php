@@ -422,6 +422,19 @@ class Admin {
 			'am_vocabolari',
 			[__CLASS__, 'render_vocabolari_page']
 		);
+		$hook_nom = add_submenu_page(
+			$parent_slug,
+			__('Nomenclatura', 'archivio-micologico'),
+			self::get_submenu_label('dashicons-search', __('Nomenclatura', 'archivio-micologico')),
+			'manage_terms',
+			'am_nomenclatura',
+			[Nomenclature::class, 'admin_page']
+		);
+		if ($hook_nom) {
+			add_action('load-' . $hook_nom, static function (): void {
+				add_action('admin_enqueue_scripts', [Nomenclature::class, 'enqueue']);
+			});
+		}
 		// The admin pages reuse the interface of [am_tassonomia] and [am_vocabolari].
 		foreach ([$hook_tax, $hook_vocab] as $hook) {
 			if ($hook) {
@@ -808,6 +821,25 @@ public static function apply_admin_post_filters($query) {
 			echo '<p class="description">' . esc_html__('Richiede Yoast SEO; senza, la sitemap la genera WordPress senza immagini.', 'archivio-micologico') . '</p>';
 		}, 'am_settings', 'am_seo');
 
+		// 1.6.32: nomenclature and citation.
+		$flag = static function (string $name, string $label, string $help) {
+			return static function () use ($name, $label, $help) {
+				echo '<input type="hidden" name="' . esc_attr($name) . '" value="0">';
+				echo '<label><input type="checkbox" name="' . esc_attr($name) . '" value="1" ' . checked(1, (int) get_option($name, 1), false) . '> ' . esc_html($label) . '</label>';
+				echo '<p class="description">' . esc_html($help) . '</p>';
+			};
+		};
+		add_settings_field('am_nom_enabled', __('Riquadro Nomenclatura', 'archivio-micologico'), $flag('am_nom_enabled', __('Mostra nella scheda nome corrente, sinonimi e collegamenti a Index Fungorum e Catalogue of Life', 'archivio-micologico'), __('Compare solo nelle schede già verificate in Archivio Micologico → Nomenclatura. I nomi delle schede non vengono mai cambiati in automatico.', 'archivio-micologico')), 'am_settings', 'am_nomenclature');
+		add_settings_field('am_nom_search', __('Ricerca per sinonimi', 'archivio-micologico'), $flag('am_nom_search', __('La ricerca dell’archivio trova le schede anche con i nomi vecchi e i sinonimi', 'archivio-micologico'), __('Esempio: cercando “Xerocomus chrysenteron” si trova la scheda Xerocomellus chrysenteron. Richiede il riquadro Nomenclatura attivo.', 'archivio-micologico')), 'am_settings', 'am_nomenclature');
+		add_settings_field('am_cite_enabled', __('Come citare questa scheda', 'archivio-micologico'), $flag('am_cite_enabled', __('Mostra in fondo alla scheda la citazione pronta (autore, anno, nome, opera, link permanente) con il pulsante Copia', 'archivio-micologico'), __('L’autore è chi ha pubblicato la scheda (cognome e iniziale del nome dal profilo utente).', 'archivio-micologico')), 'am_settings', 'am_nomenclature');
+		add_settings_field('am_cite_work', __('Titolo dell’opera', 'archivio-micologico'), static function () {
+			echo '<input type="text" class="regular-text" id="am_cite_work" name="am_cite_work" value="' . esc_attr((string) get_option('am_cite_work', 'Archivio Micologico')) . '">';
+		}, 'am_settings', 'am_nomenclature', ['label_for' => 'am_cite_work']);
+		add_settings_field('am_cite_publisher', __('Editore', 'archivio-micologico'), static function () {
+			echo '<input type="text" class="regular-text" id="am_cite_publisher" name="am_cite_publisher" value="' . esc_attr((string) get_option('am_cite_publisher', get_bloginfo('name'))) . '">';
+			echo '<p class="description">' . esc_html__('Di solito il nome dell’associazione.', 'archivio-micologico') . '</p>';
+		}, 'am_settings', 'am_nomenclature', ['label_for' => 'am_cite_publisher']);
+
 		add_settings_field('am_book_nav', __('Sfoglia le schede', 'archivio-micologico'), function () {
 			echo '<input type="hidden" name="am_book_nav" value="0">';
 			echo '<label><input type="checkbox" name="am_book_nav" value="1" ' . checked(1, (int) get_option('am_book_nav', 1), false) . '> ';
@@ -1165,10 +1197,15 @@ wp_safe_redirect(add_query_arg(['page' => 'am_settings', 'am_err' => 'caps'], ad
 			if (in_array($article_status, $allowed_status, true)) {
 				update_option('am_article_status', $article_status);
 			}
-			foreach (['am_archive_articles', 'am_sitemap_images'] as $flag) {
+			foreach (['am_archive_articles', 'am_sitemap_images', 'am_nom_enabled', 'am_nom_search', 'am_cite_enabled'] as $flag) {
 				$value = $_POST[$flag] ?? null;
 				if ($value === '0' || $value === '1') {
 					update_option($flag, (int) $value);
+				}
+			}
+			foreach (['am_cite_work', 'am_cite_publisher'] as $text) {
+				if (isset($_POST[$text])) {
+					update_option($text, sanitize_text_field(wp_unslash((string) $_POST[$text])));
 				}
 			}
 			// 1.6.21: page-turn navigation; saved only when its fields are part of the form.

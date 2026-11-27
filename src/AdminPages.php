@@ -17,7 +17,7 @@ final class AdminPages {
 
 	/* ----------------------------------------------------------- building blocks */
 
-	private static function open(string $title, string $intro, string $actions = ''): void {
+	public static function open(string $title, string $intro, string $actions = ''): void {
 		echo '<div class="wrap am-admin">';
 		echo '<header class="am-admin__head"><div class="am-admin__head-text">';
 		echo '<p class="am-admin__eyebrow">' . esc_html__('Archivio Micologico', 'archivio-micologico') . ' <span>v' . esc_html(AM_VERSION) . '</span></p>';
@@ -28,7 +28,7 @@ final class AdminPages {
 		echo '</header><hr class="wp-header-end">';
 	}
 
-	private static function close(): void {
+	public static function close(): void {
 		echo '</div>';
 		// Copy buttons ([data-am-copy]): clipboard API, with a selection fallback on plain http.
 		echo "<script>document.addEventListener('click',function(e){var b=e.target.closest('[data-am-copy]');if(!b){return;}e.preventDefault();var t=b.getAttribute('data-am-copy'),l=b.textContent;"
@@ -114,20 +114,23 @@ final class AdminPages {
 			"SELECT p.ID, p.post_title,
 			 (SELECT COUNT(*) FROM {$wpdb->postmeta} m WHERE m.post_id = p.ID AND m.meta_key = '_thumbnail_id' AND m.meta_value NOT IN ('', '0')) AS img,
 			 (SELECT COUNT(*) FROM {$wpdb->term_relationships} r INNER JOIN {$wpdb->term_taxonomy} t ON t.term_taxonomy_id = r.term_taxonomy_id WHERE r.object_id = p.ID AND t.taxonomy = %s) AS cls,
-			 (SELECT COUNT(*) FROM {$wpdb->term_relationships} r INNER JOIN {$wpdb->term_taxonomy} t ON t.term_taxonomy_id = r.term_taxonomy_id WHERE r.object_id = p.ID AND t.taxonomy = %s) AS aut
+			 (SELECT COUNT(*) FROM {$wpdb->term_relationships} r INNER JOIN {$wpdb->term_taxonomy} t ON t.term_taxonomy_id = r.term_taxonomy_id WHERE r.object_id = p.ID AND t.taxonomy = %s) AS aut,
+			 (SELECT m.meta_value FROM {$wpdb->postmeta} m WHERE m.post_id = p.ID AND m.meta_key = 'am_nom' LIMIT 1) AS nom
 			 FROM {$wpdb->posts} p WHERE p.post_type = %s AND p.post_status IN ($in) ORDER BY p.post_date DESC",
 			AM_TAX_CLASSIFICAZIONE,
 			AM_TAX_AUTHOR,
 			AM_CPT
 		), ARRAY_A) ?: [];
 
-		$out = ['no_image' => [], 'no_class' => [], 'no_author' => [], 'duplicates' => []];
+		$out = ['no_image' => [], 'no_class' => [], 'no_author' => [], 'duplicates' => [], 'synonyms' => []];
 		$titles = [];
 		foreach ($rows as $r) {
 			$item = [(int) $r['ID'], (string) $r['post_title']];
 			if (!(int) $r['img']) { $out['no_image'][] = $item; }
 			if (!(int) $r['cls']) { $out['no_class'][] = $item; }
 			if (!(int) $r['aut']) { $out['no_author'][] = $item; }
+			$nom = $r['nom'] ? maybe_unserialize((string) $r['nom']) : null;
+			if (is_array($nom) && ($nom['status'] ?? '') === 'synonym') { $out['synonyms'][] = $item; }
 			$key = strtolower(trim((string) preg_replace('/\s+/', ' ', (string) $r['post_title'])));
 			if ($key !== '') { $titles[$key][] = $item; }
 		}
@@ -280,6 +283,9 @@ final class AdminPages {
 		self::check(__('In attesa di revisione', 'archivio-micologico'), __('Controlla classificazione, testi e immagini, poi pubblica dall’editor o con Modifica rapida.', 'archivio-micologico'), $pending, __('Apri elenco', 'archivio-micologico'), self::list_url('pending'), true, true);
 		self::check(__('Senza classificazione', 'archivio-micologico'), __('La scheda non è collegata a nessuna specie: non compare nell’albero dell’archivio.', 'archivio-micologico'), $quality['no_class'], '', '');
 		self::check(__('Senza autore del nome', 'archivio-micologico'), __('Manca l’autore (autorità) del nome scientifico, es. (Fr.) P. Kumm.', 'archivio-micologico'), $quality['no_author'], '', '');
+		if (Nomenclature::enabled()) {
+			self::check(__('Nome oggi considerato sinonimo', 'archivio-micologico'), __('Secondo Species Fungorum il nome della scheda non è più quello accettato. Valuta se rinominarla da Tassonomia: la ricerca la trova comunque anche col nome vecchio.', 'archivio-micologico'), $quality['synonyms'], __('Apri Nomenclatura', 'archivio-micologico'), admin_url('admin.php?page=am_nomenclatura'), true);
+		}
 		self::check(__('Senza immagine di anteprima', 'archivio-micologico'), __('La scheda appare senza foto in archivio e nelle anteprime social.', 'archivio-micologico'), $quality['no_image'], '', '', true);
 		self::check(__('Possibili doppioni', 'archivio-micologico'), __('Più schede con lo stesso nome completo: verifica se vanno unite o distinte.', 'archivio-micologico'), $quality['duplicates'], '', '');
 		$unused = $quality['unused_terms'] > 0 ? array_fill(0, $quality['unused_terms'], [0, '']) : [];
@@ -369,6 +375,7 @@ final class AdminPages {
 			'am_panels' => [__('Pannelli dell’archivio', 'archivio-micologico'), __('Quali pannelli collassabili dell’Archivio micologico sono già aperti quando si apre la pagina. Il visitatore può sempre aprirli e chiuderli con un clic.', 'archivio-micologico')],
 						'am_book' => [__('Sfoglia le schede', 'archivio-micologico'), __('Frecce ai lati della scheda per passare alla precedente o alla successiva, come in un libro, e riquadro Sfoglia l’archivio con le scelte offerte ai visitatori.', 'archivio-micologico')],
 			'am_widget_random' => [__('Carosello schede casuali', 'archivio-micologico'), __('Valori predefiniti del widget e dello shortcode [am_random_funghi]; lo shortcode può sovrascriverli.', 'archivio-micologico')],
+			'am_nomenclature' => [__('Nomenclatura e citazione', 'archivio-micologico'), __('Nomi aggiornati secondo Species Fungorum (verifica in Archivio Micologico → Nomenclatura) e citazione bibliografica della scheda. Ogni funzione si può spegnere.', 'archivio-micologico')],
 			'am_seo' => [__('SEO', 'archivio-micologico'), __('Meta description, dati strutturati e immagini comunicate ai motori di ricerca.', 'archivio-micologico')],
 			'am_tools' => [__('Manutenzione', 'archivio-micologico'), __('Strumenti per diagnosticare un problema.', 'archivio-micologico')],
 		];
@@ -492,6 +499,7 @@ final class AdminPages {
 			[__('Epiteto specifico', 'archivio-micologico'), __('Sempre minuscolo, anche se deriva da un nome proprio. Il Genere ha l’iniziale maiuscola.', 'archivio-micologico')],
 			[__('Forma e varietà', 'archivio-micologico'), __('Con l’abbreviazione del rango: var. per varietà, f. per forma.', 'archivio-micologico')],
 			[__('Autori', 'archivio-micologico'), __('Abbreviazioni standard di Index Fungorum (Authors of Fungal Names). Una sola voce per autore: i doppioni si correggono con Unisci.', 'archivio-micologico')],
+			[__('Nomi aggiornati e sinonimi', 'archivio-micologico'), __('Archivio Micologico → Nomenclatura confronta ogni scheda con Species Fungorum (Catalogue of Life): nome accettato o sinonimo, nome corrente, sinonimi, autore secondo la fonte e numero di Index Fungorum. Il risultato compare nella scheda e la ricerca trova anche i nomi vecchi. Il plugin non rinomina nulla: se decidi di adottare il nome corrente, rinomina la voce da Tassonomia. Le due funzioni e la citazione si spengono in Impostazioni → Nomenclatura e citazione.', 'archivio-micologico')],
 			[__('Categorie degli articoli', 'archivio-micologico'), __('Raggruppano gli articoli per argomento (es. Monografie, Chiavi, Relazioni). Si creano in Archivio Micologico → Categorie Articoli, si scelgono nel modulo (anche più di una) e ognuna ha la sua pagina pubblica con l’elenco degli articoli.', 'archivio-micologico')],
 			[__('Sfogliare le schede', 'archivio-micologico'), __('Le frecce ai lati della scheda seguono l’ordine scelto in Impostazioni → Sfoglia le schede. Nell’archivio il riquadro Sfoglia l’archivio lascia scegliere al visitatore ordine e capitolo (una divisione, famiglia o genere): le frecce restano dentro quella scelta.', 'archivio-micologico')],
 						[__('Eliminare', 'archivio-micologico'), __('Possibile solo per voci senza schede e senza livelli inferiori, così nessuna scheda perde la classificazione.', 'archivio-micologico')],
