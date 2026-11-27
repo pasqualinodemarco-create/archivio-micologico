@@ -257,7 +257,7 @@ try {
             update_option('am_page_archive', $post_id);
             $checks['non_page_ignored'] = $P::page_url('archive') === get_permalink($auto);
             $checks['edit_has_no_automatic'] = $P::page_url('edit') === '';
-            $checks['every_page_has_help'] = count(array_filter($P::plugin_pages(), static fn($p) => count($p) === 4 && $p[3] !== '')) === 7;
+            $checks['every_page_has_help'] = count(array_filter($P::plugin_pages(), static fn($p) => count($p) === 4 && $p[3] !== '')) === 8;
             break;
         case 'article_cat':
             add_filter('wp_doing_ajax', '__return_true');
@@ -491,12 +491,12 @@ try {
             $dash = $render([AM_Admin::class, 'render_dashboard_page']);
             $checks['dashboard_rendered'] = str_contains($dash, 'Copertura tassonomica') && str_contains($dash, 'Controllo qualità dei dati') && str_contains($dash, 'post_status=pending') && str_contains($dash, 'Orphan scheda');
             $settings = $render([AM_Admin::class, 'render_settings_page']);
-            foreach (['am_require_login','am_default_status','am_max_upload_mb','am_edit_page_id','am_show_submit_result_admin','am_submit_result_ttl','am_enable_debug_panel','am_seo_mode','am_articles_order','am_recent_entries_count','am_single_show_title','am_random_widget_title','am_random_widget_count','am_random_widget_visible','am_random_widget_rows','am_random_widget_autoplay','am_random_widget_interval','am_book_nav','am_book_effect','am_book_speed','am_article_status','am_archive_articles','am_sitemap_images','am_page_archive','am_page_submit','am_page_article','am_page_taxonomy','am_page_vocab','am_page_search','am_book_order','am_book_panel','am_book_panel_lists','am_book_arrows','am_panel_division','am_panel_family','am_panel_genus','am_panel_recent','am_panel_articles','am_nom_enabled','am_nom_search','am_cite_enabled','am_cite_work','am_cite_publisher'] as $field) {
+            foreach (['am_require_login','am_default_status','am_max_upload_mb','am_edit_page_id','am_show_submit_result_admin','am_submit_result_ttl','am_enable_debug_panel','am_seo_mode','am_articles_order','am_recent_entries_count','am_single_show_title','am_random_widget_title','am_random_widget_count','am_random_widget_visible','am_random_widget_rows','am_random_widget_autoplay','am_random_widget_interval','am_book_nav','am_book_effect','am_book_speed','am_article_status','am_archive_articles','am_sitemap_images','am_page_archive','am_page_submit','am_page_article','am_page_taxonomy','am_page_vocab','am_page_search','am_page_nomenclature','am_book_order','am_book_panel','am_book_panel_lists','am_book_arrows','am_panel_division','am_panel_family','am_panel_genus','am_panel_recent','am_panel_articles','am_nom_enabled','am_nom_search','am_cite_enabled','am_cite_work','am_cite_publisher'] as $field) {
                 $checks['settings_field_' . $field] = substr_count($settings, 'name="' . $field . '"') >= 1;
             }
             $checks['carousel_overrides_listed'] = str_contains($settings, 'Pagina carosello') && str_contains($settings, 'per riga = 6 (fuori dai limiti 1–3)');
             $checks['settings_single_form'] = substr_count($settings, 'value="am_save_settings"') === 1;
-            $checks['shortcode_copy_buttons'] = substr_count($settings, 'data-am-copy="[am_') === 7 && str_contains($settings, 'data-am-copy="[am_edit_form]"');
+            $checks['shortcode_copy_buttons'] = substr_count($settings, 'data-am-copy="[am_') === 8 && str_contains($settings, 'data-am-copy="[am_edit_form]"');
             $checks['instructions_rendered'] = str_contains($render([AM_Admin::class, 'render_instructions_page']), 'Regole di nomenclatura');
             $checks['taxonomy_page_rendered'] = str_contains($render([ArchivioMicologico\AdminPages::class, 'taxonomy']), 'am-mtree');
             $checks['vocab_page_rendered'] = str_contains($render([AM_Admin::class, 'render_vocabolari_page']), 'am-mtable');
@@ -553,7 +553,11 @@ try {
             update_option('am_cite_enabled', 0);
             $checks['citation_switch_off'] = $N::citation($post_id) === '';
             update_option('am_cite_enabled', 1);
-            $checks['page_rendered'] = (static function () use ($N): bool { ob_start(); $N::admin_page(); $h = (string) ob_get_clean(); return str_contains($h, 'data-nom-row=') && str_contains($h, 'Verifica di nuovo tutte'); })() === $can_manage;
+            $checks['page_rendered'] = (static function () use ($N): bool { ob_start(); try { $N::admin_page(); } catch (Throwable $e) { ob_end_clean(); return false; } $h = (string) ob_get_clean(); return str_contains($h, 'data-nom-row=') && str_contains($h, 'Verifica di nuovo tutte'); })() === $can_manage;
+            $checks['public_page'] = str_contains(do_shortcode('[am_nomenclatura]'), 'data-nom-run="unchecked"') === $can_manage;
+            wp_set_current_user(0);
+            $checks['public_page_guest'] = !str_contains(do_shortcode('[am_nomenclatura]'), 'data-nom-row') && str_contains(do_shortcode('[am_nomenclatura]'), 'riservata');
+            wp_set_current_user($user->ID);
             break;
         case 'fallback':
             $method=new ReflectionMethod('AM_Admin','get_front_submit_page_url');
