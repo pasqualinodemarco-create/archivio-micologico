@@ -105,7 +105,7 @@ public static function render_archive($atts = []): string {
 		if (($_GET['am_deleted'] ?? '') === 'article') {
 			echo '<div class="am-notice am-notice--success" role="status">' . esc_html__('Articolo spostato nel cestino. Si può ripristinare da Bacheca → Archivio Micologico → Articoli → Cestino.', 'archivio-micologico') . '</div>';
 		}
-		echo '<div class="am-archive am-archive--scientific" id="am-archive" data-per-page-families="' . esc_attr((string) (int) $atts['families_per_page']) . '" data-per-page-entries="' . esc_attr((string) (int) $atts['entries_per_page']) . '">';
+		echo '<div class="am-archive am-archive--scientific" id="am-archive" data-per-page-families="' . esc_attr((string) (int) $atts['families_per_page']) . '" data-per-page-entries="' . esc_attr((string) (int) $atts['entries_per_page']) . '" data-open="' . esc_attr(implode(',', self::open_levels())) . '">';
 	$total = 0;
 		if (defined('AM_CPT')) {
 			$cnt = wp_count_posts(AM_CPT);
@@ -177,7 +177,7 @@ public static function render_archive($atts = []): string {
 			'no_found_rows' => true,
 		]);
 
-		echo '<details class="am-archive-branch am-archive__recent" id="ultime-schede">';
+		echo '<details class="am-archive-branch am-archive__recent" id="ultime-schede"' . (self::panel_open('recent') ? ' open' : '') . '>';
 		echo '<summary class="am-archive-node am-archive-node--division">';
 		echo '<span class="am-archive-node__chev" aria-hidden="true">▸</span>';
 		echo '<span class="am-archive-node__label">' . esc_html__('Ultime schede pubblicate', 'archivio-micologico') . '</span>';
@@ -202,6 +202,26 @@ public static function render_archive($atts = []): string {
 		echo '</details>';
 	}
 
+	/** 1.6.29 - Archive panels: key => [label, help]. Each one is open or closed at load ("chiuso" by default). */
+	public static function panels(): array {
+		return [
+			'division' => [__('Divisioni', 'archivio-micologico'), __('Aperte: all’apertura della pagina ogni divisione mostra già le sue famiglie.', 'archivio-micologico')],
+			'family' => [__('Famiglie', 'archivio-micologico'), __('Aperte: ogni famiglia visibile mostra già i suoi generi. Funziona dentro le divisioni aperte.', 'archivio-micologico')],
+			'genus' => [__('Generi e specie', 'archivio-micologico'), __('Aperti: ogni genere visibile mostra già l’elenco delle sue specie (le schede). Con molte famiglie aperte la pagina carica più dati.', 'archivio-micologico')],
+			'recent' => [__('Ultime schede pubblicate', 'archivio-micologico'), __('Riquadro laterale con le schede aggiunte di recente.', 'archivio-micologico')],
+			'articles' => [__('Articoli scientifici', 'archivio-micologico'), __('Riquadro laterale con gli articoli pubblicati.', 'archivio-micologico')],
+		];
+	}
+
+	public static function panel_open(string $key): bool {
+		return (string) get_option('am_panel_' . $key, 'chiuso') === 'aperto';
+	}
+
+	/** Tree levels to open at load, for the archive script. */
+	private static function open_levels(): array {
+		return array_values(array_filter(['division', 'family', 'genus'], [self::class, 'panel_open']));
+	}
+
 	/** 1.6.20 - Published scientific articles, beside the latest schede (server-rendered for search engines). */
 	private static function render_archive_articles(): void {
 		if ((int) get_option('am_archive_articles', 1) !== 1) {
@@ -222,7 +242,7 @@ public static function render_archive($atts = []): string {
 			return;
 		}
 
-		echo '<details class="am-archive-branch am-archive__recent am-archive__articles-panel" id="articoli">';
+		echo '<details class="am-archive-branch am-archive__recent am-archive__articles-panel" id="articoli"' . (self::panel_open('articles') ? ' open' : '') . '>';
 		echo '<summary class="am-archive-node am-archive-node--division">';
 		echo '<span class="am-archive-node__chev" aria-hidden="true">▸</span>';
 		echo '<span class="am-archive-node__label">' . esc_html__('Articoli scientifici', 'archivio-micologico') . '</span>';

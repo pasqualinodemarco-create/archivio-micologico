@@ -109,6 +109,10 @@ register_shutdown_function(function() use (&$checks, &$error, &$redirects, &$plu
                 $archive = ArchivioMicologico\Archive::render_archive();
                 $checks['archive_lists_article'] = str_contains($archive, 'id="articoli"') && str_contains($archive, 'Articolo di prova') && str_contains($archive, 'Sommario breve.') && str_contains($archive, 'am-archive-entry__pdf');
                 $checks['archive_panel_closed'] = !str_contains($archive, 'id="articoli" open');
+                $checks['tree_closed_by_default'] = str_contains($archive, 'data-open=""');
+                update_option('am_panel_division', 'aperto'); update_option('am_panel_genus', 'aperto'); update_option('am_panel_articles', 'aperto');
+                $opened = ArchivioMicologico\Archive::render_archive();
+                $checks['panels_configurable'] = str_contains($opened, 'data-open="division,genus"') && str_contains($opened, 'id="articoli" open');
                 update_option('am_archive_articles', 0);
                 $checks['archive_panel_can_be_hidden'] = !str_contains(ArchivioMicologico\Archive::render_archive(), 'id="articoli"');
                 $GLOBALS['post'] = $article;
@@ -485,7 +489,7 @@ try {
             $dash = $render([AM_Admin::class, 'render_dashboard_page']);
             $checks['dashboard_rendered'] = str_contains($dash, 'Copertura tassonomica') && str_contains($dash, 'Controllo qualità dei dati') && str_contains($dash, 'post_status=pending') && str_contains($dash, 'Orphan scheda');
             $settings = $render([AM_Admin::class, 'render_settings_page']);
-            foreach (['am_require_login','am_default_status','am_max_upload_mb','am_edit_page_id','am_show_submit_result_admin','am_submit_result_ttl','am_enable_debug_panel','am_seo_mode','am_articles_order','am_recent_entries_count','am_single_show_title','am_random_widget_title','am_random_widget_count','am_random_widget_visible','am_random_widget_rows','am_random_widget_autoplay','am_random_widget_interval','am_book_nav','am_book_effect','am_book_speed','am_article_status','am_archive_articles','am_sitemap_images','am_page_archive','am_page_submit','am_page_article','am_page_taxonomy','am_page_vocab','am_page_search','am_book_order','am_book_panel','am_book_panel_lists','am_book_arrows'] as $field) {
+            foreach (['am_require_login','am_default_status','am_max_upload_mb','am_edit_page_id','am_show_submit_result_admin','am_submit_result_ttl','am_enable_debug_panel','am_seo_mode','am_articles_order','am_recent_entries_count','am_single_show_title','am_random_widget_title','am_random_widget_count','am_random_widget_visible','am_random_widget_rows','am_random_widget_autoplay','am_random_widget_interval','am_book_nav','am_book_effect','am_book_speed','am_article_status','am_archive_articles','am_sitemap_images','am_page_archive','am_page_submit','am_page_article','am_page_taxonomy','am_page_vocab','am_page_search','am_book_order','am_book_panel','am_book_panel_lists','am_book_arrows','am_panel_division','am_panel_family','am_panel_genus','am_panel_recent','am_panel_articles'] as $field) {
                 $checks['settings_field_' . $field] = substr_count($settings, 'name="' . $field . '"') >= 1;
             }
             $checks['settings_single_form'] = substr_count($settings, 'value="am_save_settings"') === 1;

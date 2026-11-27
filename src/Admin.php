@@ -815,6 +815,17 @@ public static function apply_admin_post_filters($query) {
 			echo '<p class="description">' . esc_html__('Funzionano anche con i tasti ← e → della tastiera. Su telefono le frecce sono più piccole e senza etichetta.', 'archivio-micologico') . '</p>';
 		}, 'am_settings', 'am_book');
 
+		foreach (\ArchivioMicologico\Archive::panels() as $key => [$label, $help]) {
+			add_settings_field('am_panel_' . $key, $label, static function () use ($key, $help) {
+				$val = \ArchivioMicologico\Archive::panel_open($key) ? 'aperto' : 'chiuso';
+				echo '<select id="am_panel_' . esc_attr($key) . '" name="am_panel_' . esc_attr($key) . '">';
+				foreach (['chiuso' => __('Sempre chiusi all’apertura', 'archivio-micologico'), 'aperto' => __('Sempre aperti all’apertura', 'archivio-micologico')] as $value => $text) {
+					echo '<option value="' . esc_attr($value) . '" ' . selected($val, $value, false) . '>' . esc_html($text) . '</option>';
+				}
+				echo '</select><p class="description">' . esc_html($help) . '</p>';
+			}, 'am_settings', 'am_panels', ['label_for' => 'am_panel_' . $key]);
+		}
+
 		add_settings_field('am_book_arrows', __('Quando compaiono le frecce', 'archivio-micologico'), function () {
 			$mode = \ArchivioMicologico\BookNav::arrows_mode();
 			foreach ([
@@ -1164,6 +1175,12 @@ wp_safe_redirect(add_query_arg(['page' => 'am_settings', 'am_err' => 'caps'], ad
 			$book_nav = $_POST['am_book_nav'] ?? null;
 			if ($book_nav === '0' || $book_nav === '1') {
 				update_option('am_book_nav', (int) $book_nav);
+			}
+			foreach (array_keys(\ArchivioMicologico\Archive::panels()) as $key) {
+				$state = isset($_POST['am_panel_' . $key]) ? sanitize_key((string) $_POST['am_panel_' . $key]) : '';
+				if ($state === 'aperto' || $state === 'chiuso') {
+					update_option('am_panel_' . $key, $state);
+				}
 			}
 			$arrows = isset($_POST['am_book_arrows']) ? sanitize_key((string) $_POST['am_book_arrows']) : '';
 			if ($arrows === 'sempre' || $arrows === 'sfoglia') {
