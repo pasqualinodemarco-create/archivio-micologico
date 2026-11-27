@@ -135,6 +135,7 @@ public static function render_archive($atts = []): string {
 		echo '</div>';
 		// Search previews must appear directly under the search field.
 		echo '<div class="am-archive__results" hidden></div>';
+		echo BookNav::panel(); // phpcs:ignore WordPress.Security.EscapeOutput -- escaped while built.
 		echo '<div class="am-archive__index">';
 	echo '<section class="am-archive__classification" aria-label="' . esc_attr__('Classificazione tassonomica', 'archivio-micologico') . '">';
 	echo '<h2>' . esc_html__('Classificazione tassonomica', 'archivio-micologico') . '</h2>';
