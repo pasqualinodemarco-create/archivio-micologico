@@ -134,6 +134,9 @@ function amDispatchArchiveUpdated1546(target){
 
     var perPageFamilies = parseInt(root.getAttribute("data-per-page-families") || "30", 10);
     var perPageEntries  = parseInt(root.getAttribute("data-per-page-entries") || "30", 10);
+    // 1.6.29: levels open at load, from Impostazioni → Pannelli dell'archivio (all closed by default).
+    var openAtLoad = (root.getAttribute("data-open") || "").split(",");
+    function openLevel(level){ return openAtLoad.indexOf(level) !== -1; }
 
     
 var famPage = 1;
@@ -141,7 +144,6 @@ var famPage = 1;
     var famLoading = false;
 
     function renderDivisions(items){
-      var largest = null;
       items.forEach(function(it){
         var wrap = document.createElement("div");
         wrap.className = "am-archive-branch am-archive-branch--division";
@@ -153,11 +155,8 @@ var famPage = 1;
         wrap.appendChild(children);
         tree.appendChild(wrap);
         node.addEventListener("click", function(){ toggleDivision(node, children); });
-        var n = parseInt(it.count, 10) || 0;
-        if(!largest || n > largest.n){ largest = { n: n, node: node, children: children }; }
+        if(openLevel("division")){ toggleDivision(node, children); }
       });
-      // On the first page, open the division holding most entries: families are one click away.
-      if(famPage === 1 && largest && largest.n > 0){ toggleDivision(largest.node, largest.children); }
     }
 
     function renderFamilies(items, host){
@@ -172,6 +171,7 @@ var famPage = 1;
         wrap.appendChild(children);
         host.appendChild(wrap);
         node.addEventListener("click", function(){ toggleFamily(node, children); });
+        if(openLevel("family")){ toggleFamily(node, children); }
       });
     }
 
@@ -211,6 +211,7 @@ var famPage = 1;
           gwrap.appendChild(gchildren);
           childrenBox.appendChild(gwrap);
           gnode.addEventListener("click", function(){ toggleGenus(gnode, gchildren); });
+          if(openLevel("genus")){ toggleGenus(gnode, gchildren); }
         });
         setStatus(status, "");
       }).catch(function(){ setStatus(status, "Errore di rete."); });

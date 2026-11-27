@@ -5,7 +5,7 @@ Tags: fungi, mycology, taxonomy, scientific archive, biodiversity, search
 Requires at least: 6.0
 Tested up to: 7.1
 Requires PHP: 8.0
-Stable tag: 1.6.28
+Stable tag: 1.6.29
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -65,6 +65,10 @@ Sì. Il plugin è sviluppato e testato con PHP 8+.
 4. Tooltip informativo con logo e crediti
 
 == Changelog ==
+
+= 1.6.29 =
+* Impostazioni → Pannelli dell’archivio: per Divisioni, Famiglie, Generi e specie, Ultime schede pubblicate e Articoli scientifici si sceglie se all’apertura della pagina sono sempre chiusi o sempre aperti. Di default è tutto chiuso (prima si apriva da sola la divisione con più schede).
+* Riquadro Sfoglia l’archivio: menu più larghi, il testo non viene più tagliato.
 
 = 1.6.28 =
 * Impostazioni → Sfoglia le schede → Quando compaiono le frecce: sempre, oppure solo dopo Inizia a sfogliare nell’archivio (chi apre una scheda dall’albero, dalla ricerca o da Google la legge senza frecce). Etichette del riquadro più brevi, così i menu non vengono tagliati.

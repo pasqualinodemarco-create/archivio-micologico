@@ -551,7 +551,7 @@
   color: var(--am-catalog-ink, #233a30);
 }
 @media (min-width: 1100px) {
-  .am-bookpanel { grid-template-columns: minmax(0, 1fr) minmax(0, 1.25fr); align-items: center; }
+  .am-bookpanel { grid-template-columns: minmax(0, .75fr) minmax(0, 1.6fr); align-items: center; }
 }
 .am-bookpanel__intro { display: flex; gap: 14px; align-items: flex-start; }
 .am-bookpanel__icon {
@@ -564,7 +564,7 @@
 .am-bookpanel h2 { margin: 0 0 4px; font: 400 clamp(1.25rem, 2.4vw, 1.5rem)/1.2 Georgia, serif; color: var(--am-catalog-ink, #233a30); }
 .am-bookpanel p { margin: 0; color: var(--am-catalog-muted, #52675a); font-size: .95rem; line-height: 1.45; }
 .am-bookpanel__fields { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 12px; }
-.am-bookpanel__field { display: grid; gap: 4px; flex: 1 1 170px; min-width: 0; margin: 0; }
+.am-bookpanel__field { display: grid; gap: 4px; flex: 1 1 190px; min-width: 0; margin: 0; }
 .am-bookpanel__field span { font-size: .82rem; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; color: var(--am-catalog-muted, #52675a); }
 .am-bookpanel__field select {
   width: 100%;
@@ -575,6 +575,7 @@
   background: #fff;
   color: var(--am-catalog-ink, #233a30);
   font: inherit;
+  font-size: 1rem;
 }
 .am-bookpanel__go {
   flex: 0 0 auto;
