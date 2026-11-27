@@ -321,6 +321,18 @@ try {
             $checks['scopes_listed'] = in_array('Agaricaceae', $names, true) && in_array('Test Family', $names, true) && in_array('Basidiomycota', $names, true);
             $panel = $BN::panel();
             $checks['panel'] = str_contains($panel, 'Inizia a sfogliare') && str_contains($panel, 'name="am_book_scope"') && str_contains($panel, 'Agaricaceae (1)');
+            update_option('am_book_panel_orders', ['alfabetico']);
+            update_option('am_book_panel_ranks', ['family']);
+            $panel = $BN::panel();
+            $checks['panel_single_order'] = !str_contains($panel, '<select name="am_book_order"') && str_contains($panel, 'name="am_book_order" value="alfabetico"');
+            $checks['panel_ranks'] = str_contains($panel, 'Agaricaceae (1)') && !str_contains($panel, 'Basidiomycota');
+            update_option('am_book_panel_ranks', []);
+            $checks['panel_no_scope'] = !str_contains($BN::panel(), 'am_book_scope');
+            update_option('am_book_panel_orders', []);
+            $checks['orders_fallback'] = $BN::panel_orders() === [$BN::order_mode()];
+            update_option('am_book_panel', 0);
+            $checks['panel_hidden'] = $BN::panel() === '';
+            update_option('am_book_panel', 1); update_option('am_book_panel_orders', $BN::ORDERS); update_option('am_book_panel_ranks', ['division', 'family', 'genus']);
             update_option('am_book_order', 'alfabetico'); ArchivioMicologico\BookNav::flush();
             $checks['alphabetical_order'] = ArchivioMicologico\BookNav::order() === [$b, $post_id, $a];
             update_option('am_book_order', 'bogus');
@@ -470,7 +482,7 @@ try {
             $dash = $render([AM_Admin::class, 'render_dashboard_page']);
             $checks['dashboard_rendered'] = str_contains($dash, 'Copertura tassonomica') && str_contains($dash, 'Controllo qualità dei dati') && str_contains($dash, 'post_status=pending') && str_contains($dash, 'Orphan scheda');
             $settings = $render([AM_Admin::class, 'render_settings_page']);
-            foreach (['am_require_login','am_default_status','am_max_upload_mb','am_edit_page_id','am_show_submit_result_admin','am_submit_result_ttl','am_enable_debug_panel','am_seo_mode','am_articles_order','am_recent_entries_count','am_single_show_title','am_random_widget_title','am_random_widget_count','am_random_widget_visible','am_random_widget_rows','am_random_widget_autoplay','am_random_widget_interval','am_book_nav','am_book_effect','am_book_speed','am_article_status','am_archive_articles','am_sitemap_images','am_page_archive','am_page_submit','am_page_article','am_page_taxonomy','am_page_vocab','am_page_search','am_book_order'] as $field) {
+            foreach (['am_require_login','am_default_status','am_max_upload_mb','am_edit_page_id','am_show_submit_result_admin','am_submit_result_ttl','am_enable_debug_panel','am_seo_mode','am_articles_order','am_recent_entries_count','am_single_show_title','am_random_widget_title','am_random_widget_count','am_random_widget_visible','am_random_widget_rows','am_random_widget_autoplay','am_random_widget_interval','am_book_nav','am_book_effect','am_book_speed','am_article_status','am_archive_articles','am_sitemap_images','am_page_archive','am_page_submit','am_page_article','am_page_taxonomy','am_page_vocab','am_page_search','am_book_order','am_book_panel','am_book_panel_lists'] as $field) {
                 $checks['settings_field_' . $field] = substr_count($settings, 'name="' . $field . '"') >= 1;
             }
             $checks['settings_single_form'] = substr_count($settings, 'value="am_save_settings"') === 1;

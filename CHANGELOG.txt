@@ -1,3 +1,7 @@
+= 1.6.28 =
+- Impostazioni → Sfoglia le schede: si decide se mostrare il riquadro Sfoglia l’archivio, quali ordini proporre ai visitatori (tassonomico, alfabetico, più recenti) e quali capitoli (divisioni, famiglie, generi). Con un solo ordine o nessun capitolo il menu corrispondente non compare e il testo del riquadro si adatta.
+- L’ordine delle Impostazioni diventa Ordine predefinito: vale per chi apre una scheda senza passare dal riquadro ed è la scelta iniziale del riquadro.
+
 = 1.6.27 =
 - Archivio micologico: nuovo riquadro Sfoglia l’archivio. Il visitatore sceglie l’ordine (tassonomico, alfabetico, dalle più recenti) e cosa sfogliare (tutto l’archivio, una divisione, una famiglia o un genere, con il numero di schede) e con Inizia a sfogliare apre la prima scheda.
 - Le frecce restano dentro la scelta del visitatore e ne mostrano il capitolo (es. Agaricaceae · 12 di 31); la scelta prevale sull’ordine delle Impostazioni, che resta quello predefinito. Torna ai risultati riporta all’archivio.
