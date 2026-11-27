@@ -70,3 +70,25 @@ jobs:
           path: ${{ env.AM_TEST_RESULTS }}
           if-no-files-found: warn
           retention-days: 14
+
+  quality:
+    name: Analisi statica (PHP 8.0-8.4, sicurezza WordPress, PHPStan)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - name: Scarica i sorgenti
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          persist-credentials: false
+
+      - name: Controlli di qualità
+        run: bash qa/run.sh
+
+      - name: Salva i rapporti
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: rapporti-qualita
+          path: qa/out/
+          if-no-files-found: warn
+          retention-days: 14
