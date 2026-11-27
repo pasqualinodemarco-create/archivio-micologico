@@ -68,7 +68,7 @@ final class Nomenclature {
 		if (!$post_id || get_post_type($post_id) !== AM_CPT || !current_user_can('edit_post', $post_id)) {
 			wp_send_json_error(['message' => __('Scheda non valida.', 'archivio-micologico')], 400);
 		}
-		$raw = isset($_POST['data']) ? json_decode(wp_unslash((string) $_POST['data']), true) : null;
+		$raw = isset($_POST['data']) ? json_decode(wp_unslash((string) $_POST['data']), true) : null; // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- JSON, every field is sanitized by self::sanitize().
 		if (!is_array($raw)) {
 			wp_send_json_error(['message' => __('Dati non validi.', 'archivio-micologico')], 400);
 		}
@@ -255,7 +255,7 @@ final class Nomenclature {
 		foreach ($rows as $r) {
 			echo '<tr data-nom-row="' . esc_attr((string) $r['id']) . '" data-name="' . esc_attr($r['name']) . '" data-rank="' . esc_attr($r['rank']) . '" data-author="' . esc_attr($r['author']) . '" data-status="' . esc_attr($r['saved']['status'] ?? 'unchecked') . '">';
 			echo '<td><a href="' . esc_url($r['edit']) . '" target="_blank" rel="noopener">' . esc_html($r['title']) . '</a></td>';
-			echo '<td class="am-nom-result">' . self::result_cell($r['saved']) . '</td>';
+			echo '<td class="am-nom-result">' . self::result_cell($r['saved']) . '</td>'; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- built with esc_html()/esc_url().
 			$src_author = (string) ($r['saved']['authorship'] ?? '');
 			$diff = $src_author !== '' && $r['author'] !== '' && self::squash($src_author) !== self::squash($r['author']);
 			echo '<td class="am-nom-author">' . esc_html($src_author) . ($diff ? '<span class="am-nom-diff"> (' . esc_html__('autore diverso da quello della scheda', 'archivio-micologico') . ': ' . esc_html($r['author']) . ')</span>' : '') . '</td>';
