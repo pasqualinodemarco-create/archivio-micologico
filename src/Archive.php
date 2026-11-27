@@ -113,7 +113,8 @@ public static function render_archive($atts = []): string {
 				$total = (int) $cnt->publish;
 			}
 		}
-	echo '<p class="am-archive__catalog-count"><strong>' . esc_html(number_format_i18n($total)) . '</strong> ' . esc_html(_n('scheda pubblicata', 'schede pubblicate', $total, 'archivio-micologico'));
+	// 1.6.31: catalogue figures. Taxa count only those with at least one published scheda.
+	$ranks_cov = $total > 0 ? TermManager::coverage()['ranks'] : [];
 	$latest = $total > 0 ? get_posts([
 		'post_type' => AM_CPT,
 		'post_status' => 'publish',
@@ -123,13 +124,22 @@ public static function render_archive($atts = []): string {
 		'order' => 'DESC',
 		'suppress_filters' => false,
 	]) : [];
-	if ($latest) {
-		echo '<span class="am-archive__catalog-updated">' . esc_html__('ultima aggiunta il', 'archivio-micologico') . ' <time datetime="' . esc_attr(get_the_date(DATE_W3C, $latest[0])) . '">' . esc_html(get_the_date('', $latest[0])) . '</time></span>';
+	$stats = [[__('Schede', 'archivio-micologico'), number_format_i18n($total), '']];
+	foreach (['species' => __('Specie', 'archivio-micologico'), 'genus' => __('Generi', 'archivio-micologico'), 'family' => __('Famiglie', 'archivio-micologico'), 'division' => __('Divisioni', 'archivio-micologico')] as $rank => $label) {
+		if (isset($ranks_cov[$rank])) { $stats[] = [$label, number_format_i18n((int) $ranks_cov[$rank]['documented']), $rank]; }
 	}
-	echo '</p>';
+	echo '<dl class="am-archive__stats" aria-label="' . esc_attr__('Il catalogo in cifre', 'archivio-micologico') . '">';
+	foreach ($stats as [$label, $value, $rank]) {
+		echo '<div class="am-archive__stat' . ($rank !== '' ? ' am-archive__stat--' . esc_attr($rank) : '') . '"><dt>' . esc_html($label) . '</dt><dd>' . esc_html($value) . '</dd></div>';
+	}
+	if ($latest) {
+		echo '<div class="am-archive__stat am-archive__stat--date"><dt>' . esc_html__('Ultima scheda', 'archivio-micologico') . '</dt><dd><time datetime="' . esc_attr(get_the_date(DATE_W3C, $latest[0])) . '">' . esc_html(get_the_date('j M Y', $latest[0])) . '</time></dd></div>';
+	}
+	echo '</dl>';
 	$ph = __('Nome scientifico, autore o famiglia', 'archivio-micologico');
 	echo '<div class="am-archive__top">';
-	echo '<input type="search" class="am-archive__search" aria-label="' . esc_attr__('Cerca nell’archivio', 'archivio-micologico') . '" placeholder="' . esc_attr($ph) . '" />';
+	echo '<label class="am-archive__search-label" for="am-archive-search">' . esc_html__('Cerca nel catalogo', 'archivio-micologico') . '</label>';
+	echo '<input type="search" id="am-archive-search" class="am-archive__search" placeholder="' . esc_attr($ph) . '" />';
 		echo '<button type="button" class="am-archive__search-btn">' . esc_html(__('Cerca', 'archivio-micologico')) . '</button>';
 		echo '<div class="am-archive__status" aria-live="polite"></div>';
 		echo '</div>';
@@ -794,6 +804,7 @@ window.addEventListener("scroll", function(){if(nearBottom()){loadMore();}});})(
 				$items[] = [
 					'post_id' => (int) $p->ID,
 					'title'   => wp_specialchars_decode(get_the_title($p->ID), ENT_QUOTES),
+					'title_html' => wp_kses(SpeciesTitle::render_post((int) $p->ID), ['span' => ['class' => true], 'i' => []]),
 					'link'    => get_permalink($p->ID),
 					'forma'   => trim($forma),
 					'autore'  => trim($autore),
@@ -830,6 +841,7 @@ window.addEventListener("scroll", function(){if(nearBottom()){loadMore();}});})(
 			$items[] = [
 				'post_id' => (int) $p->ID,
 				'title'   => wp_specialchars_decode(get_the_title($p->ID), ENT_QUOTES),
+				'title_html' => get_post_type($p->ID) === AM_ARTICLE_CPT ? '' : wp_kses(SpeciesTitle::render_post((int) $p->ID), ['span' => ['class' => true], 'i' => []]),
 				'type'    => (get_post_type($p->ID) === AM_ARTICLE_CPT ? 'article' : 'fungo'),
 				'link'    => get_permalink($p->ID),
 				'forma'   => trim($forma),
