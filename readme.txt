@@ -5,7 +5,7 @@ Tags: fungi, mycology, taxonomy, scientific archive, biodiversity, search
 Requires at least: 6.0
 Tested up to: 7.1
 Requires PHP: 8.0
-Stable tag: 1.6.30
+Stable tag: 1.6.31
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -65,6 +65,12 @@ Sì. Il plugin è sviluppato e testato con PHP 8+.
 4. Tooltip informativo con logo e crediti
 
 == Changelog ==
+
+= 1.6.31 =
+* Archivio micologico con aspetto da catalogo scientifico: un solo carattere (quello del tema), fogli bianchi con linee sottili, ranghi indicati da un filo colorato e da un’etichetta (Divisione, Famiglia, Genere), numeri allineati.
+* Nuova riga di cifre del catalogo: schede, specie, generi, famiglie e divisioni documentate, data dell’ultima scheda.
+* Specie nell’albero e nei risultati: nome scientifico in corsivo (genere ed epiteto), autore e forma/varietà in tondo; tolta la riga “Autore …” che ripeteva il nome.
+* Ricerca con etichetta Cerca nel catalogo; riquadri laterali e Sfoglia l’archivio allineati allo stesso stile.
 
 = 1.6.30 =
 * Controllo qualità completo: sintassi verificata su PHP 8.0, 8.1, 8.2, 8.3 e 8.4; analisi di sicurezza WordPress (PHPCS) e analisi statica (PHPStan) eseguite a ogni modifica; JavaScript e CSS verificati per Chrome, Edge, Firefox e Safari degli ultimi anni.

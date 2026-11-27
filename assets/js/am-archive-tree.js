@@ -80,9 +80,11 @@ function amDispatchArchiveUpdated1546(target){
     var count = (item && typeof item.count !== "undefined" && item.count !== null) ? String(item.count) : "";
     var countHtml = count !== "" ? ('<span class="am-archive-node__count" aria-label="' + escHtml(count) + ' schede">' + escHtml(count) + '</span>') : "";
 
+    var rankNames = { division: "Divisione", family: "Famiglia", genus: "Genere" };
+    var rankHtml = rankNames[type] ? '<span class="am-archive-node__rank">' + rankNames[type] + '</span>' : "";
     btn.innerHTML = '<span class="am-archive-node__chev" aria-hidden="true">▸</span>' +
                     '<span class="am-archive-node__label">' + escHtml(item.name) + '</span>' +
-                    countHtml;
+                    rankHtml + countHtml;
       amDispatchArchiveUpdated1546(document);
     return btn;
   }
@@ -97,11 +99,11 @@ function amDispatchArchiveUpdated1546(target){
     a.className = "am-archive-entry";
     a.href = entry.link;
 
+    // 1.6.31: name, infraspecific rank and authority are already in the formatted title.
     var metaBits = [];
-    if(entry.forma){ metaBits.push("f./var. " + entry.forma); }
-    if(entry.autore){ metaBits.push("Autore " + entry.autore); }
+    if(entry.type === "article"){ metaBits.push("Articolo scientifico"); }
 
-    var titleHtml = highlight ? highlightHtml(entry.title, q) : escHtml(entry.title);
+    var titleHtml = entry.title_html ? entry.title_html : (highlight ? highlightHtml(entry.title, q) : escHtml(entry.title));
     var metaHtml  = metaBits.length ? (highlight ? highlightHtml(metaBits.join(" — "), q) : escHtml(metaBits.join(" — "))) : "";
 
     var thumbHtml = '';
@@ -117,8 +119,28 @@ function amDispatchArchiveUpdated1546(target){
           (metaHtml ? '<div class="am-archive-entry__meta">' + metaHtml + '</div>' : '') +
         '</div>' +
       '</div>';
+    if(entry.title_html && highlight && q){ highlightTextNodes(a.querySelector(".am-archive-entry__title"), q); }
       amDispatchArchiveUpdated1546(document);
     return a;
+  }
+
+  // Highlights the query inside already formatted HTML (keeps the italic binomial).
+  function highlightTextNodes(el, query){
+    if(!el){ return; }
+    var re;
+    try{ re = new RegExp(escRegExp(String(query).trim()), "ig"); }catch(e){ return; }
+    var walker = document.createTreeWalker(el, NodeFilter.SHOW_TEXT, null);
+    var nodes = [];
+    while(walker.nextNode()){ nodes.push(walker.currentNode); }
+    nodes.forEach(function(node){
+      var text = node.nodeValue;
+      re.lastIndex = 0;
+      if(!re.test(text)){ return; }
+      var span = document.createElement("span");
+      span.innerHTML = highlightHtml(text, query);
+      while(span.firstChild){ node.parentNode.insertBefore(span.firstChild, node); }
+      node.parentNode.removeChild(node);
+    });
   }
 
   function initArchive(){

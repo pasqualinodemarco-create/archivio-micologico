@@ -109,6 +109,7 @@ register_shutdown_function(function() use (&$checks, &$error, &$redirects, &$plu
                 $archive = ArchivioMicologico\Archive::render_archive();
                 $checks['archive_lists_article'] = str_contains($archive, 'id="articoli"') && str_contains($archive, 'Articolo di prova') && str_contains($archive, 'Sommario breve.') && str_contains($archive, 'am-archive-entry__pdf');
                 $checks['archive_panel_closed'] = !str_contains($archive, 'id="articoli" open');
+                $checks['catalogue_figures'] = str_contains($archive, 'class="am-archive__stats"') && str_contains($archive, 'am-archive__stat--species') && str_contains($archive, 'for="am-archive-search"');
                 $checks['tree_closed_by_default'] = str_contains($archive, 'data-open=""');
                 update_option('am_panel_division', 'aperto'); update_option('am_panel_genus', 'aperto'); update_option('am_panel_articles', 'aperto');
                 $opened = ArchivioMicologico\Archive::render_archive();
