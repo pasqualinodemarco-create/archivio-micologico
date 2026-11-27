@@ -95,13 +95,7 @@ class EntryForms {
 	}
 
 	public static function am_current_user_is_admin_or_editor(): bool {
-		if (function_exists('am_user_is_admin_or_editor')) {
-			return am_user_is_admin_or_editor();
-		}
-		if (!is_user_logged_in()) { return false; }
-		$user = wp_get_current_user();
-		$roles = is_array($user->roles) ? $user->roles : [];
-		return in_array('administrator', $roles, true) || in_array('editor', $roles, true) || current_user_can('manage_options');
+		return am_user_is_admin_or_editor();
 	}
 
 	private static function am_roles_allowed(string $mode): bool {
@@ -179,9 +173,7 @@ class EntryForms {
 			wp_send_json_error(['message' => __('Operazione non consentita.', 'archivio-micologico') . (current_user_can('manage_options') ? ' [DBG:context]' : '')]);
 		}
 
-		$user = wp_get_current_user();
-		$roles = is_array($user->roles) ? $user->roles : [];
-		$allowed = self::am_current_user_is_admin_or_editor();
+		$allowed = self::am_current_user_is_admin_or_editor() && current_user_can('manage_terms');
 		if (!$allowed) {
 			wp_send_json_error(['message' => __('Permessi insufficienti.', 'archivio-micologico') . (current_user_can('manage_options') ? ' [DBG:perm]' : '')]);
 		}
@@ -1117,9 +1109,7 @@ $updated = wp_update_post([
 		$name  = isset($_POST['am_term_name']) ? sanitize_text_field((string) wp_unslash($_POST['am_term_name'])) : '';
 		$parent = isset($_POST['am_term_parent']) ? absint($_POST['am_term_parent']) : 0;
 
-		$user = wp_get_current_user();
-		$roles = is_array($user->roles) ? $user->roles : [];
-		$allowed = self::am_current_user_is_admin_or_editor();
+		$allowed = self::am_current_user_is_admin_or_editor() && current_user_can('manage_terms');
 		if (!$allowed) {
 			wp_safe_redirect(add_query_arg(['am_term_ok' => 0, 'am_term_msg' => rawurlencode(__('Permessi insufficienti.', 'archivio-micologico'))], $redirect));
 			exit;

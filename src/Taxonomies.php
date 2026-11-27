@@ -127,7 +127,7 @@ class Taxonomies {
 	}
 
 	public static function guard_term_insert($term, string $taxonomy) {
-		if (!in_array($taxonomy, [AM_TAX_CLASSIFICAZIONE, AM_TAX_INFRASPEC, AM_TAX_AUTHOR, AM_TAX_ARTICLE_CAT], true)) {
+		if (!in_array($taxonomy, [AM_TAX_CLASSIFICAZIONE, AM_TAX_INFRASPEC, AM_TAX_AUTHOR, AM_TAX_ARTICLE_CAT], true) || self::is_cli()) {
 			return $term;
 		}
 
@@ -156,7 +156,7 @@ if (!is_user_logged_in()) {
 	}
 
 	public static function guard_term_update($term_id, string $taxonomy, array $args) {
-		if (!in_array($taxonomy, [AM_TAX_CLASSIFICAZIONE, AM_TAX_INFRASPEC, AM_TAX_AUTHOR, AM_TAX_ARTICLE_CAT], true)) {
+		if (!in_array($taxonomy, [AM_TAX_CLASSIFICAZIONE, AM_TAX_INFRASPEC, AM_TAX_AUTHOR, AM_TAX_ARTICLE_CAT], true) || self::is_cli()) {
 			return $term_id;
 		}
 		if (!is_user_logged_in() || !current_user_can('edit_terms')) {
@@ -165,8 +165,13 @@ if (!is_user_logged_in()) {
 		return $term_id;
 	}
 
+	/** WP-CLI has no logged-in user: whoever runs it already controls the site. */
+	private static function is_cli(): bool {
+		return defined('WP_CLI') && WP_CLI;
+	}
+
 	public static function guard_term_delete($term, string $taxonomy) {
-		if (!in_array($taxonomy, [AM_TAX_CLASSIFICAZIONE, AM_TAX_INFRASPEC, AM_TAX_AUTHOR, AM_TAX_ARTICLE_CAT], true)) {
+		if (!in_array($taxonomy, [AM_TAX_CLASSIFICAZIONE, AM_TAX_INFRASPEC, AM_TAX_AUTHOR, AM_TAX_ARTICLE_CAT], true) || self::is_cli()) {
 			return $term;
 		}
 		if (!is_user_logged_in() || !current_user_can('delete_terms')) {

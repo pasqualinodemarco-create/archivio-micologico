@@ -30,6 +30,11 @@ final class Nomenclature {
 		return (int) get_option('am_nom_enabled', 1) === 1;
 	}
 
+	/** 'staff' (default): the box is shown only to logged-in Administrators and Editors; 'public': to everyone. */
+	public static function visibility(): string {
+		return get_option('am_nom_visibility', 'staff') === 'public' ? 'public' : 'staff';
+	}
+
 	public static function search_synonyms(): bool {
 		return self::enabled() && (int) get_option('am_nom_search', 1) === 1;
 	}
@@ -152,9 +157,13 @@ final class Nomenclature {
 		if ($status !== 'accepted') {
 			return $status !== '' ? self::staff_note($post_id, $d) : '';
 		}
+		$staff_only = self::visibility() === 'staff';
+		if ($staff_only && !EntryForms::am_current_user_is_admin_or_editor()) { return ''; }
 
 		$name = self::name_html((string) $d['name'], (string) $d['authorship']);
-		$html = '<section class="am-entry-section am-nom" aria-labelledby="am-nom-' . $post_id . '"><h2 id="am-nom-' . $post_id . '">' . esc_html__('Nomenclatura', 'archivio-micologico') . '</h2><dl class="am-nom__list">';
+		$html = '<section class="am-entry-section am-nom' . ($staff_only ? ' am-nom--staff-only' : '') . '" aria-labelledby="am-nom-' . $post_id . '">'
+			. ($staff_only ? '<p class="am-nom__staff-label">' . esc_html__('Visibile solo ad Amministratori ed Editori', 'archivio-micologico') . '</p>' : '')
+			. '<h2 id="am-nom-' . $post_id . '">' . esc_html__('Nomenclatura', 'archivio-micologico') . '</h2><dl class="am-nom__list">';
 		$html .= '<dt>' . esc_html__('Nome attuale', 'archivio-micologico') . '</dt><dd>' . $name
 			. '<span class="am-nom__note">' . esc_html__('Il nome usato in questa scheda è quello oggi accettato da Species Fungorum.', 'archivio-micologico') . '</span></dd>';
 		if ($d['synonyms']) {
@@ -198,7 +207,7 @@ final class Nomenclature {
 		}
 		return '<aside class="am-entry-section am-nom am-nom--staff" aria-label="' . esc_attr__('Nota per la redazione', 'archivio-micologico') . '">'
 			. '<p class="am-nom__staff-label">' . esc_html__('Visibile solo ad Amministratori ed Editori', 'archivio-micologico') . '</p>'
-			. '<p>' . $what . ' ' . esc_html__('Per questo il riquadro Nomenclatura non viene mostrato ai visitatori.', 'archivio-micologico') . '</p>'
+			. '<p>' . $what . ' ' . esc_html__('Per questo il riquadro Nomenclatura non viene mostrato.', 'archivio-micologico') . '</p>'
 			. '<p>' . $todo . ' <a href="' . esc_url(self::board_url()) . '">' . esc_html__('Apri Nomenclatura', 'archivio-micologico') . '</a></p>'
 			. '</aside>';
 	}

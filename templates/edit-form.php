@@ -35,7 +35,7 @@ $am_sticky = Frontend::am_get_sticky($am_token);
 
 $user = wp_get_current_user();
 $roles = is_array($user->roles) ? $user->roles : [];
-$am_can_add_terms = (is_user_logged_in() && (in_array('editor', $roles, true) || in_array('author', $roles, true) || current_user_can('edit_others_posts') || current_user_can('manage_terms')));
+$am_can_add_terms = \ArchivioMicologico\EntryForms::am_current_user_is_admin_or_editor() && current_user_can('manage_terms');
 ?>
 
 <form id="am-main-form" class="am-form am-wizard" method="post" action="<?php echo esc_url(admin_url('admin-post.php')); ?>">
