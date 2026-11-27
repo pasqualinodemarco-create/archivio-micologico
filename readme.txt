@@ -5,7 +5,7 @@ Tags: fungi, mycology, taxonomy, scientific archive, biodiversity, search
 Requires at least: 6.0
 Tested up to: 7.1
 Requires PHP: 8.0
-Stable tag: 1.6.31
+Stable tag: 1.6.32
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -65,6 +65,14 @@ Sì. Il plugin è sviluppato e testato con PHP 8+.
 4. Tooltip informativo con logo e crediti
 
 == Changelog ==
+
+= 1.6.32 =
+* Nuova pagina Archivio Micologico → Nomenclatura: confronta i nomi delle schede con Species Fungorum (tramite Catalogue of Life) e indica se il nome è accettato o è oggi un sinonimo, il nome corrente, i sinonimi, l’autore secondo la fonte (segnalato se diverso da quello della scheda) e il numero di Index Fungorum. Verifica di una scheda o di tutte, interrompibile; nessun nome viene cambiato in automatico.
+* Nella scheda, riquadro Nomenclatura con nome corrente, sinonimi e collegamenti a Index Fungorum e Catalogue of Life.
+* La ricerca dell’archivio trova le schede anche con i nomi vecchi e i sinonimi (es. Xerocomus chrysenteron → Xerocomellus chrysenteron).
+* In fondo alla scheda, Come citare questa scheda: autore, anno, nome scientifico, opera, editore, data di aggiornamento, link permanente e data di consultazione, con il pulsante Copia la citazione.
+* Impostazioni → Nomenclatura e citazione: ogni funzione si accende o si spegne; titolo dell’opera ed editore della citazione modificabili.
+* Dashboard: nuovo controllo Nome oggi considerato sinonimo.
 
 = 1.6.31 =
 * Archivio micologico con aspetto da catalogo scientifico: un solo carattere (quello del tema), fogli bianchi con linee sottili, ranghi indicati da un filo colorato e da un’etichetta (Divisione, Famiglia, Genere), numeri allineati.

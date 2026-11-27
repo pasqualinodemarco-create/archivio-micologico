@@ -1467,3 +1467,23 @@ function amShowNotice(type, message){
     });
   });
 })();
+
+/* 1.6.32: "Copia la citazione" (clipboard API, selection fallback on plain http). */
+(function(){
+  'use strict';
+  document.addEventListener('click', function(e){
+    var b = e.target.closest ? e.target.closest('[data-am-copy-text]') : null;
+    if(!b){ return; }
+    e.preventDefault();
+    var text = b.getAttribute('data-am-copy-text'), label = b.textContent;
+    function ok(){ b.textContent = b.getAttribute('data-am-done') || label; setTimeout(function(){ b.textContent = label; }, 1800); }
+    function fallback(){
+      var a = document.createElement('textarea');
+      a.value = text; a.setAttribute('readonly', ''); a.style.position = 'fixed'; a.style.opacity = '0';
+      document.body.appendChild(a); a.select();
+      try { document.execCommand('copy'); ok(); } catch(x){}
+      a.remove();
+    }
+    if(navigator.clipboard && window.isSecureContext){ navigator.clipboard.writeText(text).then(ok, fallback); } else { fallback(); }
+  });
+})();

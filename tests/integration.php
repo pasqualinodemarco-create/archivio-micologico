@@ -491,7 +491,7 @@ try {
             $dash = $render([AM_Admin::class, 'render_dashboard_page']);
             $checks['dashboard_rendered'] = str_contains($dash, 'Copertura tassonomica') && str_contains($dash, 'Controllo qualità dei dati') && str_contains($dash, 'post_status=pending') && str_contains($dash, 'Orphan scheda');
             $settings = $render([AM_Admin::class, 'render_settings_page']);
-            foreach (['am_require_login','am_default_status','am_max_upload_mb','am_edit_page_id','am_show_submit_result_admin','am_submit_result_ttl','am_enable_debug_panel','am_seo_mode','am_articles_order','am_recent_entries_count','am_single_show_title','am_random_widget_title','am_random_widget_count','am_random_widget_visible','am_random_widget_rows','am_random_widget_autoplay','am_random_widget_interval','am_book_nav','am_book_effect','am_book_speed','am_article_status','am_archive_articles','am_sitemap_images','am_page_archive','am_page_submit','am_page_article','am_page_taxonomy','am_page_vocab','am_page_search','am_book_order','am_book_panel','am_book_panel_lists','am_book_arrows','am_panel_division','am_panel_family','am_panel_genus','am_panel_recent','am_panel_articles'] as $field) {
+            foreach (['am_require_login','am_default_status','am_max_upload_mb','am_edit_page_id','am_show_submit_result_admin','am_submit_result_ttl','am_enable_debug_panel','am_seo_mode','am_articles_order','am_recent_entries_count','am_single_show_title','am_random_widget_title','am_random_widget_count','am_random_widget_visible','am_random_widget_rows','am_random_widget_autoplay','am_random_widget_interval','am_book_nav','am_book_effect','am_book_speed','am_article_status','am_archive_articles','am_sitemap_images','am_page_archive','am_page_submit','am_page_article','am_page_taxonomy','am_page_vocab','am_page_search','am_book_order','am_book_panel','am_book_panel_lists','am_book_arrows','am_panel_division','am_panel_family','am_panel_genus','am_panel_recent','am_panel_articles','am_nom_enabled','am_nom_search','am_cite_enabled','am_cite_work','am_cite_publisher'] as $field) {
                 $checks['settings_field_' . $field] = substr_count($settings, 'name="' . $field . '"') >= 1;
             }
             $checks['carousel_overrides_listed'] = str_contains($settings, 'Pagina carosello') && str_contains($settings, 'per riga = 6 (fuori dai limiti 1–3)');
@@ -522,6 +522,38 @@ try {
             $checks['pdf_skipped'] = !in_array(wp_get_attachment_url($pdf), $srcs, true);
             $page = wp_insert_post(['post_type' => 'page', 'post_status' => 'publish', 'post_title' => 'P']);
             $checks['other_types_untouched'] = apply_filters('wpseo_sitemap_urlimages', $base, $page) === $base;
+            break;
+        case 'nomenclature':
+            $N = ArchivioMicologico\Nomenclature::class;
+            $clean = $N::sanitize(['status' => 'bogus', 'if_id' => '12a', 'col_id' => 'x y', 'synonyms' => [['Boletus a', 'Bull.'], ['Boletus a', 'X'], '<b>Boletus b</b>']]);
+            $checks['sanitize_status'] = $clean['status'] === 'notfound' && $clean['if_id'] === '' && $clean['col_id'] === '';
+            $checks['sanitize_synonyms'] = $clean['synonyms'] === [['Boletus a', 'Bull.'], ['Boletus b', '']];
+            [$qname, $qrank] = $N::query($post_id);
+            update_post_meta($post_id, 'am_infra', 'var. alba');
+            $checks['query_rank_variety'] = $N::query($post_id)[1] === 'variety' && $qrank === 'species' && $qname !== '';
+            $N::store($post_id, ['status' => 'synonym', 'name' => 'Xerocomus chrysenteron', 'authorship' => '(Bull.) Quél.', 'if_id' => '356935', 'col_id' => '5CCN8', 'current' => 'Xerocomellus chrysenteron', 'current_authorship' => '(Bull.) Šutara', 'current_if_id' => '511893', 'current_col_id' => '5CCLF', 'synonyms' => [['Boletus chrysenteron', 'Bull.'], ['Xerocomus chrysenteron', '(Bull.) Quél.']]]);
+            $sec = $N::section($post_id);
+            $checks['section_current'] = str_contains($sec, 'Nome corrente') && str_contains($sec, '<i>Xerocomellus</i> <i>chrysenteron</i>') && str_contains($sec, 'RecordID=511893') && str_contains($sec, 'catalogueoflife.org/data/taxon/5CCLF');
+            $checks['section_synonyms'] = str_contains($sec, '<i>Boletus</i> <i>chrysenteron</i> <span class="am-nom__author">Bull.</span>');
+            $search = new ReflectionMethod(ArchivioMicologico\Archive::class, 'search_entries');
+            $found = static fn(string $t): bool => in_array($post_id, array_map('intval', wp_list_pluck($search->invoke(null, $t, 1, 20)->posts, 'ID')), true);
+            $checks['search_by_synonym'] = $found('Boletus chrysenteron');
+            update_option('am_nom_search', 0);
+            $checks['search_switch_off'] = !$found('Boletus chrysenteron');
+            update_option('am_nom_enabled', 0);
+            $checks['section_switch_off'] = $N::section($post_id) === '';
+            update_option('am_nom_enabled', 1);
+            update_option('am_nom_search', 1);
+            $N::store($post_id, ['status' => 'notfound']);
+            $checks['section_hidden_notfound'] = $N::section($post_id) === '';
+            wp_update_user(['ID' => get_post_field('post_author', $post_id), 'first_name' => 'Mario', 'last_name' => 'Rossi']);
+            update_option('am_cite_work', 'Archivio Test');
+            $cite = $N::citation($post_id);
+            $checks['citation_rendered'] = str_contains($cite, 'Rossi M. (' . get_the_date('Y', $post_id) . ')') && str_contains($cite, '<em>Archivio Test</em>') && str_contains($cite, esc_url(get_permalink($post_id))) && str_contains($cite, 'data-am-copy-text="');
+            update_option('am_cite_enabled', 0);
+            $checks['citation_switch_off'] = $N::citation($post_id) === '';
+            update_option('am_cite_enabled', 1);
+            $checks['page_rendered'] = (static function () use ($N): bool { ob_start(); $N::admin_page(); $h = (string) ob_get_clean(); return str_contains($h, 'data-nom-row=') && str_contains($h, 'Verifica di nuovo tutte'); })() === $can_manage;
             break;
         case 'fallback':
             $method=new ReflectionMethod('AM_Admin','get_front_submit_page_url');

@@ -503,11 +503,13 @@ window.addEventListener("scroll", function(){if(nearBottom()){loadMore();}});})(
 			}
 			$native = preg_replace('/^\s*AND\s+/i', '', $search);
 			$like = '%' . $wpdb->esc_like($term) . '%';
+			$keys = Nomenclature::search_meta_keys();
+			$in = implode(', ', array_fill(0, count($keys), '%s'));
 			$extra = $wpdb->prepare(
 				"EXISTS (
 					SELECT 1 FROM {$wpdb->postmeta} pm
 					WHERE pm.post_id = {$wpdb->posts}.ID
-					AND pm.meta_key IN ('am_infra', 'am_author') AND pm.meta_value LIKE %s
+					AND pm.meta_key IN ($in) AND pm.meta_value LIKE %s
 				) OR EXISTS (
 					SELECT 1 FROM {$wpdb->term_relationships} tr
 					INNER JOIN {$wpdb->term_taxonomy} tt ON tt.term_taxonomy_id = tr.term_taxonomy_id
@@ -515,7 +517,7 @@ window.addEventListener("scroll", function(){if(nearBottom()){loadMore();}});})(
 					WHERE tr.object_id = {$wpdb->posts}.ID
 					AND tt.taxonomy IN (%s, %s, %s, %s) AND t.name LIKE %s
 				)",
-				$like, AM_TAX_CLASSIFICAZIONE, AM_TAX_INFRASPEC, AM_TAX_AUTHOR, AM_TAX_ARTICLE_CAT, $like
+				...array_merge($keys, [$like, AM_TAX_CLASSIFICAZIONE, AM_TAX_INFRASPEC, AM_TAX_AUTHOR, AM_TAX_ARTICLE_CAT, $like])
 			);
 			return " AND (($native) OR ($extra)) ";
 		};

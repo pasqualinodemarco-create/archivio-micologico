@@ -600,7 +600,7 @@ $macro_html = '';
 
 			// Layout: la galleria deve comparire in basso, dopo "Commenti e note".
 			$entry_nav_bottom = self::get_entry_navigation_bar_html_1_5_44((int) $post->ID, 'bottom');
-			return $breadcrumb_html . $title_heading_html . $title_html . $edit_link_html . $featured_html . $pdf_html . $macro_html . $macro_micro_html . $notes_html . $gallery_html . $entry_nav_bottom;
+			return $breadcrumb_html . $title_heading_html . $title_html . $edit_link_html . $featured_html . $pdf_html . $macro_html . $macro_micro_html . $notes_html . Nomenclature::section((int) $post->ID) . $gallery_html . Nomenclature::citation((int) $post->ID) . $entry_nav_bottom;
 	}
 
 	/** Yoast has no description template for articles: use the summary, or the start of the text. */
