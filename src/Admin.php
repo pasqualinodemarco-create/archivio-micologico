@@ -815,7 +815,44 @@ public static function apply_admin_post_filters($query) {
 			echo '<p class="description">' . esc_html__('Funzionano anche con i tasti ← e → della tastiera. Su telefono le frecce sono più piccole e senza etichetta.', 'archivio-micologico') . '</p>';
 		}, 'am_settings', 'am_book');
 
-		add_settings_field('am_book_order', __('Ordine delle pagine', 'archivio-micologico'), function () {
+		add_settings_field('am_book_arrows', __('Quando compaiono le frecce', 'archivio-micologico'), function () {
+			$mode = \ArchivioMicologico\BookNav::arrows_mode();
+			foreach ([
+				'sempre' => __('Sempre, su ogni scheda', 'archivio-micologico'),
+				'sfoglia' => __('Solo dopo “Inizia a sfogliare” nell’archivio', 'archivio-micologico'),
+			] as $value => $label) {
+				echo '<label style="display:block;margin:2px 0"><input type="radio" name="am_book_arrows" value="' . esc_attr($value) . '" ' . checked($mode, $value, false) . '> ' . esc_html($label) . '</label>';
+			}
+			echo '<p class="description">' . esc_html__('Con “Solo dopo Inizia a sfogliare” chi apre una scheda dall’albero, dalla ricerca o da Google la legge senza frecce; la modalità sfoglia si attiva dal riquadro dell’archivio, che deve restare visibile.', 'archivio-micologico') . '</p>';
+		}, 'am_settings', 'am_book');
+
+		add_settings_field('am_book_panel', __('Riquadro nell’archivio', 'archivio-micologico'), function () {
+			echo '<input type="hidden" name="am_book_panel" value="0">';
+			echo '<label><input type="checkbox" name="am_book_panel" value="1" ' . checked(1, (int) get_option('am_book_panel', 1), false) . '> ';
+			echo esc_html__('Mostra “Sfoglia l’archivio” nella pagina Archivio micologico', 'archivio-micologico') . '</label>';
+			echo '<p class="description">' . esc_html__('Il visitatore sceglie come sfogliare e con “Inizia a sfogliare” apre la prima scheda; le frecce restano dentro la sua scelta. Richiede le frecce attive.', 'archivio-micologico') . '</p>';
+		}, 'am_settings', 'am_book');
+
+		add_settings_field('am_book_panel_orders', __('Ordini proposti', 'archivio-micologico'), function () {
+			$chosen = (array) get_option('am_book_panel_orders', \ArchivioMicologico\BookNav::ORDERS);
+			echo '<input type="hidden" name="am_book_panel_lists" value="1">';
+			echo '<fieldset><legend class="screen-reader-text">' . esc_html__('Ordini proposti al visitatore', 'archivio-micologico') . '</legend>';
+			foreach (\ArchivioMicologico\BookNav::order_labels() as $value => $label) {
+				echo '<label style="display:block;margin:2px 0"><input type="checkbox" name="am_book_panel_orders[]" value="' . esc_attr($value) . '" ' . checked(in_array($value, $chosen, true), true, false) . '> ' . esc_html($label) . '</label>';
+			}
+			echo '</fieldset><p class="description">' . esc_html__('Gli ordini tra cui il visitatore può scegliere. Con uno solo il menu Ordine non compare e si usa quello; senza nessuno vale l’Ordine delle pagine qui sotto.', 'archivio-micologico') . '</p>';
+		}, 'am_settings', 'am_book');
+
+		add_settings_field('am_book_panel_ranks', __('Capitoli proposti', 'archivio-micologico'), function () {
+			$chosen = (array) get_option('am_book_panel_ranks', ['division', 'family', 'genus']);
+			echo '<fieldset><legend class="screen-reader-text">' . esc_html__('Capitoli proposti al visitatore', 'archivio-micologico') . '</legend>';
+			foreach (['division' => __('Divisioni', 'archivio-micologico'), 'family' => __('Famiglie', 'archivio-micologico'), 'genus' => __('Generi', 'archivio-micologico')] as $value => $label) {
+				echo '<label style="display:block;margin:2px 0"><input type="checkbox" name="am_book_panel_ranks[]" value="' . esc_attr($value) . '" ' . checked(in_array($value, $chosen, true), true, false) . '> ' . esc_html($label) . '</label>';
+			}
+			echo '</fieldset><p class="description">' . esc_html__('Quali rami il visitatore può sfogliare da soli, con il numero di schede di ciascuno. Senza nessuna spunta il menu Da sfogliare non compare e si sfoglia tutto l’archivio.', 'archivio-micologico') . '</p>';
+		}, 'am_settings', 'am_book');
+
+		add_settings_field('am_book_order', __('Ordine predefinito', 'archivio-micologico'), function () {
 			$order = \ArchivioMicologico\BookNav::order_mode();
 			echo '<select id="am_book_order" name="am_book_order">';
 			foreach ([
@@ -825,7 +862,7 @@ public static function apply_admin_post_filters($query) {
 			] as $value => $label) {
 				echo '<option value="' . esc_attr($value) . '" ' . selected($order, $value, false) . '>' . esc_html($label) . '</option>';
 			}
-			echo '</select><p class="description">' . esc_html__('Decide quale scheda è la precedente e quale la successiva. Sono incluse solo le schede pubblicate.', 'archivio-micologico') . '</p>';
+			echo '</select><p class="description">' . esc_html__('Ordine delle frecce per chi apre una scheda senza passare dal riquadro (per esempio da Google o dall’albero) e scelta iniziale del riquadro. Sono incluse solo le schede pubblicate.', 'archivio-micologico') . '</p>';
 		}, 'am_settings', 'am_book', ['label_for' => 'am_book_order']);
 
 		add_settings_field('am_book_effect', __('Effetto di transizione', 'archivio-micologico'), function () {
@@ -1127,6 +1164,20 @@ wp_safe_redirect(add_query_arg(['page' => 'am_settings', 'am_err' => 'caps'], ad
 			$book_nav = $_POST['am_book_nav'] ?? null;
 			if ($book_nav === '0' || $book_nav === '1') {
 				update_option('am_book_nav', (int) $book_nav);
+			}
+			$arrows = isset($_POST['am_book_arrows']) ? sanitize_key((string) $_POST['am_book_arrows']) : '';
+			if ($arrows === 'sempre' || $arrows === 'sfoglia') {
+				update_option('am_book_arrows', $arrows);
+			}
+			$panel = $_POST['am_book_panel'] ?? null;
+			if ($panel === '0' || $panel === '1') {
+				update_option('am_book_panel', (int) $panel);
+			}
+			if (isset($_POST['am_book_panel_lists'])) {
+				$orders = array_map('sanitize_key', (array) ($_POST['am_book_panel_orders'] ?? []));
+				update_option('am_book_panel_orders', array_values(array_intersect(\ArchivioMicologico\BookNav::ORDERS, $orders)));
+				$ranks = array_map('sanitize_key', (array) ($_POST['am_book_panel_ranks'] ?? []));
+				update_option('am_book_panel_ranks', array_values(array_intersect(['division', 'family', 'genus'], $ranks)));
 			}
 			$book_order = isset($_POST['am_book_order']) ? sanitize_key((string) $_POST['am_book_order']) : '';
 			if (in_array($book_order, \ArchivioMicologico\BookNav::ORDERS, true)) {

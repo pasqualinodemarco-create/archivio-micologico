@@ -41,6 +41,21 @@ final class BookNav {
 		return in_array($mode, self::ORDERS, true) ? $mode : 'archivio';
 	}
 
+	public static function panel_enabled(): bool {
+		return self::enabled() && (int) get_option('am_book_panel', 1) === 1;
+	}
+
+	/** Orders offered to visitors in the archive panel (never empty: falls back to the default order). */
+	public static function panel_orders(): array {
+		$orders = array_values(array_intersect(self::ORDERS, (array) get_option('am_book_panel_orders', self::ORDERS)));
+		return $orders ?: [self::order_mode()];
+	}
+
+	/** Ranks a visitor can pick as chapter; empty = only the whole archive. */
+	public static function panel_ranks(): array {
+		return array_values(array_intersect(['division', 'family', 'genus'], (array) get_option('am_book_panel_ranks', ['division', 'family', 'genus'])));
+	}
+
 	public static function speed(): int {
 		return max(200, min(1500, (int) get_option('am_book_speed', 650)));
 	}
@@ -165,8 +180,15 @@ final class BookNav {
 		return [$order[$pos - 1] ?? 0, $order[$pos + 1] ?? 0, $pos + 1, count($order)];
 	}
 
+	/** 'sempre': arrows on every scheda; 'sfoglia': only after "Inizia a sfogliare" in the archive. */
+	public static function arrows_mode(): string {
+		return (string) get_option('am_book_arrows', 'sempre') === 'sfoglia' ? 'sfoglia' : 'sempre';
+	}
+
 	private static function current_id(): int {
-		return (self::enabled() && is_singular(AM_CPT)) ? (int) get_queried_object_id() : 0;
+		if (!self::enabled() || !is_singular(AM_CPT)) { return 0; }
+		if (self::arrows_mode() === 'sfoglia' && !self::context()[2]) { return 0; }
+		return (int) get_queried_object_id();
 	}
 
 	/** Keeps the "Torna ai risultati" context and the visitor's way of leafing through. */
@@ -180,11 +202,16 @@ final class BookNav {
 
 	/** "Inizia a sfogliare" on the archive page: open the first scheda of the visitor's choice. */
 	public static function start(): void {
-		if (!isset($_GET['am_book_start']) || !self::enabled() || is_admin()) { return; }
+		if (!isset($_GET['am_book_start']) || !self::panel_enabled() || is_admin()) { return; }
+		$allowed = self::panel_orders();
 		$mode = isset($_GET['am_book_order']) ? sanitize_key((string) $_GET['am_book_order']) : '';
-		$mode = in_array($mode, self::ORDERS, true) ? $mode : self::order_mode();
+		$mode = in_array($mode, $allowed, true) ? $mode : (in_array(self::order_mode(), $allowed, true) ? self::order_mode() : $allowed[0]);
 		$scope = isset($_GET['am_book_scope']) ? absint($_GET['am_book_scope']) : 0;
-		if ($scope && !term_exists($scope, AM_TAX_CLASSIFICAZIONE)) { $scope = 0; }
+		if ($scope) {
+			$ranks = ['division', 'family', 'genus'];
+			$depth = term_exists($scope, AM_TAX_CLASSIFICAZIONE) ? count(get_ancestors($scope, AM_TAX_CLASSIFICAZIONE, 'taxonomy')) : -1;
+			if (!in_array($ranks[$depth] ?? '', self::panel_ranks(), true)) { $scope = 0; }
+		}
 		$order = self::order($mode, $scope);
 		if (!$order) { return; }
 		$archive = AdminPages::page_url('archive');
@@ -197,38 +224,57 @@ final class BookNav {
 		exit;
 	}
 
+	public static function order_labels(): array {
+		return [
+			'archivio' => __('Tassonomico', 'archivio-micologico'),
+			'alfabetico' => __('Alfabetico', 'archivio-micologico'),
+			'recenti' => __('Più recenti', 'archivio-micologico'),
+		];
+	}
+
 	/** The "Sfoglia l'archivio" panel of the archive page. */
 	public static function panel(): string {
-		if (!self::enabled()) { return ''; }
-		$scopes = self::scopes();
+		if (!self::panel_enabled()) { return ''; }
+		$orders = self::panel_orders();
+		$ranks = self::panel_ranks();
+		$scopes = $ranks ? array_values(array_filter(self::scopes(), static fn($sc) => in_array($sc[2], $ranks, true))) : [];
 		$labels = ['division' => __('Divisione', 'archivio-micologico'), 'family' => __('Famiglia', 'archivio-micologico'), 'genus' => __('Genere', 'archivio-micologico')];
 		$indent = ['division' => '', 'family' => "\u{2003}", 'genus' => "\u{2003}\u{2003}"];
-		$current = self::order_mode();
+		$current = in_array(self::order_mode(), $orders, true) ? self::order_mode() : $orders[0];
 		$total = count(self::order($current, 0));
 
 		$html = '<form class="am-bookpanel" method="get" action="" aria-labelledby="am-bookpanel-title">';
 		$html .= '<input type="hidden" name="am_book_start" value="1">';
 		$html .= '<div class="am-bookpanel__intro"><span class="am-bookpanel__icon" aria-hidden="true"></span><div>';
 		$html .= '<h2 id="am-bookpanel-title">' . esc_html__('Sfoglia l’archivio', 'archivio-micologico') . '</h2>';
-		$html .= '<p>' . esc_html__('Scegli ordine e capitolo, poi scorri le schede una dopo l’altra con le frecce ai lati o con i tasti ← →.', 'archivio-micologico') . '</p></div></div>';
+		$intro = count($orders) > 1 && $scopes ? __('Scegli ordine e capitolo, poi scorri le schede una dopo l’altra con le frecce ai lati o con i tasti ← →.', 'archivio-micologico')
+			: (count($orders) > 1 ? __('Scegli l’ordine, poi scorri le schede una dopo l’altra con le frecce ai lati o con i tasti ← →.', 'archivio-micologico')
+			: ($scopes ? __('Scegli il capitolo, poi scorri le schede una dopo l’altra con le frecce ai lati o con i tasti ← →.', 'archivio-micologico')
+			: __('Scorri le schede una dopo l’altra con le frecce ai lati o con i tasti ← →.', 'archivio-micologico')));
+		$html .= '<p>' . esc_html($intro) . '</p></div></div>';
 
-		$html .= '<div class="am-bookpanel__fields"><label class="am-bookpanel__field"><span>' . esc_html__('Ordine', 'archivio-micologico') . '</span><select name="am_book_order">';
-		foreach ([
-			'archivio' => __('Tassonomico: divisione, famiglia, specie', 'archivio-micologico'),
-			'alfabetico' => __('Alfabetico per nome scientifico', 'archivio-micologico'),
-			'recenti' => __('Dalle schede più recenti', 'archivio-micologico'),
-		] as $value => $label) {
-			$html .= '<option value="' . esc_attr($value) . '"' . selected($current, $value, false) . '>' . esc_html($label) . '</option>';
+		$html .= '<div class="am-bookpanel__fields">';
+		if (count($orders) > 1) {
+			$html .= '<label class="am-bookpanel__field"><span>' . esc_html__('Ordine', 'archivio-micologico') . '</span><select name="am_book_order">';
+			foreach (self::order_labels() as $value => $label) {
+				if (in_array($value, $orders, true)) {
+					$html .= '<option value="' . esc_attr($value) . '"' . selected($current, $value, false) . '>' . esc_html($label) . '</option>';
+				}
+			}
+			$html .= '</select></label>';
+		} else {
+			$html .= '<input type="hidden" name="am_book_order" value="' . esc_attr($current) . '">';
 		}
-		$html .= '</select></label>';
 
-		$html .= '<label class="am-bookpanel__field"><span>' . esc_html__('Da sfogliare', 'archivio-micologico') . '</span><select name="am_book_scope">';
-		/* translators: %d: number of published schede. */
-		$html .= '<option value="0">' . esc_html(sprintf(__('Tutto l’archivio (%d schede)', 'archivio-micologico'), $total)) . '</option>';
-		foreach ($scopes as [$id, $name, $rank, $n]) {
-			$html .= '<option value="' . esc_attr((string) $id) . '">' . esc_html($indent[$rank] . $labels[$rank] . ' ' . $name . ' (' . $n . ')') . '</option>';
+		if ($scopes) {
+			$html .= '<label class="am-bookpanel__field"><span>' . esc_html__('Da sfogliare', 'archivio-micologico') . '</span><select name="am_book_scope">';
+			/* translators: %d: number of published schede. */
+			$html .= '<option value="0">' . esc_html(sprintf(__('Tutto l’archivio (%d)', 'archivio-micologico'), $total)) . '</option>';
+			foreach ($scopes as [$id, $name, $rank, $n]) {
+				$html .= '<option value="' . esc_attr((string) $id) . '">' . esc_html($indent[$rank] . $labels[$rank] . ' ' . $name . ' (' . $n . ')') . '</option>';
+			}
+			$html .= '</select></label>';
 		}
-		$html .= '</select></label>';
 		$html .= '<button type="submit" class="am-bookpanel__go">' . esc_html__('Inizia a sfogliare', 'archivio-micologico') . ' <span aria-hidden="true">→</span></button></div>';
 		return $html . '</form>';
 	}
