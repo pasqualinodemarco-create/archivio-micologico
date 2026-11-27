@@ -835,3 +835,5 @@
   .am-archive--scientific .am-archive__stat dd { font-size: 1.3rem; }
   .am-archive.am-archive--scientific .am-archive-children { margin-left: 8px; }
 }
+.am-archive.am-archive--scientific .am-bookpanel__go { font-size: 1rem; font-weight: 650; }
+.am-archive.am-archive--scientific .am-bookpanel__field select { border-color: #c3cfc8; border-radius: 8px; }
