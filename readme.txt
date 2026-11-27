@@ -73,6 +73,8 @@ Sì. Il plugin è sviluppato e testato con PHP 8+.
 * In fondo alla scheda, Come citare questa scheda: autore, anno, nome scientifico, opera, editore, data di aggiornamento, link permanente e data di consultazione, con il pulsante Copia la citazione.
 * Impostazioni → Nomenclatura e citazione: ogni funzione si accende o si spegne; titolo dell’opera ed editore della citazione modificabili.
 * Dashboard: nuovo controllo Nome oggi considerato sinonimo.
+* Archivio: il foglio di stile, cresciuto a strati nelle versioni precedenti, è stato riscritto in un unico file ordinato (da 840 a circa 330 righe) con gli stessi colori e misure, verificato elemento per elemento su computer e telefono. Corretto lo spostamento dei riquadri Ultime schede e Articoli al passaggio del mouse; l’etichetta PDF degli articoli torna color ruggine.
+* Nomenclatura: l’autore sanzionante (es. “: Fr.”) non viene segnalato come differenza di autore.
 
 = 1.6.31 =
 * Archivio micologico con aspetto da catalogo scientifico: un solo carattere (quello del tema), fogli bianchi con linee sottili, ranghi indicati da un filo colorato e da un’etichetta (Divisione, Famiglia, Genere), numeri allineati.
