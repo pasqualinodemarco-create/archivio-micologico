@@ -5,7 +5,7 @@ Tags: fungi, mycology, taxonomy, scientific archive, biodiversity, search
 Requires at least: 6.0
 Tested up to: 7.1
 Requires PHP: 8.0
-Stable tag: 1.6.33
+Stable tag: 1.6.34
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -65,6 +65,11 @@ Sì. Il plugin è sviluppato e testato con PHP 8+.
 4. Tooltip informativo con logo e crediti
 
 == Changelog ==
+
+= 1.6.34 =
+* Scheda, riquadro Nomenclatura più chiaro: al posto di “Stato del nome: Nome accettato” mostra il Nome attuale con l’autore e la frase “Il nome usato in questa scheda è quello oggi accettato da Species Fungorum”; i sinonimi sono spiegati (“Altri nomi con cui questa specie è stata descritta o citata in passato”) e separati correttamente.
+* Se il nome della scheda è un sinonimo, non è stato trovato o è da controllare, i visitatori non vedono il riquadro; Amministratori ed Editori vedono al suo posto una nota con il nome accettato, cosa fare (rinominare in Tassonomia e ripetere la verifica) e il collegamento alla pagina Nomenclatura.
+* Pagina Nomenclatura: nuova legenda “Cosa significano gli esiti e cosa fare” (Accettato, Sinonimo, Da controllare, Non trovato, Autore diverso).
 
 = 1.6.33 =
 * Nuova pagina pubblica Nomenclatura (shortcode [am_nomenclatura]) per Amministratori ed Editori: la stessa verifica dei nomi della pagina Archivio Micologico → Nomenclatura, con lo stile delle pagine Tassonomia e Vocabolari, utilizzabile anche da telefono. Chi non è autorizzato vede solo l’avviso di accesso.

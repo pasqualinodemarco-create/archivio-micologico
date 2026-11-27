@@ -533,8 +533,19 @@ try {
             $checks['query_rank_variety'] = $N::query($post_id)[1] === 'variety' && $qrank === 'species' && $qname !== '';
             $N::store($post_id, ['status' => 'synonym', 'name' => 'Xerocomus chrysenteron', 'authorship' => '(Bull.) Quél.', 'if_id' => '356935', 'col_id' => '5CCN8', 'current' => 'Xerocomellus chrysenteron', 'current_authorship' => '(Bull.) Šutara', 'current_if_id' => '511893', 'current_col_id' => '5CCLF', 'synonyms' => [['Boletus chrysenteron', 'Bull.'], ['Xerocomus chrysenteron', '(Bull.) Quél.']]]);
             $sec = $N::section($post_id);
-            $checks['section_current'] = str_contains($sec, 'Nome corrente') && str_contains($sec, '<i>Xerocomellus</i> <i>chrysenteron</i>') && str_contains($sec, 'RecordID=511893') && str_contains($sec, 'catalogueoflife.org/data/taxon/5CCLF');
-            $checks['section_synonyms'] = str_contains($sec, '<i>Boletus</i> <i>chrysenteron</i> <span class="am-nom__author">Bull.</span>');
+            // Synonym: no box for visitors; Administrators and Editors get a note with the accepted name.
+            $checks['synonym_staff_only'] = $can_manage
+                ? (str_contains($sec, 'Visibile solo ad Amministratori ed Editori') && str_contains($sec, '<i>Xerocomellus</i> <i>chrysenteron</i>') && str_contains($sec, 'RecordID=511893') && !str_contains($sec, 'am-nom__list'))
+                : $sec === '';
+            wp_set_current_user(0);
+            $checks['synonym_hidden_for_visitors'] = $N::section($post_id) === '';
+            wp_set_current_user($user->ID);
+            $N::store($post_id, ['status' => 'accepted', 'name' => 'Xerocomellus chrysenteron', 'authorship' => '(Bull.) Šutara', 'if_id' => '511893', 'col_id' => '5CCLF', 'synonyms' => [['Boletus chrysenteron', 'Bull.'], ['Xerocomus chrysenteron', '(Bull.) Quél.']]]);
+            wp_set_current_user(0);
+            $sec = $N::section($post_id);
+            wp_set_current_user($user->ID);
+            $checks['section_current'] = str_contains($sec, 'Nome attuale') && str_contains($sec, 'oggi accettato da Species Fungorum') && str_contains($sec, '<i>Xerocomellus</i> <i>chrysenteron</i> <span class="am-nom__author">(Bull.) Šutara</span>') && str_contains($sec, 'RecordID=511893') && str_contains($sec, 'catalogueoflife.org/data/taxon/5CCLF') && !str_contains($sec, 'Stato del nome');
+            $checks['section_synonyms'] = str_contains($sec, '<i>Boletus</i> <i>chrysenteron</i> <span class="am-nom__author">Bull.</span></span>; <span');
             $search = new ReflectionMethod(ArchivioMicologico\Archive::class, 'search_entries');
             $found = static fn(string $t): bool => in_array($post_id, array_map('intval', wp_list_pluck($search->invoke(null, $t, 1, 20)->posts, 'ID')), true);
             $checks['search_by_synonym'] = $found('Boletus chrysenteron');
@@ -545,7 +556,10 @@ try {
             update_option('am_nom_enabled', 1);
             update_option('am_nom_search', 1);
             $N::store($post_id, ['status' => 'notfound']);
-            $checks['section_hidden_notfound'] = $N::section($post_id) === '';
+            $checks['section_hidden_notfound'] = str_contains($N::section($post_id), 'non è stato trovato') === $can_manage;
+            wp_set_current_user(0);
+            $checks['notfound_hidden_for_visitors'] = $N::section($post_id) === '';
+            wp_set_current_user($user->ID);
             wp_update_user(['ID' => get_post_field('post_author', $post_id), 'first_name' => 'Mario', 'last_name' => 'Rossi']);
             update_option('am_cite_work', 'Archivio Test');
             $cite = $N::citation($post_id);
@@ -553,7 +567,7 @@ try {
             update_option('am_cite_enabled', 0);
             $checks['citation_switch_off'] = $N::citation($post_id) === '';
             update_option('am_cite_enabled', 1);
-            $checks['page_rendered'] = (static function () use ($N): bool { ob_start(); try { $N::admin_page(); } catch (Throwable $e) { ob_end_clean(); return false; } $h = (string) ob_get_clean(); return str_contains($h, 'data-nom-row=') && str_contains($h, 'Verifica di nuovo tutte'); })() === $can_manage;
+            $checks['page_rendered'] = (static function () use ($N): bool { ob_start(); try { $N::admin_page(); } catch (Throwable $e) { ob_end_clean(); return false; } $h = (string) ob_get_clean(); return str_contains($h, 'data-nom-row=') && str_contains($h, 'Verifica di nuovo tutte') && str_contains($h, 'Cosa significano gli esiti'); })() === $can_manage;
             $checks['public_page'] = str_contains(do_shortcode('[am_nomenclatura]'), 'data-nom-run="unchecked"') === $can_manage;
             wp_set_current_user(0);
             $checks['public_page_guest'] = !str_contains(do_shortcode('[am_nomenclatura]'), 'data-nom-row') && str_contains(do_shortcode('[am_nomenclatura]'), 'riservata');

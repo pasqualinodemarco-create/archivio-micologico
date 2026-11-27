@@ -133,30 +133,38 @@ final class Nomenclature {
 		return $author !== '' ? $html . ' <span class="am-nom__author">' . esc_html($author) . '</span>' : $html;
 	}
 
-	/** "Nomenclatura" section of the scheda. */
+	/** Where the editors check the names: the public page if there is one, else the admin page. */
+	private static function board_url(): string {
+		$url = AdminPages::page_url('nomenclature');
+		return $url !== '' ? $url : admin_url('admin.php?page=am_nomenclatura');
+	}
+
+	/**
+	 * "Nomenclatura" section of the scheda.
+	 * Visitors see it only when the name of the scheda is the one accepted today: a scheda under
+	 * an outdated name is an editorial matter, solved by renaming it. Administrators and Editors see,
+	 * in its place, a note explaining what the check found and what to do.
+	 */
 	public static function section(int $post_id): string {
 		if (!self::enabled()) { return ''; }
 		$d = self::get($post_id);
-		if (!$d || !in_array($d['status'] ?? '', ['accepted', 'synonym'], true)) { return ''; }
-
-		$html = '<section class="am-entry-section am-nom" aria-labelledby="am-nom-' . $post_id . '"><h2 id="am-nom-' . $post_id . '">' . esc_html__('Nomenclatura', 'archivio-micologico') . '</h2><dl class="am-nom__list">';
-		if ($d['status'] === 'synonym' && $d['current'] !== '') {
-			$cur = self::name_html($d['current'], (string) ($d['current_authorship'] ?? ''));
-			if ($d['current_if_id'] !== '') {
-				$cur = '<a href="' . esc_url(self::if_url($d['current_if_id'])) . '" target="_blank" rel="noopener">' . $cur . '</a>';
-			}
-			$html .= '<dt>' . esc_html__('Nome corrente', 'archivio-micologico') . '</dt><dd>' . $cur . '<span class="am-nom__note">' . esc_html__('Il nome della scheda è oggi considerato un sinonimo.', 'archivio-micologico') . '</span></dd>';
-		} else {
-			$html .= '<dt>' . esc_html__('Stato del nome', 'archivio-micologico') . '</dt><dd>' . esc_html__('Nome accettato', 'archivio-micologico') . '</dd>';
+		$status = (string) ($d['status'] ?? '');
+		if ($status !== 'accepted') {
+			return $status !== '' ? self::staff_note($post_id, $d) : '';
 		}
+
+		$name = self::name_html((string) $d['name'], (string) $d['authorship']);
+		$html = '<section class="am-entry-section am-nom" aria-labelledby="am-nom-' . $post_id . '"><h2 id="am-nom-' . $post_id . '">' . esc_html__('Nomenclatura', 'archivio-micologico') . '</h2><dl class="am-nom__list">';
+		$html .= '<dt>' . esc_html__('Nome attuale', 'archivio-micologico') . '</dt><dd>' . $name
+			. '<span class="am-nom__note">' . esc_html__('Il nome usato in questa scheda è quello oggi accettato da Species Fungorum.', 'archivio-micologico') . '</span></dd>';
 		if ($d['synonyms']) {
-			$items = array_map(static fn($s) => '<li>' . self::name_html((string) ($s[0] ?? ''), (string) ($s[1] ?? '')) . '</li>', array_slice($d['synonyms'], 0, 40));
-			$html .= '<dt>' . esc_html__('Sinonimi', 'archivio-micologico') . '</dt><dd><ul class="am-nom__synonyms">' . implode('', $items) . '</ul></dd>';
+			$items = array_map(static fn($s) => '<span class="am-nom__syn">' . self::name_html((string) ($s[0] ?? ''), (string) ($s[1] ?? '')) . '</span>', array_slice($d['synonyms'], 0, 40));
+			$html .= '<dt>' . esc_html__('Sinonimi', 'archivio-micologico') . '</dt><dd><span class="am-nom__note am-nom__note--before">' . esc_html__('Altri nomi con cui questa specie è stata descritta o citata in passato.', 'archivio-micologico') . '</span>'
+				. '<p class="am-nom__synonyms">' . implode('; ', $items) . '.</p></dd>';
 		}
 		$links = [];
 		if ($d['if_id'] !== '') { $links[] = '<a href="' . esc_url(self::if_url($d['if_id'])) . '" target="_blank" rel="noopener">Index Fungorum ' . esc_html($d['if_id']) . '</a>'; }
-		$col = $d['status'] === 'synonym' && $d['current_col_id'] !== '' ? $d['current_col_id'] : $d['col_id'];
-		if ($col !== '') { $links[] = '<a href="' . esc_url(self::col_url($col)) . '" target="_blank" rel="noopener">Catalogue of Life</a>'; }
+		if ($d['col_id'] !== '') { $links[] = '<a href="' . esc_url(self::col_url($d['col_id'])) . '" target="_blank" rel="noopener">Catalogue of Life</a>'; }
 		if ($links) {
 			$html .= '<dt>' . esc_html__('Fonti', 'archivio-micologico') . '</dt><dd>' . implode(' · ', $links) . '</dd>';
 		}
@@ -164,6 +172,35 @@ final class Nomenclature {
 		/* translators: %s: date of the last check. */
 		$html .= '<p class="am-nom__source">' . esc_html(sprintf(__('Fonte: Species Fungorum tramite Catalogue of Life, verificato il %s.', 'archivio-micologico'), date_i18n(get_option('date_format'), strtotime((string) $d['checked'])))) . '</p>';
 		return $html . '</section>';
+	}
+
+	/** Note for Administrators and Editors on a scheda whose name is not the accepted one. */
+	private static function staff_note(int $post_id, array $d): string {
+		if (!EntryForms::am_current_user_is_admin_or_editor()) { return ''; }
+		$status = (string) $d['status'];
+		if ($status === 'synonym') {
+			$current = (string) $d['current'] !== '' ? self::name_html((string) $d['current'], (string) ($d['current_authorship'] ?? '')) : '';
+			if ($current !== '' && ($d['current_if_id'] ?? '') !== '') {
+				$current = '<a href="' . esc_url(self::if_url((string) $d['current_if_id'])) . '" target="_blank" rel="noopener">' . $current . '</a>';
+			}
+			$what = sprintf(
+				/* translators: %s: accepted name. */
+				esc_html__('Secondo Species Fungorum il nome di questa scheda è oggi un sinonimo: il nome accettato è %s.', 'archivio-micologico'),
+				$current !== '' ? $current : esc_html__('(non indicato)', 'archivio-micologico')
+			);
+			$todo = esc_html__('Per aggiornarla rinomina la specie in Tassonomia (le schede collegate si riallineano da sole), poi ripeti la verifica: il riquadro comparirà con il nome nuovo. La ricerca trova già la scheda anche con il nome accettato.', 'archivio-micologico');
+		} elseif ($status === 'ambiguous') {
+			$what = esc_html__('Species Fungorum riporta più nomi uguali a quello di questa scheda e non è possibile scegliere da soli.', 'archivio-micologico');
+			$todo = esc_html__('Controlla l’autore della scheda e confrontalo con Index Fungorum, poi ripeti la verifica.', 'archivio-micologico');
+		} else {
+			$what = esc_html__('Il nome di questa scheda non è stato trovato in Species Fungorum.', 'archivio-micologico');
+			$todo = esc_html__('Controlla la grafia di genere, specie e forma o varietà (ad esempio “var. excelsa” ripete il nome della specie e spesso non è registrato a parte), poi ripeti la verifica.', 'archivio-micologico');
+		}
+		return '<aside class="am-entry-section am-nom am-nom--staff" aria-label="' . esc_attr__('Nota per la redazione', 'archivio-micologico') . '">'
+			. '<p class="am-nom__staff-label">' . esc_html__('Visibile solo ad Amministratori ed Editori', 'archivio-micologico') . '</p>'
+			. '<p>' . $what . ' ' . esc_html__('Per questo il riquadro Nomenclatura non viene mostrato ai visitatori.', 'archivio-micologico') . '</p>'
+			. '<p>' . $todo . ' <a href="' . esc_url(self::board_url()) . '">' . esc_html__('Apri Nomenclatura', 'archivio-micologico') . '</a></p>'
+			. '</aside>';
 	}
 
 	/** "Come citare questa scheda", with a copy button. */
@@ -292,6 +329,13 @@ final class Nomenclature {
 		$html .= '<span class="am-nom-progress" aria-live="polite"></span>';
 		$html .= '</div>';
 		$html .= '<p class="am-manage__legend">' . esc_html__('Le richieste partono dal tuo browser verso api.checklistbank.org, una scheda alla volta: per tutto l’archivio servono alcuni minuti. Puoi chiudere la pagina e riprendere: le schede già verificate restano salvate. Clic su un riquadro in alto per vedere solo quel gruppo.', 'archivio-micologico') . '</p>';
+		$html .= '<details class="am-nom-help"><summary>' . esc_html__('Cosa significano gli esiti e cosa fare', 'archivio-micologico') . '</summary><dl>'
+			. '<dt><span class="am-status am-status--nom-accepted">' . esc_html__('Accettato', 'archivio-micologico') . '</span></dt><dd>' . esc_html__('Il nome della scheda è quello oggi accettato. Nella scheda compare il riquadro Nomenclatura con i sinonimi e i collegamenti. Non serve fare nulla.', 'archivio-micologico') . '</dd>'
+			. '<dt><span class="am-status am-status--nom-synonym">' . esc_html__('Sinonimo', 'archivio-micologico') . '</span></dt><dd>' . esc_html__('Il nome della scheda è oggi un sinonimo; dopo la freccia c’è il nome accettato. Ai visitatori il riquadro non viene mostrato, per non mettere nella stessa pagina due nomi diversi; la ricerca trova comunque la scheda con entrambi. Se la redazione adotta il nome accettato, rinomina la specie in Tassonomia e ripeti la verifica.', 'archivio-micologico') . '</dd>'
+			. '<dt><span class="am-status am-status--nom-ambiguous">' . esc_html__('Da controllare', 'archivio-micologico') . '</span></dt><dd>' . esc_html__('Esistono più nomi uguali (omonimi): confronta l’autore con Index Fungorum e ripeti la verifica.', 'archivio-micologico') . '</dd>'
+			. '<dt><span class="am-status am-status--nom-notfound">' . esc_html__('Non trovato', 'archivio-micologico') . '</span></dt><dd>' . esc_html__('Il nome non esiste in Species Fungorum così come è scritto: controlla la grafia. Le varietà o forme che ripetono il nome della specie (es. Amanita excelsa var. excelsa) spesso non sono registrate a parte.', 'archivio-micologico') . '</dd>'
+			. '<dt><span class="am-nom-diff">' . esc_html__('Autore diverso', 'archivio-micologico') . '</span></dt><dd>' . esc_html__('La fonte cita un autore diverso da quello della scheda, ad esempio la scheda ha “(Schaeffer) Fr.” e la fonte “Fr.”. Correggi la voce in Vocabolari usando l’abbreviazione standard di Index Fungorum. Il nome sanzionante dopo i due punti (“: Fr.”) non conta come differenza.', 'archivio-micologico') . '</dd>'
+			. '</dl></details>';
 		$html .= '<noscript><p class="am-manage__notice am-manage__notice--info">' . esc_html__('Per la verifica serve JavaScript attivo.', 'archivio-micologico') . '</p></noscript>';
 		$html .= '<div class="am-manage__panel"><table class="am-mtable am-nom-table"><caption class="screen-reader-text">' . esc_html__('Nomenclatura delle schede', 'archivio-micologico') . '</caption>';
 		$html .= '<thead><tr><th scope="col">' . esc_html__('Scheda', 'archivio-micologico') . '</th><th scope="col">' . esc_html__('Esito', 'archivio-micologico') . '</th><th scope="col">' . esc_html__('Autore secondo la fonte', 'archivio-micologico') . '</th><th scope="col">' . esc_html__('Sinonimi', 'archivio-micologico') . '</th><th scope="col"><span class="screen-reader-text">' . esc_html__('Azioni', 'archivio-micologico') . '</span></th></tr></thead>';
