@@ -67,6 +67,7 @@ Sì. Il plugin è sviluppato e testato con PHP 8+.
 == Changelog ==
 
 = 1.6.28 =
+* Impostazioni → Sfoglia le schede → Quando compaiono le frecce: sempre, oppure solo dopo Inizia a sfogliare nell’archivio (chi apre una scheda dall’albero, dalla ricerca o da Google la legge senza frecce). Etichette del riquadro più brevi, così i menu non vengono tagliati.
 * Impostazioni → Sfoglia le schede: si decide se mostrare il riquadro Sfoglia l’archivio, quali ordini proporre ai visitatori (tassonomico, alfabetico, più recenti) e quali capitoli (divisioni, famiglie, generi). Con un solo ordine o nessun capitolo il menu corrispondente non compare e il testo del riquadro si adatta.
 * L’ordine delle Impostazioni diventa Ordine predefinito: vale per chi apre una scheda senza passare dal riquadro ed è la scelta iniziale del riquadro.
 

@@ -37,6 +37,7 @@ $options = [
 	'am_book_speed',
 	'am_book_order',
 	'am_book_panel',
+	'am_book_arrows',
 	'am_book_panel_orders',
 	'am_book_panel_ranks',
 	'am_page_archive',

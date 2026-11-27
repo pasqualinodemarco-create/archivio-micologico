@@ -815,6 +815,17 @@ public static function apply_admin_post_filters($query) {
 			echo '<p class="description">' . esc_html__('Funzionano anche con i tasti ← e → della tastiera. Su telefono le frecce sono più piccole e senza etichetta.', 'archivio-micologico') . '</p>';
 		}, 'am_settings', 'am_book');
 
+		add_settings_field('am_book_arrows', __('Quando compaiono le frecce', 'archivio-micologico'), function () {
+			$mode = \ArchivioMicologico\BookNav::arrows_mode();
+			foreach ([
+				'sempre' => __('Sempre, su ogni scheda', 'archivio-micologico'),
+				'sfoglia' => __('Solo dopo “Inizia a sfogliare” nell’archivio', 'archivio-micologico'),
+			] as $value => $label) {
+				echo '<label style="display:block;margin:2px 0"><input type="radio" name="am_book_arrows" value="' . esc_attr($value) . '" ' . checked($mode, $value, false) . '> ' . esc_html($label) . '</label>';
+			}
+			echo '<p class="description">' . esc_html__('Con “Solo dopo Inizia a sfogliare” chi apre una scheda dall’albero, dalla ricerca o da Google la legge senza frecce; la modalità sfoglia si attiva dal riquadro dell’archivio, che deve restare visibile.', 'archivio-micologico') . '</p>';
+		}, 'am_settings', 'am_book');
+
 		add_settings_field('am_book_panel', __('Riquadro nell’archivio', 'archivio-micologico'), function () {
 			echo '<input type="hidden" name="am_book_panel" value="0">';
 			echo '<label><input type="checkbox" name="am_book_panel" value="1" ' . checked(1, (int) get_option('am_book_panel', 1), false) . '> ';
@@ -1153,6 +1164,10 @@ wp_safe_redirect(add_query_arg(['page' => 'am_settings', 'am_err' => 'caps'], ad
 			$book_nav = $_POST['am_book_nav'] ?? null;
 			if ($book_nav === '0' || $book_nav === '1') {
 				update_option('am_book_nav', (int) $book_nav);
+			}
+			$arrows = isset($_POST['am_book_arrows']) ? sanitize_key((string) $_POST['am_book_arrows']) : '';
+			if ($arrows === 'sempre' || $arrows === 'sfoglia') {
+				update_option('am_book_arrows', $arrows);
 			}
 			$panel = $_POST['am_book_panel'] ?? null;
 			if ($panel === '0' || $panel === '1') {

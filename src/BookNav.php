@@ -180,8 +180,15 @@ final class BookNav {
 		return [$order[$pos - 1] ?? 0, $order[$pos + 1] ?? 0, $pos + 1, count($order)];
 	}
 
+	/** 'sempre': arrows on every scheda; 'sfoglia': only after "Inizia a sfogliare" in the archive. */
+	public static function arrows_mode(): string {
+		return (string) get_option('am_book_arrows', 'sempre') === 'sfoglia' ? 'sfoglia' : 'sempre';
+	}
+
 	private static function current_id(): int {
-		return (self::enabled() && is_singular(AM_CPT)) ? (int) get_queried_object_id() : 0;
+		if (!self::enabled() || !is_singular(AM_CPT)) { return 0; }
+		if (self::arrows_mode() === 'sfoglia' && !self::context()[2]) { return 0; }
+		return (int) get_queried_object_id();
 	}
 
 	/** Keeps the "Torna ai risultati" context and the visitor's way of leafing through. */
@@ -219,9 +226,9 @@ final class BookNav {
 
 	public static function order_labels(): array {
 		return [
-			'archivio' => __('Tassonomico: divisione, famiglia, specie', 'archivio-micologico'),
-			'alfabetico' => __('Alfabetico per nome scientifico', 'archivio-micologico'),
-			'recenti' => __('Dalle schede più recenti', 'archivio-micologico'),
+			'archivio' => __('Tassonomico', 'archivio-micologico'),
+			'alfabetico' => __('Alfabetico', 'archivio-micologico'),
+			'recenti' => __('Più recenti', 'archivio-micologico'),
 		];
 	}
 
@@ -262,7 +269,7 @@ final class BookNav {
 		if ($scopes) {
 			$html .= '<label class="am-bookpanel__field"><span>' . esc_html__('Da sfogliare', 'archivio-micologico') . '</span><select name="am_book_scope">';
 			/* translators: %d: number of published schede. */
-			$html .= '<option value="0">' . esc_html(sprintf(__('Tutto l’archivio (%d schede)', 'archivio-micologico'), $total)) . '</option>';
+			$html .= '<option value="0">' . esc_html(sprintf(__('Tutto l’archivio (%d)', 'archivio-micologico'), $total)) . '</option>';
 			foreach ($scopes as [$id, $name, $rank, $n]) {
 				$html .= '<option value="' . esc_attr((string) $id) . '">' . esc_html($indent[$rank] . $labels[$rank] . ' ' . $name . ' (' . $n . ')') . '</option>';
 			}
