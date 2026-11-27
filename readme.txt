@@ -5,7 +5,7 @@ Tags: fungi, mycology, taxonomy, scientific archive, biodiversity, search
 Requires at least: 6.0
 Tested up to: 7.1
 Requires PHP: 8.0
-Stable tag: 1.6.26
+Stable tag: 1.6.27
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -65,6 +65,10 @@ Sì. Il plugin è sviluppato e testato con PHP 8+.
 4. Tooltip informativo con logo e crediti
 
 == Changelog ==
+
+= 1.6.27 =
+* Archivio micologico: nuovo riquadro Sfoglia l’archivio. Il visitatore sceglie l’ordine (tassonomico, alfabetico, dalle più recenti) e cosa sfogliare (tutto l’archivio, una divisione, una famiglia o un genere, con il numero di schede) e con Inizia a sfogliare apre la prima scheda.
+* Le frecce restano dentro la scelta del visitatore e ne mostrano il capitolo (es. Agaricaceae · 12 di 31); la scelta prevale sull’ordine delle Impostazioni, che resta quello predefinito. Torna ai risultati riporta all’archivio.
 
 = 1.6.26 =
 * Impostazioni: ogni controllo ha ora la sua descrizione; stati delle nuove schede con etichette in italiano (Pubblicata subito, In attesa di revisione, Bozza, Privata) e spiegazione di cosa comportano.

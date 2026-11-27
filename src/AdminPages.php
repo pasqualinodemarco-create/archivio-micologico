@@ -454,7 +454,7 @@ final class AdminPages {
 			[__('Forma e varietà', 'archivio-micologico'), __('Con l’abbreviazione del rango: var. per varietà, f. per forma.', 'archivio-micologico')],
 			[__('Autori', 'archivio-micologico'), __('Abbreviazioni standard di Index Fungorum (Authors of Fungal Names). Una sola voce per autore: i doppioni si correggono con Unisci.', 'archivio-micologico')],
 			[__('Categorie degli articoli', 'archivio-micologico'), __('Raggruppano gli articoli per argomento (es. Monografie, Chiavi, Relazioni). Si creano in Archivio Micologico → Categorie Articoli, si scelgono nel modulo (anche più di una) e ognuna ha la sua pagina pubblica con l’elenco degli articoli.', 'archivio-micologico')],
-			[__('Sfogliare le schede', 'archivio-micologico'), __('Le frecce ai lati della scheda seguono l’ordine dell’archivio: divisione, famiglia, nome scientifico. Effetto e durata in Impostazioni → Sfoglia le schede.', 'archivio-micologico')],
+			[__('Sfogliare le schede', 'archivio-micologico'), __('Le frecce ai lati della scheda seguono l’ordine scelto in Impostazioni → Sfoglia le schede. Nell’archivio il riquadro Sfoglia l’archivio lascia scegliere al visitatore ordine e capitolo (una divisione, famiglia o genere): le frecce restano dentro quella scelta.', 'archivio-micologico')],
 						[__('Eliminare', 'archivio-micologico'), __('Possibile solo per voci senza schede e senza livelli inferiori, così nessuna scheda perde la classificazione.', 'archivio-micologico')],
 		];
 		foreach ($rules as [$term, $def]) { echo '<dt>' . esc_html($term) . '</dt><dd>' . esc_html($def) . '</dd>'; }

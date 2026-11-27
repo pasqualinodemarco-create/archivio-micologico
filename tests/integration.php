@@ -306,6 +306,21 @@ try {
             $checks['effects'] = str_contains(ArchivioMicologico\BookNav::effect_css('libro', 650), 'am-book-turn 650ms')
                 && str_contains(ArchivioMicologico\BookNav::effect_css('scorrimento', 400), '@view-transition')
                 && ArchivioMicologico\BookNav::effect_css('nessuno', 650) === '' && ArchivioMicologico\BookNav::effect_css('bogus', 650) === '';
+            ArchivioMicologico\BookNav::flush();
+            $BN = 'ArchivioMicologico\\BookNav';
+            $checks['scope_family'] = $BN::order('alfabetico', $terms[1]) === [$b, $post_id] && $BN::order('archivio', (int) $alpha['term_id']) === [$a];
+            $checks['scope_division'] = count($BN::order('archivio', $terms[0])) === 3;
+            $_GET['am_book'] = 'alfabetico.' . $terms[1];
+            $checks['visitor_context'] = $BN::context() === ['alfabetico', $terms[1], true];
+            $scoped = $BN::markup($b);
+            $checks['scoped_arrows'] = str_contains($scoped, 'am_book=alfabetico.' . $terms[1]) && str_contains($scoped, 'Test Family · 2 di 2') && !str_contains($scoped, 'rel="prev"');
+            $_GET['am_book'] = 'bogus.1';
+            $checks['bad_context_ignored'] = $BN::context()[2] === false;
+            unset($_GET['am_book']);
+            $names = array_column($BN::scopes(), 1);
+            $checks['scopes_listed'] = in_array('Agaricaceae', $names, true) && in_array('Test Family', $names, true) && in_array('Basidiomycota', $names, true);
+            $panel = $BN::panel();
+            $checks['panel'] = str_contains($panel, 'Inizia a sfogliare') && str_contains($panel, 'name="am_book_scope"') && str_contains($panel, 'Agaricaceae (1)');
             update_option('am_book_order', 'alfabetico'); ArchivioMicologico\BookNav::flush();
             $checks['alphabetical_order'] = ArchivioMicologico\BookNav::order() === [$b, $post_id, $a];
             update_option('am_book_order', 'bogus');
