@@ -255,3 +255,4 @@
 .am-admin .form-table select + .am-copy { margin-left: 10px; }
 .am-admin .am-codes td:first-child { width: 290px; }
 .am-admin .am-codes .am-copy { margin: 0; }
+.am-admin .am-carousel-overrides { margin: 0 0 12px; } .am-admin .am-carousel-overrides ul { margin: 4px 0 4px 18px; list-style: disc; }

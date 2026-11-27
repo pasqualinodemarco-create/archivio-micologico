@@ -393,6 +393,7 @@ final class AdminPages {
 		wp_nonce_field('am_save_settings');
 		foreach ($sections as $id => [$title, $intro]) {
 			echo '<section class="am-card" id="' . esc_attr($id) . '"><h2>' . esc_html($title) . '</h2><p class="am-card__intro">' . esc_html($intro) . '</p>';
+			if ($id === 'am_widget_random') { self::carousel_overrides_notice(); }
 			echo '<table class="form-table" role="presentation">';
 			do_settings_fields('am_settings', $id);
 			echo '</table></section>';
@@ -423,6 +424,43 @@ final class AdminPages {
 		Admin::render_clear_debug_log_tool();
 		echo '</section>';
 		self::close();
+	}
+
+	/**
+	 * Pages whose [am_random_funghi] sets its own values: there the settings below do not apply.
+	 * Lists them with the values that win, and flags values outside the allowed ranges.
+	 */
+	private static function carousel_overrides_notice(): void {
+		global $wpdb;
+		$rows = $wpdb->get_results($wpdb->prepare(
+			"SELECT ID, post_title, post_content FROM {$wpdb->posts} WHERE post_status IN ('publish','private','draft') AND post_type IN ('page','post','wp_block','wp_template','wp_template_part') AND post_content LIKE %s",
+			'%' . $wpdb->esc_like('[am_random_funghi') . '%'
+		)) ?: [];
+		$names = ['numero' => __('schede', 'archivio-micologico'), 'titolo' => __('titolo', 'archivio-micologico'), 'visibili' => __('per riga', 'archivio-micologico'), 'righe' => __('righe', 'archivio-micologico'), 'autoplay' => __('movimento', 'archivio-micologico'), 'intervallo' => __('intervallo', 'archivio-micologico')];
+		$limits = ['numero' => [1, 12], 'visibili' => [1, 3], 'righe' => [1, 4], 'intervallo' => [2, 20]];
+		$items = [];
+		foreach ($rows as $row) {
+			if (!preg_match_all('/' . get_shortcode_regex(['am_random_funghi']) . '/', (string) $row->post_content, $m, PREG_SET_ORDER)) { continue; }
+			foreach ($m as $match) {
+				$atts = array_intersect_key((array) shortcode_parse_atts($match[3]), $names);
+				if (!$atts) { continue; }
+				$parts = [];
+				foreach ($atts as $k => $v) {
+					$bad = isset($limits[$k]) && ((int) $v < $limits[$k][0] || (int) $v > $limits[$k][1]);
+					$parts[] = $names[$k] . ' = ' . $v . ($bad ? ' ' . sprintf(__('(fuori dai limiti %1$d–%2$d)', 'archivio-micologico'), $limits[$k][0], $limits[$k][1]) : '');
+				}
+				$items[] = [(int) $row->ID, (string) $row->post_title, implode(', ', $parts)];
+			}
+		}
+		if (!$items) {
+			echo '<p class="am-page-status">' . esc_html__('Nessuna pagina sovrascrive queste impostazioni: valgono ovunque.', 'archivio-micologico') . '</p>';
+			return;
+		}
+		echo '<div class="notice notice-warning inline am-carousel-overrides"><p><strong>' . esc_html__('In queste pagine lo shortcode ha valori propri, che prevalgono su quelli qui sotto:', 'archivio-micologico') . '</strong></p><ul>';
+		foreach ($items as [$id, $title, $parts]) {
+			echo '<li><a href="' . esc_url((string) get_edit_post_link($id)) . '">' . esc_html($title !== '' ? $title : '#' . $id) . '</a>: ' . esc_html($parts) . '</li>';
+		}
+		echo '</ul><p>' . esc_html__('Per usare le impostazioni anche lì, lascia nello shortcode solo [am_random_funghi].', 'archivio-micologico') . '</p></div>';
 	}
 
 	/* ---------------------------------------------------------------- instructions */

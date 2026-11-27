@@ -28,5 +28,6 @@ echo "PHPCS exit $?"
 php -d memory_limit=1G /tmp/qa/vendor/bin/phpstan analyse -c qa/phpstan.neon.dist --no-progress --error-format=raw > qa/out/phpstan.txt 2>&1
 echo "PHPStan exit $?"
 for f in qa/out/phpcs-summary.txt qa/out/phpcs-sources.txt; do echo "== $f"; cat "$f"; done
+echo "== PHPCS dettaglio"; cat qa/out/phpcs.txt
 echo "== PHPStan"; head -200 qa/out/phpstan.txt
 exit $status

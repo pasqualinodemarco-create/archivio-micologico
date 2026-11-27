@@ -1,3 +1,4 @@
 <?php
-// The plugin's own constants are read from archivio-micologico.php (analysed file).
-define('ABSPATH', '/tmp/wordpress/');
+// Constants whose value comes from WordPress functions at runtime.
+define('AM_PATH', __DIR__ . '/../');
+define('AM_URL', 'https://example.test/wp-content/plugins/archivio-micologico/');

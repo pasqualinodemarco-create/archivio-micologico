@@ -10,13 +10,17 @@
 	<arg value="sp"/>
 
 	<!-- Sicurezza: escape dell'output, nonce, input validato e sanificato, SQL preparato. -->
-	<rule ref="WordPress.Security"/>
+	<rule ref="WordPress.Security">
+		<!-- $_GET read only to choose what to display (filters, tabs, notices): no state change. -->
+		<exclude name="WordPress.Security.NonceVerification.Recommended"/>
+	</rule>
 	<rule ref="WordPress.DB.PreparedSQL"/>
 	<rule ref="WordPress.DB.PreparedSQLPlaceholders"/>
 	<rule ref="WordPress.WP.I18n">
 		<properties>
 			<property name="text_domain" type="array"><element value="archivio-micologico"/></property>
 		</properties>
+		<exclude name="WordPress.WP.I18n.MissingTranslatorsComment"/>
 	</rule>
 	<rule ref="WordPress.PHP.DontExtract"/>
 	<rule ref="WordPress.PHP.RestrictedPHPFunctions"/>

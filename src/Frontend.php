@@ -734,9 +734,9 @@ $macro_html = '';
 				if ($file !== '') {
 					$filename = basename($file);
 				} elseif ($url !== '') {
-					$filename = basename(parse_url($url, PHP_URL_PATH) ?: 'allegato.pdf');
+					$filename = basename(wp_parse_url($url, PHP_URL_PATH) ?: 'allegato.pdf');
 				} elseif (!empty($att->guid)) {
-					$filename = basename(parse_url((string)$att->guid, PHP_URL_PATH) ?: 'allegato.pdf');
+					$filename = basename(wp_parse_url((string)$att->guid, PHP_URL_PATH) ?: 'allegato.pdf');
 				}
 				$is_pdf = (stripos($mime, 'pdf') !== false)
 					|| ($filename && preg_match('/\.pdf$/i', $filename))
@@ -830,7 +830,7 @@ $macro_html = '';
 		}
 
 		$uri = isset($_SERVER['REQUEST_URI']) ? (string) wp_unslash($_SERVER['REQUEST_URI']) : '';
-		$path = trim((string) parse_url($uri, PHP_URL_PATH), '/');
+		$path = trim((string) wp_parse_url($uri, PHP_URL_PATH), '/');
 		if ($path !== '') {
 			$parts = explode('/', $path);
 			$slug = end($parts);

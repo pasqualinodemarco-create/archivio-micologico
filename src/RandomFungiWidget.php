@@ -37,7 +37,7 @@ class RandomFungiWidget extends WP_Widget {
 		echo $args['after_widget'];
 	}
 
-	public function form($instance): void {
+	public function form($instance) {
 		$title = isset($instance['title']) ? (string) $instance['title'] : __('Carosello schede fungo', 'archivio-micologico');
 		?>
 		<p>

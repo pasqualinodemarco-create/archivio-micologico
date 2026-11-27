@@ -224,7 +224,7 @@ class Admin {
 	}
 
 	public static function handle_vocab_add(): void {
-		if (!(current_user_can('manage_terms') || current_user_can('manage_options')) && !current_user_can('manage_options')) {
+		if (!current_user_can('manage_terms') && !current_user_can('manage_options')) {
 			wp_die(esc_html__('Non autorizzato.', 'archivio-micologico'));
 		}
 		check_admin_referer('am_vocab_add');
@@ -283,7 +283,7 @@ class Admin {
 	}
 
 	public static function handle_vocab_delete(): void {
-		if (!(current_user_can('manage_terms') || current_user_can('manage_options')) || current_user_can('manage_options') && !current_user_can('manage_options')) {
+		if (!current_user_can('manage_terms') && !current_user_can('manage_options')) {
 			wp_die(esc_html__('Non autorizzato.', 'archivio-micologico'));
 		}
 		check_admin_referer('am_vocab_delete');
@@ -480,7 +480,7 @@ class Admin {
 				(string) $hook_article_cats,
 				'article_categories',
 				admin_url('edit-tags.php?taxonomy=' . AM_TAX_ARTICLE_CAT . '&post_type=' . AM_ARTICLE_CPT),
-				function() { return (current_user_can('manage_terms') || current_user_can('manage_options')) || current_user_can('manage_options'); },
+				function() { return current_user_can('manage_terms') || current_user_can('manage_options'); },
 				__('Non hai il permesso di accedere a questa pagina.', 'archivio-micologico')
 			);
 		}
@@ -638,7 +638,7 @@ public static function apply_admin_post_filters($query) {
 	$family  = isset($_GET['am_family']) ? absint($_GET['am_family']) : 0;
 	$genus   = isset($_GET['am_genus']) ? absint($_GET['am_genus']) : 0;
 	$species = isset($_GET['am_species']) ? absint($_GET['am_species']) : 0;
-	$term_id = $species ?: ($genus ?: ($family ?: $order));
+	$term_id = $species ?: ($genus ?: ($family ?: $division));
 	if ($term_id) {
 		$query->set('tax_query', [[
 			'taxonomy' => AM_TAX_CLASSIFICAZIONE,

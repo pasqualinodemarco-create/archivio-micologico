@@ -45,7 +45,6 @@ function amShowNotice(type, message){
 	}
 
 	$(document).ready(function () {
-		var $orderHidden = $('#am_order'); // legacy
 		var $division = $('#am_division');
 		var $family = $('#am_family');
 		var $genus = $('#am_genus');
@@ -58,11 +57,6 @@ function amShowNotice(type, message){
 		var $infra = $('#am_infra');
 		var $author = $('#am_author');
 
-		function getSelectedParentAttr($select) {
-			var $opt = $select.find('option:selected');
-			var p = parseInt($opt.attr('data-parent') || '0', 10);
-			return p || 0;
-		}
 
 		// Keep microform parents in sync (quick taxonomy creation without saving the post)
 		function amSyncMicroParents() {
@@ -534,12 +528,6 @@ function amShowNotice(type, message){
 
 
 	// Save review button (admin only)
-	function formatNow() {
-		try {
-			var d = new Date();
-			return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0') + ' ' + String(d.getHours()).padStart(2,'0') + ':' + String(d.getMinutes()).padStart(2,'0') + ':' + String(d.getSeconds()).padStart(2,'0');
-		} catch(e){ return ''; }
-	}
 
 	$(document).on('click', '#am-save-review-btn', function(e){
 		e.preventDefault();
